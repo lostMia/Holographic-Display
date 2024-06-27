@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 File Upload</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+</head>
+<body>
+    <h1>Upload PNG File</h1>
+    <form method="POST" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".png">
+        <input type="submit" value="Upload">
+    </form>
+    <h2>Uploaded Files:</h2>
+    <div id="file-list"></div>
+    <script src="/script.js"></script>
+</body>
+</html>
