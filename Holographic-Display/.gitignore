@@ -5,6 +5,5 @@
 .vscode/ipch
 
 include/credentials.hpp
-data/cert.csr
 data/certificate.pem
-data/private.pem
+data/private_key.pem
