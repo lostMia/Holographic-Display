@@ -1,21 +1,22 @@
 body {
-    background-color: #aaaaaa;
+    background-color: #222222;
     font-family: Arial, sans-serif;
+    color: #eeeeee
 }
 
 h1 {
-    color: #333;
+    color: #ff4060;
 }
 
 button {
     padding: 10px 20px;
     font-size: 16px;
-    background-color: #007bff;
-    color: #fff;
+    background-color: #ff4060;
+    color: #000000;
     border: none;
     cursor: pointer;
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #ff4060;
 }

@@ -10,13 +10,13 @@
 
 #pragma once
 
-#define ASYNC_TCP_SSL_ENABLED 1
 
 #include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <ESPmDNS.h>
 #include <SPIFFS.h>
 
 namespace Web
