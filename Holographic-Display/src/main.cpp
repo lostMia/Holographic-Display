@@ -1,7 +1,7 @@
 
 /*
  * @file main.cpp
- * @authors Timeania, lostmia
+ * @authors mia
  * @brief Main class for getting values from the internet and hosting a webserver.
  * @version 0.1.0
  * @date 2024-05-15
@@ -11,31 +11,20 @@
 
 #include "main.hpp"
 
-int count = 0;
-Web::Server server(WEBSERVER_PORT);
+Wireless::WebServer server(WEBSERVER_PORT);
+Wireless::WifiManager wifi_manager;
 
 void setup() 
 {
   Serial.begin(SERIAL_BAUDRATE);
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(WIFI_SSID);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   
-  while (WiFi.status() != WL_CONNECTED) 
-  {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("");
-  Serial.println("WiFi connected!");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-
-  Serial.print("\n\n");
+  wifi_manager.begin();
   server.begin();
 }
 
 void loop()
-{}
+{
+#ifdef OTA_FIRMWARE
+  ElegantOTA.loop();
+#endif
+}

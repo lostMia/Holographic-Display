@@ -13,16 +13,6 @@
 
 #include <Arduino.h>
 #include "credentials.hpp"
-#include "Webpage/webserver.hpp"
-
-#ifndef WIFI_PASSWORD
-    #error "The Variable "WIFI_PASSWORD" is not set! You can do this by creating a credentials.hpp file in the include directory and defining the variable there!"
-#endif
-
-#ifndef WIFI_SSID
-    #error "The Variable "WIFI_SSID" is not set! You can do this by creating a credentials.hpp file in the include directory and defining the variable there!"
-#endif
-
-#define SERIAL_BAUDRATE 115200
-
-#define WEBSERVER_PORT 80
+#include "config.hpp"
+#include "Wireless/webserver.hpp"
+#include "Wireless/wifimanager.hpp"
