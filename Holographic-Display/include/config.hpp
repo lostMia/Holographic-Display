@@ -13,6 +13,9 @@
 #pragma once
 
 // Define this for Over-The-Air sketch/firmware updates.
+// - - - - - - WARNING - - - - - - 
+// If you disable this, then all OTA Updates will be non-functional.
+// Manual reupload with this variable defined is needed, to enable OTA again!
 #define OTA_FIRMWARE
 
 // Define to enable mDNS with the specified hostname. 

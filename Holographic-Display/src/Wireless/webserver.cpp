@@ -58,7 +58,8 @@ void WebServer::_begin_OTA()
   Serial.print(F("Setting up ElegantOTA...")); 
 
   ElegantOTA.begin(&_server);
-  // TODO: setup elegantOTA and stuffs
+  ElegantOTA.setAutoReboot(true);
+
   Serial.println(F("Done")); 
 }
 #endif
@@ -101,7 +102,7 @@ void WebServer::_setup_webserver_tree()
   });
 
   _server.onNotFound([](AsyncWebServerRequest *request){
-    Serial.printf(" http://%s%s\n", request->host().c_str(), request->url().c_str());
+    Serial.printf("\nhttp://%s%s\n", request->host().c_str(), request->url().c_str());
     request->send(SPIFFS, "/site/404.html", "text/html");
   });
 
@@ -110,8 +111,8 @@ void WebServer::_setup_webserver_tree()
   });
 
 _server.onFileUpload([](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
-    Serial.println("upload!");
-    if (!index) {
+    if (!index) 
+    {
       Serial.printf("UploadStart: %s\n", filename.c_str());
       request->_tempFile = SPIFFS.open("/" + filename, "w");
     }
@@ -119,8 +120,10 @@ _server.onFileUpload([](AsyncWebServerRequest *request, const String& filename, 
     size_t REMAINING_BYTES = SPIFFS.totalBytes() - SPIFFS.usedBytes();
     Serial.println(REMAINING_BYTES);
     
-    if (request->_tempFile) {
-      if (index + len > REMAINING_BYTES) {
+    if (request->_tempFile)
+    {
+      if (index + len > REMAINING_BYTES)
+      {
         request->_tempFile.close();
         return;
       }
@@ -128,8 +131,10 @@ _server.onFileUpload([](AsyncWebServerRequest *request, const String& filename, 
       request->_tempFile.write(data, len);
     }
     
-    if (final) {
-      if (request->_tempFile) {
+    if (final)
+    {
+      if (request->_tempFile)
+      {
         request->_tempFile.close();
         Serial.printf("UploadEnd: %s, %u B\n", filename.c_str(), index + len);
       } else {
@@ -155,7 +160,6 @@ void WebServer::begin()
   #endif
  
   _setup_webserver_tree();
-
 
   Serial.print(F("Server starting...")); 
    _server.begin();
