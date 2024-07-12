@@ -1,18 +1,82 @@
 * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
   font-family: 'Lucida Console', monospace;
+  line-height: 1.6;
+  height: 100vh;
+  position: relative;
+
+  justify-content: center;
+  align-items: center;
+  align-items: center;
+  justify-content: center;
+  background-color: #111111;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20250%20250'%3E%3Cfilter%20id='noiseFilter'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='5'%20numOctaves='1'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='matrix'%20values='0.33%200.33%200.33%200%200%200.33%200.33%200.33%200%200%200.33%200.33%200.33%200%200%200%200%200%201%200'/%3E%3C/filter%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url(%23noiseFilter)'%20opacity='0.06'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  overflow: hidden;
 }
 
-button,
-h5,
-h4,
-h3,
-h2,
-h1 {
-  margin: 20px 30px;
+::selection {
+  color: black;
+  background: #ff4060;
 }
 
+/** FF*/
+input[type="range"]::-moz-range-progress {
+  background-color: #ff4060; 
+}
+input[type="range"]::-moz-range-track {  
+  background-color: #ff406030;
+}
+
+/* Hide the default radio button */
+input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Create a custom radio button */
+.custom-radio {
+  display: inline-block;
+  position: relative;
+  width: 20px;
+  height: 20px;
+  background-color: #eee;
+  border-radius: 200%;
+  border: 2px solid #ccc;
+}
+
+/* Add a checked mark */
+input[type="radio"]:checked + .custom-radio::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  background-color: #2196F3;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Add hover effect */
+input[type="radio"]:hover + .custom-radio {
+  background-color: #ddd;
+}
+
+/* Style the label text */
+.radio-label {
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+input,
 button {
-    padding: 10px 20px;
     font-size: 20px;
     background-color: #00000000;
     color: #ffffff;
@@ -20,6 +84,10 @@ button {
     border-radius: 10px;
     cursor: pointer;
     transition: background-color 0.2s ease, box-shadow 0.4s ease;
+}
+
+input::selection {
+  color: green;
 }
 
 button:hover {
@@ -37,17 +105,23 @@ button:hover {
   }
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #050505;
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20250%20250'%3E%3Cfilter%20id='noiseFilter'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='100'%20numOctaves='1'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='matrix'%20values='0.33%200.33%200.33%200%200%200.33%200.33%200.33%200%200%200.33%200.33%200.33%200%200%200%200%200%201%200'/%3E%3C/filter%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url(%23noiseFilter)'%20opacity='0.06'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  overflow: hidden;
+#drop_zone {
+      max-width: 300px;
+      height: 200px;
+      padding: 20px;
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      color: #ccc;
+    }
+
+#drop_zone.dragover {
+  border-color: #000;
+  color: #000;
 }
 
 @keyframes scanlines_move { 
@@ -74,32 +148,27 @@ body {
   position: absolute;
 }
 
-.scanlines {
-  position: absolute;
-  color: white;
-  text-align: center;
-  z-index: 0;
-  background: linear-gradient(
-    to bottom,
-    #000,
-    #000 100%,
-    #222 100%,
-    #222
-  );
-
-  background-size: 100% 4px;
-  animation: scanlines_move 300ms ease infinite;
-}
-
 .highlighted {
   color: #ff4060;
 }
 
-.content {
+.grid-container { 
   position: absolute;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 30px;
+  width: 100%;
+  max-width: 2000px;
+  padding: 16px;
+}
+
+.grid-item {
+  background-color: #1a1a1a;
   color: white;
+  padding: 20px;
   text-align: center;
-  z-index: 4;
+  font-size: 20px;
+  border-radius: 24px;
 }
 
 .chromic-abberation {
