@@ -8,6 +8,17 @@
  * Copyright Deimo Elektronik GmbH (c) 2024
 */
 
+#include <FastLED.h>
+
+#define NUM_LEDS_PER_STRIP 72
+// Note: this can be 12 if you're using a teensy 3 and don't mind soldering the pads on the back
+#define NUM_STRIPS 2
+
+CRGB leds[NUM_STRIPS * NUM_LEDS_PER_STRIP];
+
+
+int Delay = 5;
+
 #include "Wireless/webserver.hpp"
 
 namespace Wireless
@@ -128,10 +139,8 @@ void WebServer::_setup_webserver_tree()
     request->send(SPIFFS, "/site/404.html", "text/html");
   });
 
-    _server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request) {},
-    [this](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
+  _server.onFileUpload([this](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final)
   {
-    Serial.print(F("upload")); 
     if (!index) 
     {
       Serial.printf("UploadStart: %s\n", filename.c_str());
@@ -164,8 +173,27 @@ void WebServer::_setup_webserver_tree()
       }
     }
   });
+
+  _server.on("/post", HTTP_POST, [](AsyncWebServerRequest *request)
+  {
+    int params = request->params();
+
+    for(int i=0;i<params;i++)
+    {
+      const AsyncWebParameter* p = request->getParam(i);
+      Serial.print(p->name().c_str());
+      Serial.print(": ");
+      Serial.println(p->value().c_str());
+             
+      Delay = p->value().toInt();
+    }
+      
+    request->send(200, "text/plain", "OK");
+  });
+
   Serial.println(F("Done")); 
 }
+
 
 void WebServer::begin() 
 {
@@ -187,7 +215,28 @@ void WebServer::begin()
    _server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
    _server.begin();
 
-  Serial.println(F("Done")); 
+  Serial.println(F("Done"));
+
+  Serial.println("Starting... the led's now..");
+  FastLED.addLeds<NEOPIXEL, 27>(leds, NUM_LEDS_PER_STRIP * NUM_STRIPS);
+
+  uint8_t hue = 0;
+  while (true)
+  {
+    for (int i = 0; i < NUM_LEDS_PER_STRIP * NUM_STRIPS; i++)
+    {
+      leds[i].setHue(hue++);
+      leds[i].nscale8(50);
+
+      if (i != 0)
+        leds[i - 1] = CRGB::Black;
+      else
+        leds[143] = CRGB::Black;
+
+      FastLED.show();
+      delay(Delay);
+    }
+  }
 }
 
-}
+} // Namespace Wireless
