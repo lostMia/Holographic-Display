@@ -9,107 +9,110 @@
     <link rel="icon" type="image/gif" href="/rgb.gif">
 </head>
 <body>
-  <div class="gradient"></div>
   <form id="dataForm">
     <div class="grid-container">
-      <div class="grid-item">
-        <!-- Radio buttons -->
-        <label>Choose an Option:</label><br>
-        <input type="radio" id="option1" name="option1" value="option1">
-        <label for="option1">Option 1</label><br>
-        <input type="radio" id="option2" name="option2" value="option2">
-        <label for="option2">Option 2</label><br>
-        <input type="radio" id="option3" name="option3" value="option3">
-        <label for="option3">Option 3</label><br>
+      <div class="item-container">
+        <div class="item">
+          <!-- Radio buttons -->
+          <label>Choose an Option:</label><br>
+          <input type="radio" id="option1" name="option1" value="option1">
+          <label for="option1">Option 1</label><br>
+          <input type="radio" id="option2" name="option2" value="option2">
+          <label for="option2">Option 2</label><br>
+          <input type="radio" id="option3" name="option3" value="option3">
+          <label for="option3">Option 3</label><br>
 
-        <label>
-    <input type="radio" name="example" value="1">
-    <span class="custom-radio"></span>
-    <span class="radio-label">Option 1</span>
-  </label>
-
-  <label>
-    <input type="radio" name="example" value="2">
-    <span class="custom-radio"></span>
-    <span class="radio-label">Option 2</span>
-  </label>
-      </div>
-
-      <div class="grid-item">
-        <!-- Text Field -->
-        <div class="input-group">
-          <label for="textfield">Text Field</label>
-          <input type="text" id="textfield" name="tf1">
-        </div> 
-        <!-- Text Field -->
-        <div class="input-group">
-          <label for="textfield">Text Field</label>
-          <input type="text" id="textfield" name="tf2">
-        </div> 
-        <!-- Text Field -->
-        <div class="input-group">
-          <label for="textfield">Text Field</label>
-          <input type="text" id="textfield" name="tf3">
+          <label>
+            <input type="radio" name="example" value="1">
+            <span class="custom-radio"></span>
+            <span class="radio-label">Option 1</span>
+          </label>
+          <label>
+            <input type="radio" name="example" value="2">
+            <span class="custom-radio"></span>
+            <span class="radio-label">Option 2</span>
+          </label>
         </div>
       </div>
 
-      <div class="grid-item">
-        <!-- Text Field -->
-        <div class="input-group">
-          <label for="textfield">Text Field</label>
-          <input type="text" id="textfield" name="tf4">
-        </div> 
-        <!-- Text Field -->
-        <div class="input-group">
-          <label for="textfield">Text Field</label>
-          <input type="text" id="textfield" name="tf5">
-        </div> 
-        <!-- Text Field -->
-        <div class="input-group">
-          <label for="textfield">Text Field</label>
-          <input type="text" id="textfield" name="tf6">
+      <div class="item-container">
+        <div class="item">
+          <!-- Text Field -->
+          <div class="input-group">
+            <label for="textfield">Text Field</label>
+            <input type="text" id="textfield" name="tf1">
+          </div> 
+          <!-- Text Field -->
+          <div class="input-group">
+            <label for="textfield">Text Field</label>
+            <input type="text" id="textfield" name="tf2">
+          </div> 
+          <!-- Text Field -->
+          <div class="input-group">
+            <label for="textfield">Text Field</label>
+            <input type="text" id="textfield" name="tf3">
+          </div>
+        </div>
+      </div>
+
+
+      <div class="item-container">
+        <div class="item">
+          <!-- Text Field -->
+          <div class="input-group">
+            <label for="textfield">Text Field</label>
+            <input type="text" id="textfield" name="tf4">
+          </div> 
+          <!-- Text Field -->
+          <div class="input-group">
+            <label for="textfield">Text Field</label>
+            <input type="text" id="textfield" name="tf5">
+          </div> 
+          <!-- Text Field -->
+          <div class="input-group">
+            <label for="textfield">Text Field</label>
+            <input type="text" id="textfield" name="tf6">
+          </div>
         </div>
       </div>
 
       
-      <div class="grid-item">
-        <!-- Slider -->
-        <div class="input-group">
-          <label for="slider">Slider</label>
-          <input type="range" min="0" max="100" value="50" class="slider" id="slider" name="slider1">
-        </div>
-        
-        <!-- Manual Slider Input -->
-        <div class="input-group">
-          <label for="manualSlider">Manual Slider Value:</label>
-          <input type="number" id="manualSlider" min="0" max="100" value="50" name="slider-input">
-        </div>
-      </div>
-      
-      <div class="grid-item">
-        <!-- Drag and Drop Input Field -->
-        <div class="drag-drop-container">
-          <label for="dragdrop">Drag and Drop or Select Files</label>
-          <button class="drop-zone" id="dragdrop" onclick="document.getElementById('fileInput').click(); return false;">
-            Drop files here
-          </button>
-          <input type="file" id="fileInput" multiple style="display: none;">
+      <div class="item-container">
+        <div class="item">
+          <!-- Slider -->
+          <div class="input-group">
+            <label for="slider">Slider</label>
+            <input type="range" min="0" max="100" value="50" class="slider" id="slider" name="slider1">
+          </div>
+          
+          <!-- Manual Slider Input -->
+          <div class="input-group">
+            <label for="manualSlider">Manual Slider Value:</label>
+            <input type="number" id="manualSlider" min="0" max="100" value="50" name="slider-input">
+          </div>
         </div>
       </div>
 
-      <div class="grid-item">
-        <h1>Upload PNG File</h1>
-        <div id="drop_zone">Drag and drop files here</div>
-        <input type="file" id="fileInput" name="file" style="display: none;">
-        <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
+      <div class="item-container">
+        <div class="item">
+          <h1>Upload PNG File</h1>
+          <div id="drop_zone">Drag and drop files here</div>
+          <input type="file" id="fileInput" name="file" style="display: none;">
+          <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
+        </div>
       </div>
 
-      <div class="grid-item">
-        <h3>This is a h3 title</h3>
-        <button onclick="window.location.href='/'">Home</button>
+      <div class="item-container">
+        <div class="item">
+          <h3  id="popout">This is a h3 title</h3>
+          <button onclick="window.location.href='/'">Home</button>
+        </div>
       </div>
     </div>
     </form>
+    <footer>
+      <p>&copy; 2024 Your Project Name. All rights reserved.</p>
+    </footer>
     <script src="script.js"></script>
 </body>
 </html>
