@@ -16,8 +16,7 @@
 
 CRGB leds[NUM_STRIPS * NUM_LEDS_PER_STRIP];
 
-
-int Delay = 5;
+uint32_t color_number;
 
 #include "Wireless/webserver.hpp"
 
@@ -184,8 +183,13 @@ void WebServer::_setup_webserver_tree()
       Serial.print(p->name().c_str());
       Serial.print(": ");
       Serial.println(p->value().c_str());
+      Serial.println(p->value().substring(2).c_str());
              
-      Delay = p->value().toInt();
+      std::string color_string = p->value().substring(2).c_str();
+      
+      color_number = std::stoi(color_string, 0, 16);
+
+      Serial.println(color_number);
     }
       
     request->send(200, "text/plain", "OK");
@@ -225,17 +229,12 @@ void WebServer::begin()
   {
     for (int i = 0; i < NUM_LEDS_PER_STRIP * NUM_STRIPS; i++)
     {
-      leds[i].setHue(hue++);
-      leds[i].nscale8(50);
-
-      if (i != 0)
-        leds[i - 1] = CRGB::Black;
-      else
-        leds[143] = CRGB::Black;
-
-      FastLED.show();
-      delay(Delay);
+      leds[i] = CRGB::Red;
+      leds[i].setColorCode(color_number);
+      leds[i].nscale8(255);
     }
+
+    FastLED.show();
   }
 }
 

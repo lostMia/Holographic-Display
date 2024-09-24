@@ -16,9 +16,13 @@
 #include <ESPAsyncWebServer.h>
 #include <ESPmDNS.h>
 #include <SPIFFS.h>
-
+#include <iomanip>
+#include <string>
 #include "config.hpp"
 
+#include <iostream>
+#include <string>
+#include <sstream>
 
 #ifdef OTA_FIRMWARE
 #define ELEGANTOTA_USE_ASYNC_WEBSERVER 1

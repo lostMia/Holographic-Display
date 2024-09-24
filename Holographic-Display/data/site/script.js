@@ -76,7 +76,7 @@ function sendData(input) {
       }
     };
     xhr.send(new URLSearchParams(formData).toString());
-  }, 80); // Delay sending the request by 500ms
+  }, 80); // Delay sending the request.
 }
 
 // Add event listeners to all form elements
