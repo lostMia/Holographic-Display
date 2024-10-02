@@ -48,6 +48,8 @@ private:
 #endif
     
     void _setup_webserver_tree();
+    
+    void _handle_input(const AsyncWebParameter* parameter);
 
     String _format_bytes(const size_t bytes);
 public:

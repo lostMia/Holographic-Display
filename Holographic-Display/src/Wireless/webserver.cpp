@@ -8,16 +8,6 @@
  * Copyright Deimo Elektronik GmbH (c) 2024
 */
 
-#include <FastLED.h>
-
-#define NUM_LEDS_PER_STRIP 72
-// Note: this can be 12 if you're using a teensy 3 and don't mind soldering the pads on the back
-#define NUM_STRIPS 2
-
-CRGB leds[NUM_STRIPS * NUM_LEDS_PER_STRIP];
-
-uint32_t color_number;
-
 #include "Wireless/webserver.hpp"
 
 namespace Wireless
@@ -173,23 +163,15 @@ void WebServer::_setup_webserver_tree()
     }
   });
 
-  _server.on("/post", HTTP_POST, [](AsyncWebServerRequest *request)
+  _server.on("/post", HTTP_POST, [this](AsyncWebServerRequest *request)
   {
-    int params = request->params();
+    uint8_t params = request->params();
 
-    for(int i=0;i<params;i++)
+    for(uint8_t i = 0; i < params; i++)
     {
       const AsyncWebParameter* p = request->getParam(i);
-      Serial.print(p->name().c_str());
-      Serial.print(": ");
-      Serial.println(p->value().c_str());
-      Serial.println(p->value().substring(2).c_str());
-             
-      std::string color_string = p->value().substring(2).c_str();
-      
-      color_number = std::stoi(color_string, 0, 16);
-
-      Serial.println(color_number);
+            
+      _handle_input(p);
     }
       
     request->send(200, "text/plain", "OK");
@@ -198,6 +180,48 @@ void WebServer::_setup_webserver_tree()
   Serial.println(F("Done")); 
 }
 
+// This handles any responses we get from the User-Interface.
+void WebServer::_handle_input(const AsyncWebParameter* parameter)
+{
+  const char* name;
+  const char* value;
+  uint8_t number = 0;
+
+  try
+  {
+    // The name will be something like s5 -> Slider 5.
+    name = parameter->name().c_str();
+    value = parameter->value().c_str();
+    number = std::stoi(parameter->name()
+                                      .substring(1)
+                                      .c_str());
+  }
+  catch (std::exception& e)
+  {
+    Serial.println(e.what());
+    return;
+  }
+  
+  // Figure out, what type of element sent the response
+  switch (name[0])
+  {
+    // Slider
+    case 's':
+      break;
+    // Radio-Button
+    case 'r':
+      break;
+    // Text-Field
+    case 't':
+      break;
+    // Color-Input
+    case 'c':
+      std::string color_string = parameter->value().substring(2).c_str();
+
+      Serial.println(color_string.c_str());
+      break;
+  }
+}
 
 void WebServer::begin() 
 {
@@ -222,20 +246,6 @@ void WebServer::begin()
   Serial.println(F("Done"));
 
   Serial.println("Starting... the led's now..");
-  FastLED.addLeds<NEOPIXEL, 27>(leds, NUM_LEDS_PER_STRIP * NUM_STRIPS);
-
-  uint8_t hue = 0;
-  while (true)
-  {
-    for (int i = 0; i < NUM_LEDS_PER_STRIP * NUM_STRIPS; i++)
-    {
-      leds[i] = CRGB::Red;
-      leds[i].setColorCode(color_number);
-      leds[i].nscale8(255);
-    }
-
-    FastLED.show();
-  }
 }
 
 } // Namespace Wireless
