@@ -109,12 +109,15 @@ void WebServer::_setup_webserver_tree()
     request->send(SPIFFS, "/site/index.html", "text/html");
   });
   
-  _server.on("/GetRPM", HTTP_GET, [](AsyncWebServerRequest *request)
+  _server.on("/RPM", HTTP_GET, [](AsyncWebServerRequest *request)
   {
+   
     char RPM_string[10];
     
     sprintf(RPM_string, "%d", RPM_MOTOR);
 
+    Serial.print("Serving rpm....");
+    Serial.println(RPM_string);
     request->send(200, "text/plain", RPM_string);
   });
 

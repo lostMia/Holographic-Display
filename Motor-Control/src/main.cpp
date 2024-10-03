@@ -36,15 +36,15 @@ void setup()
 
   http.begin(String(SERVER_DNS_NAME) + "/RPM");
 
-  // Create the first task to blink LED1 every 500 ms
-  xTaskCreate(
-    send_current_speed,        // Task function
-    "Send Motor Speed", // Name of the task
-    1000,         // Stack size in words
-    NULL,         // Task input parameter
-    1,            // Priority of the task
-    &send_speed_task  // Task handle
-  );
+  // // Create the first task to blink LED1 every 500 ms
+  // xTaskCreate(
+  //   send_current_speed,        // Task function
+  //   "Send Motor Speed", // Name of the task
+  //   1000,         // Stack size in words
+  //   NULL,         // Task input parameter
+  //   1,            // Priority of the task
+  //   &send_speed_task  // Task handle
+  // );
 }
 
 
@@ -68,12 +68,14 @@ void loop()
   // for now just map the value directly to the analog output.
   analogWrite(MOTOR_PIN, map(target_speed, 0, 255, 0, 255));
 
-  delay(2000);
+  delay(FETCH_RPM_DELAY);
 }
 
 
 bool get_target_speed()
 {
+  Serial.println("Getting the target speed...");
+
   // Fetch desired motor speed from ESP32 server
   httpCode = http.GET();
 
@@ -85,6 +87,10 @@ bool get_target_speed()
 
   String payload = http.getString();
   int target_speed_temp = payload.toInt();
+
+  Serial.println("Payload...: " + payload);
+
+  Serial.println("Old target speed: " + String(target_speed));
   
   if (target_speed == target_speed_temp)
     return false;
