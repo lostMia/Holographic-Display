@@ -8,9 +8,9 @@
  * Copyright Deimo Elektronik GmbH (c) 2024
 */
 
-#include "credentials.hpp"
-
 #pragma once
+
+#include "credentials.hpp"
 
 // Define this for Over-The-Air sketch/firmware updates.
 // - - - - - - WARNING - - - - - - 
@@ -30,6 +30,8 @@
 
 // Define to turn the μController into a WiFi Access Point. 
 //#define AP_MODE
+
+#define AP_MODE
 
 #ifndef AP_MODE // Connect to a WiFi Access point.
     #ifndef WIFI_PASSWORD

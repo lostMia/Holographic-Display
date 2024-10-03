@@ -10,6 +10,8 @@
 
 #include "Wireless/webserver.hpp"
 
+uint16_t RPM_MOTOR = 0;
+
 namespace Wireless
 {
 
@@ -105,6 +107,15 @@ void WebServer::_setup_webserver_tree()
     Serial.print(F("Serving to IP: "));
     Serial.println(request->client()->remoteIP().toString());
     request->send(SPIFFS, "/site/index.html", "text/html");
+  });
+  
+  _server.on("/GetRPM", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    char RPM_string[10];
+    
+    sprintf(RPM_string, "%d", RPM_MOTOR);
+
+    request->send(200, "text/plain", RPM_string);
   });
 
   _server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -207,13 +218,34 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
   {
     // Slider
     case 's':
+      // Figure out what slider was used
+      switch (number)
+      {
+        // RPM-Slider
+        case 1:
+          RPM_MOTOR = std::stoi(value);
+          Serial.println(RPM_MOTOR);
+      
+          break;
+        default:
+          break;
+      }
+      
       break;
+
     // Radio-Button
     case 'r':
       break;
+
+    // RPM-Motor response 
+    case 'm':
+      // todo: show the user what the speed of the motor is at the moment.
+      break;
+
     // Text-Field
     case 't':
       break;
+
     // Color-Input
     case 'c':
       std::string color_string = parameter->value().substring(2).c_str();
@@ -240,12 +272,10 @@ void WebServer::begin()
 
   Serial.print(F("Server starting...")); 
 
-   _server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
-   _server.begin();
+  _server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
+  _server.begin();
 
   Serial.println(F("Done"));
-
-  Serial.println("Starting... the led's now..");
 }
 
 } // Namespace Wireless
