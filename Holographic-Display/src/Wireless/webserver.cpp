@@ -191,6 +191,7 @@ void WebServer::_setup_webserver_tree()
   Serial.println(F("Done")); 
 }
 
+
 // This handles any responses we get from the User-Interface.
 void WebServer::_handle_input(const AsyncWebParameter* parameter)
 {
@@ -240,7 +241,6 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
     // RPM-Motor response 
     case 'm':
       // todo: show the user what the speed of the motor is at the moment.
-      Serial.println(value);
       break;
 
     // Text-Field

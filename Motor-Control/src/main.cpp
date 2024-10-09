@@ -34,11 +34,9 @@ void setup()
   }
   Serial.println("Connected to WiFi");
   
-  pinMode(MOTOR_PIN, INPUT);
+  pinMode(MOTOR_PIN, OUTPUT);
   pinMode(39, INPUT);
 
-  Serial.print("Creating connection for http_receive...");
-  Serial.println(http_receive.begin(String(SERVER_DNS_NAME) + "/RPM"));
 
   // Task for receiving the target speed.
   xTaskCreate(
@@ -71,22 +69,32 @@ void loop()
 
 void get_target_speed(void *pvParameters)
 {
+  int httpCode;
+
   while (true)
   {
     if (WiFi.status() != WL_CONNECTED)
     {
-      delay(1000);
+      Serial.println("Couldn't establish network connection!");
+      vTaskDelay(DEFAULT_DELAY / portTICK_PERIOD_MS);  
       continue;
     }
 
-    int httpCode;
+    if (!http_receive.begin(String(SERVER_DNS_NAME) + String(SERVER_GET_SUFFIX)))
+    {
+      Serial.println("Couldn't establish http connection for getting the motor value!");
+      vTaskDelay(DEFAULT_DELAY / portTICK_PERIOD_MS);  
+      continue;
+    }
 
     // Fetch desired motor speed from ESP32 server
     httpCode = http_receive.GET();
 
-    if (httpCode <= 0) 
+    if (httpCode != HTTP_CODE_OK) 
     {
       Serial.println("Error fetching motor speed");
+      http_receive.end();
+      vTaskDelay(DEFAULT_DELAY / portTICK_PERIOD_MS);  
       continue;
     }
 
@@ -94,13 +102,17 @@ void get_target_speed(void *pvParameters)
     int target_speed_temp = payload.toInt();
 
     if (target_speed == target_speed_temp)
+    {
+      http_receive.end();
+      vTaskDelay(GET_RPM_DELAY / portTICK_PERIOD_MS);  
       continue;
+    }
 
     target_speed = target_speed_temp;
     Serial.println("New target speed: " + String(target_speed));
     
     set_motor_speed();
-
+    http_receive.end();
     vTaskDelay(GET_RPM_DELAY / portTICK_PERIOD_MS);  
   }
 }
@@ -109,19 +121,20 @@ void get_target_speed(void *pvParameters)
 void send_current_speed(void *pvParameters)
 {
   int httpCode;
+
   while (true)
   {    
     if (WiFi.status() != WL_CONNECTED)
     {
       Serial.println("Couldn't establish network connection!");
-      delay(1000);
+      vTaskDelay(DEFAULT_DELAY / portTICK_PERIOD_MS);  
       continue;
     }
 
     if (!http_send.begin(String(SERVER_DNS_NAME) + String(SERVER_POST_SUFFIX)))
     {
-      Serial.println("Couldn't establish http connection!");
-      delay(1000);
+      Serial.println("Couldn't establish http connection for sending the motor value!");
+      vTaskDelay(DEFAULT_DELAY / portTICK_PERIOD_MS);  
       continue;
     }
 
@@ -129,15 +142,16 @@ void send_current_speed(void *pvParameters)
 
     // Report actual motor speed back to the server
     // TODO: Get the RPM from the motor somehow.... i'm still waiting on timo for this.
-    uint16_t actual_speed  = analogRead(39); // this will do for now
+    uint16_t actual_speed = analogRead(39); // this will do for now
     String postData = "m1=" + String(actual_speed);
 
     Serial.println(postData);
     httpCode = http_send.POST(postData);
-    http_send.end();
     
-    if (httpCode <= 0)
+    if (httpCode != HTTP_CODE_OK)
       Serial.println("Couldn't post the current motor speed!");
+
+    http_send.end();
     
     vTaskDelay(SEND_RPM_DELAY / portTICK_PERIOD_MS);  
   }
