@@ -18,6 +18,8 @@
 #include "config.hpp"
 
 
-bool get_target_speed();
+void get_target_speed(void *pvParameters);
 
 void send_current_speed(void *pvParameters);
+
+void set_motor_speed();

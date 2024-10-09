@@ -12,10 +12,11 @@
 #pragma once
 
 #define SERVER_DNS_NAME "http://holo.local"
+#define SERVER_POST_SUFFIX "/post"
 
 #define MOTOR_PIN 27
-#define FETCH_RPM_DELAY 100
-#define SEND_RPM_DELAY 500
+#define GET_RPM_DELAY 100
+#define SEND_RPM_DELAY 1000
 
 // Define the Baudrate the Serial interface will use.
 #define SERIAL_BAUDRATE 115200

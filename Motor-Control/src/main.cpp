@@ -10,12 +10,13 @@
 
 #include "main.hpp"
 
-HTTPClient http;
+HTTPClient http_receive;
+HTTPClient http_send;
 uint16_t RPM_MOTOR = 0;
-int httpCode;
-int target_speed;
+int target_speed = 0;
 
-TaskHandle_t send_speed_task = NULL;
+TaskHandle_t get_target_speed_task = NULL;
+TaskHandle_t send_current_speed_task = NULL;
 
 
 void setup() 
@@ -24,96 +25,126 @@ void setup()
 
   // Connect to the ESP32 access point
   WiFi.begin(AP_SSID, AP_PASSWORD);
-  Serial.println("Connecting to main μC...");
+  Serial.print("Connecting to main μC...");
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(100);
-    Serial.println(".");
+  while (WiFi.status() != WL_CONNECTED) 
+  {
+    delay(500);
+    Serial.print(".");
   }
   Serial.println("Connected to WiFi");
   
-  pinMode(MOTOR_PIN, OUTPUT);
+  pinMode(MOTOR_PIN, INPUT);
+  pinMode(39, INPUT);
 
-  http.begin(String(SERVER_DNS_NAME) + "/RPM");
+  Serial.print("Creating connection for http_receive...");
+  Serial.println(http_receive.begin(String(SERVER_DNS_NAME) + "/RPM"));
 
-  // // Create the first task to blink LED1 every 500 ms
-  // xTaskCreate(
-  //   send_current_speed,        // Task function
-  //   "Send Motor Speed", // Name of the task
-  //   1000,         // Stack size in words
-  //   NULL,         // Task input parameter
-  //   1,            // Priority of the task
-  //   &send_speed_task  // Task handle
-  // );
+  // Task for receiving the target speed.
+  xTaskCreate(
+    get_target_speed,
+    "Get Target Motor Speed",
+    4096,
+    NULL,
+    2,
+    &get_target_speed_task
+  );
+  
+  delay(100);
+
+  // Task for sending the current speed.
+  xTaskCreate(
+    send_current_speed,
+    "Send Motor Speed",
+    4096,
+    NULL,
+    1,
+    &send_current_speed_task
+  );
 }
 
 
 void loop() 
 {
-  if (WiFi.status() != WL_CONNECTED)
-  {
-    delay(1000);
-    return;
-  }
-  
-  // If the target speed hasn't changed, simply keep waiting.
-  if (!get_target_speed())
-  {
-    delay(FETCH_RPM_DELAY);
-    return;
-  }
-  
-  // TODO: Do some really fancy conversion here.
-  // and make the motor change it's speed i guess.
-  // for now just map the value directly to the analog output.
-  analogWrite(MOTOR_PIN, map(target_speed, 0, 255, 0, 255));
-
-  delay(FETCH_RPM_DELAY);
 }
 
 
-bool get_target_speed()
+void get_target_speed(void *pvParameters)
 {
-  Serial.println("Getting the target speed...");
-
-  // Fetch desired motor speed from ESP32 server
-  httpCode = http.GET();
-
-  if (httpCode == 0) 
+  while (true)
   {
-    Serial.println("Error fetching motor speed");
-    return false;
+    if (WiFi.status() != WL_CONNECTED)
+    {
+      delay(1000);
+      continue;
+    }
+
+    int httpCode;
+
+    // Fetch desired motor speed from ESP32 server
+    httpCode = http_receive.GET();
+
+    if (httpCode <= 0) 
+    {
+      Serial.println("Error fetching motor speed");
+      continue;
+    }
+
+    String payload = http_receive.getString();
+    int target_speed_temp = payload.toInt();
+
+    if (target_speed == target_speed_temp)
+      continue;
+
+    target_speed = target_speed_temp;
+    Serial.println("New target speed: " + String(target_speed));
+    
+    set_motor_speed();
+
+    vTaskDelay(GET_RPM_DELAY / portTICK_PERIOD_MS);  
   }
-
-  String payload = http.getString();
-  int target_speed_temp = payload.toInt();
-
-  Serial.println("Payload...: " + payload);
-
-  Serial.println("Old target speed: " + String(target_speed));
-  
-  if (target_speed == target_speed_temp)
-    return false;
-
-  target_speed = target_speed_temp;
-  Serial.println("New target speed: " + String(target_speed));
-  return true;
 }
 
 
 void send_current_speed(void *pvParameters)
 {
+  int httpCode;
   while (true)
-  {
+  {    
+    if (WiFi.status() != WL_CONNECTED)
+    {
+      Serial.println("Couldn't establish network connection!");
+      delay(1000);
+      continue;
+    }
+
+    if (!http_send.begin(String(SERVER_DNS_NAME) + String(SERVER_POST_SUFFIX)))
+    {
+      Serial.println("Couldn't establish http connection!");
+      delay(1000);
+      continue;
+    }
+
+    http_send.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
     // Report actual motor speed back to the server
     // TODO: Get the RPM from the motor somehow.... i'm still waiting on timo for this.
-    uint16_t actual_speed  = 0;
-    String postData = "m" + String(actual_speed);
-    httpCode = http.POST(postData);
+    uint16_t actual_speed  = analogRead(39); // this will do for now
+    String postData = "m1=" + String(actual_speed);
+
+    Serial.println(postData);
+    httpCode = http_send.POST(postData);
+    http_send.end();
     
-    if (httpCode == 0)
+    if (httpCode <= 0)
       Serial.println("Couldn't post the current motor speed!");
     
-    delay(SEND_RPM_DELAY);
+    vTaskDelay(SEND_RPM_DELAY / portTICK_PERIOD_MS);  
   }
+}
+
+
+void set_motor_speed()
+{
+  analogWrite(MOTOR_PIN, target_speed);
 }

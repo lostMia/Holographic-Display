@@ -111,13 +111,10 @@ void WebServer::_setup_webserver_tree()
   
   _server.on("/RPM", HTTP_GET, [](AsyncWebServerRequest *request)
   {
-   
     char RPM_string[10];
     
     sprintf(RPM_string, "%d", RPM_MOTOR);
 
-    Serial.print("Serving rpm....");
-    Serial.println(RPM_string);
     request->send(200, "text/plain", RPM_string);
   });
 
@@ -138,7 +135,7 @@ void WebServer::_setup_webserver_tree()
 
   _server.onNotFound([](AsyncWebServerRequest *request)
   {
-    Serial.printf("http://%s%s\n", request->host().c_str(), request->url().c_str());
+    Serial.printf("Unable to find http://%s%s\n", request->host().c_str(), request->url().c_str());
     request->send(SPIFFS, "/site/404.html", "text/html");
   });
 
@@ -180,12 +177,12 @@ void WebServer::_setup_webserver_tree()
   _server.on("/post", HTTP_POST, [this](AsyncWebServerRequest *request)
   {
     uint8_t params = request->params();
-
+             
     for(uint8_t i = 0; i < params; i++)
     {
-      const AsyncWebParameter* p = request->getParam(i);
+      const AsyncWebParameter* parameter = request->getParam(i);
             
-      _handle_input(p);
+      _handle_input(parameter);
     }
       
     request->send(200, "text/plain", "OK");
@@ -210,9 +207,9 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
                                       .substring(1)
                                       .c_str());
   }
-  catch (std::exception& e)
+  catch (...)
   {
-    Serial.println(e.what());
+    Serial.println(F("Failed to parse input!"));
     return;
   }
   
@@ -243,6 +240,7 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
     // RPM-Motor response 
     case 'm':
       // todo: show the user what the speed of the motor is at the moment.
+      Serial.println(value);
       break;
 
     // Text-Field
