@@ -58,6 +58,19 @@ function handleFiles(files) {
     xhr.send(formData);
 }
 
+function updateCurrentRPM() {
+  fetch('/CurrentRPM')
+    .then(response => response.text())
+    .then(data => {
+      // Update the width of the progress bar based on the value received
+      const rpm = parseInt(data);
+      document.getElementById('currentRPMLabel').innerText = rpm + "RPM";
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+setInterval(updateCurrentRPM, 500);
+
 let timeout;
 
 // Function to send data to the server
@@ -85,8 +98,6 @@ document.querySelectorAll('#dataForm input, #dataForm select').forEach(function(
     sendData(event.target);
   });
 });
-
-
 
 document.querySelectorAll('.item-container').forEach(container => {
     const box = container.querySelector('.item');

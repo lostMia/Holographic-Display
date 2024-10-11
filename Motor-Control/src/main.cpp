@@ -12,8 +12,8 @@
 
 HTTPClient http_receive;
 HTTPClient http_send;
-uint16_t RPM_MOTOR = 0;
-int target_speed = 0;
+uint16_t actual_speed = 0;
+uint16_t target_speed = 0;
 
 TaskHandle_t get_target_speed_task = NULL;
 TaskHandle_t send_current_speed_task = NULL;
@@ -142,7 +142,7 @@ void send_current_speed(void *pvParameters)
 
     // Report actual motor speed back to the server
     // TODO: Get the RPM from the motor somehow.... i'm still waiting on timo for this.
-    uint16_t actual_speed = analogRead(39); // this will do for now
+    actual_speed += (target_speed - actual_speed) / 20; // get rid of this
     String postData = "m1=" + String(actual_speed);
 
     Serial.println(postData);

@@ -10,7 +10,8 @@
 
 #include "Wireless/webserver.hpp"
 
-uint16_t RPM_MOTOR = 0;
+uint16_t target_speed = 0;
+uint16_t current_speed = 0;
 
 namespace Wireless
 {
@@ -109,14 +110,25 @@ void WebServer::_setup_webserver_tree()
     request->send(SPIFFS, "/site/index.html", "text/html");
   });
   
-  _server.on("/RPM", HTTP_GET, [](AsyncWebServerRequest *request)
+  _server.on("/TargetRPM", HTTP_GET, [](AsyncWebServerRequest *request)
   {
     char RPM_string[10];
     
-    sprintf(RPM_string, "%d", RPM_MOTOR);
+    sprintf(RPM_string, "%d", target_speed);
 
     request->send(200, "text/plain", RPM_string);
   });
+ 
+  _server.on("/CurrentRPM", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    char RPM_string[10];
+    
+    sprintf(RPM_string, "%d", current_speed);
+
+    request->send(200, "text/plain", RPM_string);
+  });
+
+
 
   _server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
   {
@@ -224,8 +236,9 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
       {
         // RPM-Slider
         case 1:
-          RPM_MOTOR = std::stoi(value);
-          Serial.println(RPM_MOTOR);
+          target_speed = std::stoi(value);
+          Serial.print("New target speed: ");
+          Serial.println(target_speed);
       
           break;
         default:
@@ -240,7 +253,10 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
 
     // RPM-Motor response 
     case 'm':
-      // todo: show the user what the speed of the motor is at the moment.
+        current_speed = std::stoi(value);
+          Serial.print("New current speed: ");
+        Serial.println(current_speed);
+        
       break;
 
     // Text-Field
