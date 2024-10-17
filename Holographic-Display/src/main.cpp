@@ -14,6 +14,7 @@
 Wireless::WebServer server(WEBSERVER_PORT);
 Wireless::WifiManager wifi_manager;
 
+
 void setup() 
 {
   Serial.begin(SERIAL_BAUDRATE);

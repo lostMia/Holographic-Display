@@ -1,0 +1,40 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1728909085,
+        "narHash": "sha256-WLxED18lodtQiayIPDE5zwAfkPJSjHJ35UhZ8h3cJUg=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "c0b1da36f7c34a7146501f684e9ebdf15d2bebf8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-24.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "piopatch": {
+      "locked": {
+        "lastModified": 1702844042,
+        "narHash": "sha256-ptgaCeRcdNrWqQa3GWhGsCToj0a19vqbUMAHVNa8br4=",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/a1cd5e36101993f28efecc851a1152665420c8c6.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/a1cd5e36101993f28efecc851a1152665420c8c6.tar.gz"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "piopatch": "piopatch"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
