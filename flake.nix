@@ -22,11 +22,13 @@
       targetPkgs = pkgs: (with pkgs; [
         piopkg.platformio-core
         pkgs.fish 
+        pkgs.neovide
         mypython
       ]);
 
-      # FHSUserEnv often requires this to ensure libraries load correctly
-      runScript = "env LD_LIBRARY_PATH= fish";
+      runScript = ''
+        env LD_LIBRARY_PATH= fish -c "neovide; exec fish"
+      '';
     };
   };
 }
