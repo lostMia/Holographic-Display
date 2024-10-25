@@ -1,7 +1,7 @@
 * {
-  /* margin: 0; */
-  /* padding: 0;  */
-  /* box-sizing: border-box; */
+  margin: 0;
+  padding: 0; 
+  box-sizing: border-box;
   /* overflow: hidden; /* Hide scrollbars */
   font-size: 18px;
 }
@@ -14,6 +14,10 @@
   * {
     font-size: 14px;
   }
+
+  .item {
+    width: 90vw;
+  }
   
   .grid-item,
   .grid-item.collapsed {
@@ -25,9 +29,14 @@ body {
   font-family: 'Lucida Console', monospace;
   color: white;
   line-height: 1.6;
-  background-color: #0a0a0a;
-  margin: 0;
-  /* overflow: hidden; */
+  background-color: #101010;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#dataForm {
+  flex: 1;
 }
 
 .bg {
@@ -64,6 +73,11 @@ body {
   background: #ff4060;
 }
 
+input {
+  padding: 6px;
+  margin: 4px;
+}
+
 /** FF*/
 input[type="range"]::-moz-range-progress {
   background-color: #ff4060; 
@@ -72,6 +86,10 @@ input[type="range"]::-moz-range-track {
   background-color: #ff406030;
 }
 
+input[type=text]:focus{
+  outline: 2px solid #ff4060;
+  border-color: #00000000;
+}
 /* Hide the default radio button */
 input[type="radio"] {
   position: absolute;
@@ -87,21 +105,20 @@ input[type="radio"]:checked + .custom-radio::after {
   left: 50%;
   width: 12px;
   height: 12px;
-  background-color: #2196F3;
   border-radius: 50%;
   transform: translate(-50%, -50%);
 }
 
 /* Add hover effect */
 input[type="radio"]:hover + .custom-radio {
-  background-color: #ddd;
+  background-color: #ff4060;
 }
 
 input,
 button {
   background-color: #00000000;
   color: #ffffff;
-  border: 2px solid #ff4060;
+  border: 2px solid #555555;
   border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.2s ease, box-shadow 0.4s ease;
@@ -183,23 +200,22 @@ button:hover {
 }
 
 .grid-container { 
-  position: absolute;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   grid-auto-flow: dense;
-  gap: 25px;
-  width: 90%;
-  max-width: 1200px;
-  margin: 0 auto;
+  gap: 20px;
+  width: 90vw;
+  max-width: 2000px;
+  margin: 20px auto;
 }
 
-
 .item {
-  background-color: #0f0f0f;
+  background-color: #1a1a1a;
   background-image: url("grain.png");
   background-repeat: repeat;
   background-blend-mode: soft-light;
   border-radius: 20px;
+  border: 2px dotted #555555;
   color: white;
   text-align: center;
   box-shadow: 0 8px 8px rgba(0, 0, 0, 0.2);
@@ -214,12 +230,12 @@ button:hover {
 
 .item-header {
   background-color: #222222;
-  padding: 15px;
+  padding: 5px 5px 5px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  border-bottom: 2px solid #ff3333;
+  border-bottom: 2px solid #ff4060;
 }
 
 .item-content {
@@ -230,20 +246,20 @@ button:hover {
 }
 
 .item-header:hover {
-  background-color: #4d4d4d;
+  background-color: #333333;
 }
 
 .item-header h2 {
   margin: 0;
   font-size: 1.2em;
-  color: #ff3333;
+  color: #ff4060;
 }
 
 .toggle-btn {
   background: none;
   border: none;
-  color: #ff3333;
-  font-size: 0.8em;
+  color: #ff4060;
+  font-size: 1.2em;
   cursor: pointer;
   padding: 0 10px;
 }
@@ -263,12 +279,14 @@ button:hover {
   text-shadow: -0.5px 0px rgba(0, 255, 255, 1), -1px 0px rgba(0, 0, 255, 1), 0.5px 0px rgba(255, 255, 0, 1), 1px 0px rgba(255, 0, 0, 1);
 }
 
-footer {
-  background-color: #090909;
-  color: white;
+#header {
+  background-color: #222222;
   text-align: center;
-  padding: 10px 0;
-  position: fixed;
-  bottom: 0px;
-  width: 100%;
+  padding: 20px 0;
+}
+
+#footer {
+  background-color: #090909;
+  text-align: center;
+  padding: 20px 0;
 }
