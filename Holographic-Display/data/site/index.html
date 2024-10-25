@@ -10,10 +10,16 @@
 </head>
 <body>
   <form id="dataForm">
+    <div class="item">
+      <h1>Welcome</h1><br>
+    </div>
     <div class="grid-container">
-      <div class="item-container">
-        <div class="item">
-          <!-- Radio buttons -->
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>Radio Buttons</h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content">
           <label>Choose an Option:</label><br>
           <input type="radio" id="option1" name="r1" value="option1">
           <label for="option1">Option 1</label><br>
@@ -35,8 +41,13 @@
         </div>
       </div>
 
-      <div class="item-container">
-        <div class="item">
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>Text Fields</h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content">
+
           <!-- Text Field -->
           <div class="input-group">
             <label for="textfield">Text Field</label>
@@ -55,8 +66,37 @@
         </div>
       </div>
 
-      <div class="item-container">
-        <div class="item">
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>Text Fields</h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content">
+
+          <!-- Text Field -->
+          <div class="input-group">
+            <label for="textfield">Text Field</label>
+            <input type="text" id="textfield" name="t1">
+          </div> 
+          <!-- Text Field -->
+          <div class="input-group">
+            <label for="textfield">Text Field</label>
+            <input type="text" id="textfield" name="t2">
+          </div> 
+          <!-- Text Field -->
+          <div class="input-group">
+            <label for="textfield">Text Field</label>
+            <input type="text" id="textfield" name="t3">
+          </div>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>Something </h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content">
           <!-- Text Field -->
           <div class="input-group">
             <label for="textfield">Text Field</label>
@@ -75,9 +115,12 @@
         </div>
       </div>
 
-      
-      <div class="item-container">
-        <div class="item">
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>Sliders</h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content">
           <!-- Slider -->
           <div class="input-group">
             <label for="slider">Slider</label>
@@ -90,25 +133,32 @@
             <input type="number" id="manualSlider" min="0" max="255" value="0" name="s1">
           </div>
 
-          <div>
+          <!-- RPM Feedback -->
+          <div class="input-group">
             <label>Current RPM: </label>
             <label id="currentRPMLabel">NONE</label>
           </div>
         </div>
       </div>
 
-      <div class="item-container">
-        <div class="item">
-          <h1>Upload PNG File</h1>
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>Drop zone</h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content">
           <div id="drop_zone">Drag and drop files here</div>
           <input type="file" id="fileInput" name="file" style="display: none;">
           <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
         </div>
       </div>
 
-      <div class="item-container">
-        <div class="item">
-          <h3  id="popout">This is a h3 title</h3>
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>Color picker</h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content">
           <label for="favcolor">Select your favorite color:</label>
           <input type="color" id="favcolor" name="c1" value="#ff0000">
           <button onclick="window.location.href='/'">Home</button>

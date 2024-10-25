@@ -99,24 +99,36 @@ document.querySelectorAll('#dataForm input, #dataForm select').forEach(function(
   });
 });
 
-document.querySelectorAll('.item-container').forEach(container => {
-    const box = container.querySelector('.item');
+function toggleSection(header) {
+  const gridItem = header.parentElement;
+  const content = header.nextElementSibling;
+  const button = header.querySelector('.toggle-btn');
 
-    container.addEventListener('mousemove', function (event) {
-        const boxRect = box.getBoundingClientRect();
-        const centerX = boxRect.left + boxRect.width / 2;
-        const centerY = boxRect.top + boxRect.height / 2;
-        const offsetX = (event.clientX - centerX) / boxRect.width * 2;
-        const offsetY = (event.clientY - centerY) / boxRect.height * 2;
+  content.classList.toggle('collapsed');
+  gridItem.classList.toggle('collapsed');
+  button.textContent = content.classList.contains('collapsed') ? '+' : '−';
+}
 
-        const rotateX = offsetY * 15;
-        const rotateY = offsetX * -15;
-        const translateZ = 30; // Adjust the 30 value for more or less pop out
 
-        box.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(${translateZ}px)`;
-    });
 
-    container.addEventListener('mouseleave', function () {
-        box.style.transform = `rotateX(0deg) rotateY(0deg) translateZ(0)`;
-    });
-});
+// document.querySelectorAll('.item-container').forEach(container => {
+//     const box = container.querySelector('.item');
+//
+//     container.addEventListener('mousemove', function (event) {
+//         const boxRect = box.getBoundingClientRect();
+//         const centerX = boxRect.left + boxRect.width / 2;
+//         const centerY = boxRect.top + boxRect.height / 2;
+//         const offsetX = (event.clientX - centerX) / boxRect.width * 2;
+//         const offsetY = (event.clientY - centerY) / boxRect.height * 2;
+//
+//         const rotateX = offsetY * 15;
+//         const rotateY = offsetX * -15;
+//         const translateZ = 30; // Adjust the 30 value for more or less pop out
+//
+//         box.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(${translateZ}px)`;
+//     });
+//
+//     container.addEventListener('mouseleave', function () {
+//         box.style.transform = `rotateX(0deg) rotateY(0deg) translateZ(0)`;
+//     });
+// });

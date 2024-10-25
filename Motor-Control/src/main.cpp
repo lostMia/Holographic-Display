@@ -9,6 +9,7 @@
 */
 
 #include "main.hpp"
+#include <ESP32Servo.h> 
 
 HTTPClient http_receive;
 HTTPClient http_send;
@@ -17,6 +18,8 @@ uint16_t target_speed = 0;
 
 TaskHandle_t get_target_speed_task = NULL;
 TaskHandle_t send_current_speed_task = NULL;
+
+Servo motor;
 
 
 void setup() 
@@ -34,9 +37,8 @@ void setup()
   }
   Serial.println("Connected to WiFi");
   
-  pinMode(MOTOR_PIN, OUTPUT);
-  pinMode(39, INPUT);
-
+  motor.setPeriodHertz(MOTOR_PWM_FREQUENCY);
+  motor.attach(MOTOR_PIN, MOTOR_MIN, MOTOR_MAX);
 
   // Task for receiving the target speed.
   xTaskCreate(
@@ -160,5 +162,6 @@ void send_current_speed(void *pvParameters)
 
 void set_motor_speed()
 {
-  analogWrite(MOTOR_PIN, target_speed);
+  int motor_value = target_speed; // ToDo: improve this 
+  motor.write(motor_value);
 }

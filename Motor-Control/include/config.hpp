@@ -16,6 +16,10 @@
 #define SERVER_GET_SUFFIX "/TargetRPM"
 
 #define MOTOR_PIN 27
+#define MOTOR_PWM_FREQUENCY 50
+#define MOTOR_MIN 1000
+#define MOTOR_MAX 5000
+
 #define GET_RPM_DELAY 250
 #define SEND_RPM_DELAY 480
 #define DEFAULT_DELAY 500
