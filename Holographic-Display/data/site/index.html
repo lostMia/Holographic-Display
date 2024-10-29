@@ -13,6 +13,58 @@
   </div>
   <form id="dataForm">
     <div class="grid-container">
+
+      <!-- RPM Item -->
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>RPM Control</h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content" >
+          <div class="horizontal">
+            <!-- Motor active -->
+            <div class="horizontal">
+              <label>Active:</label>
+              <input type="checkbox" id="c1" name="c1" value="False">
+              <label class="checkbox-label" for="c1"/>
+            </div>
+
+            <!-- RPM Feedback -->
+            <div class="horizontal">
+              <label>Current RPM: </label>
+              <label id="currentRPMLabel">NONE</label>
+            </div>
+          </div>
+          <!-- RPM Target -->
+          <div class="horizontal">
+            <label for="slider">RPM</label>
+            <input type="range" min="0" max="255" value="50" class="slider" id="slider" name="s1">
+            <input type="number" id="manualSlider" min="0" max="255" value="0" name="s1">
+          </div>
+        </div>
+      </div>
+
+      <!-- RPM Item -->
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>Text Input</h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content" >
+          <!-- Text to Show -->
+          <div class="horizontal">
+            <label>Text: </label>
+            <input type="text" id="textfield" name="t1">
+          </div>
+
+          <!-- RPM Feedback -->
+          <div class="horizontal">
+            <label>Current RPM: </label>
+            <label id="currentRPMLabel">NONE</label>
+          </div>
+        </div>
+      </div>
+      
       <div class="item">
         <div class="item-header" onclick="toggleSection(this)">
           <h2>Radio Buttons</h2>
@@ -26,17 +78,6 @@
           <label for="option2">Option 2</label><br>
           <input type="radio" id="option3" name="r3" value="option3">
           <label for="option3">Option 3</label><br>
-
-          <label>
-            <input type="radio" name="r4" value="1">
-            <span class="custom-radio"></span>
-            <span class="radio-label">Option 1</span>
-          </label>
-          <label>
-            <input type="radio" name="r5" value="2">
-            <span class="custom-radio"></span>
-            <span class="radio-label">Option 2</span>
-          </label>
         </div>
       </div>
 
@@ -110,32 +151,6 @@
           <div class="input-group">
             <label for="textfield">Text Field</label>
             <input type="text" id="textfield" name="t6">
-          </div>
-        </div>
-      </div>
-
-      <div class="item">
-        <div class="item-header" onclick="toggleSection(this)">
-          <h2>Sliders</h2>
-          <button class="toggle-btn">−</button>
-        </div>
-        <div class="item-content">
-          <!-- Slider -->
-          <div class="input-group">
-            <label for="slider">Slider</label>
-            <input type="range" min="0" max="255" value="50" class="slider" id="slider" name="s1">
-          </div>
-          
-          <!-- Manual Slider Input -->
-          <div class="input-group">
-            <label for="manualSlider">Manual Slider Value:</label>
-            <input type="number" id="manualSlider" min="0" max="255" value="0" name="s1">
-          </div>
-
-          <!-- RPM Feedback -->
-          <div class="input-group">
-            <label>Current RPM: </label>
-            <label id="currentRPMLabel">NONE</label>
           </div>
         </div>
       </div>

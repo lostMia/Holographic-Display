@@ -49,7 +49,7 @@ input {
   margin: 4px;
 }
 
-/** FF*/
+/* Slider */
 input[type="range"]::-moz-range-progress {
   background-color: #ff4060; 
 }
@@ -57,11 +57,13 @@ input[type="range"]::-moz-range-track {
   background-color: #ff406030;
 }
 
+/* Text */
 input[type=text]:focus{
   outline: 2px solid #ff4060;
   border-color: #00000000;
 }
-/* Hide the default radio button */
+
+/* Radio Buttons */
 input[type="radio"] {
   position: absolute;
   opacity: 0;
@@ -85,6 +87,51 @@ input[type="radio"]:hover + .custom-radio {
   background-color: #ff4060;
 }
 
+input[type="checkbox"] {
+  align: center;
+  height: 0;
+  width: 0;
+  visibility: hidden;
+}
+
+.checkbox-label {
+  cursor: pointer;
+  text-indent: -9999px;
+  width: 48px;
+  height: 24px;
+  background: grey;
+  display: block;
+  border-radius: 24px;
+  position: relative;
+  background-color: #444444;
+}
+
+.checkbox-label:after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 20px;
+  transition: 0.3s;
+}
+
+input:checked + .checkbox-label {
+  background: #ff4060;
+}
+
+input:checked + .checkbox-label:after {
+  left: calc(100% - 5px);
+  transform: translateX(-100%);
+}
+
+.checkbox-label:active:after {
+  width: 30px;
+}
+
+/* Buttons */
 input,
 button {
   background-color: #00000000;
@@ -214,10 +261,27 @@ button:hover {
 }
 
 .item-content {
+  line-height: 3;
   padding: 20px;
   max-height: 500px;
   overflow-y: auto;
   transition: max-height 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.horizontal {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-direction: row;
+  justify-content: space-around;
+  font-size: 20em;
+}
+
+.vertical {
+  display: flex;
+  flex-direction: column;
 }
 
 .item-header:hover {
