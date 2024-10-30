@@ -107,7 +107,7 @@ void WebServer::_setup_webserver_tree()
   {
     Serial.print(F("Serving to IP: "));
     Serial.println(request->client()->remoteIP().toString());
-    request->send(SPIFFS, "/site/index.html", "text/html");
+    request->send(SPIFFS, "/site/main/index.html", "text/html");
   });
   
   _server.on("/TargetRPM", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -128,27 +128,10 @@ void WebServer::_setup_webserver_tree()
     request->send(200, "text/plain", RPM_string);
   });
 
-
-
-  _server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
-  {
-    request->send(SPIFFS, "/site/style.css", "text/css");
-  });
-
-  _server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request)
-  {
-    request->send(SPIFFS, "/site/script.js", "application/javascript");
-  });
-
-  _server.on("/rgb.gif", HTTP_GET, [](AsyncWebServerRequest *request)
-  {
-    request->send(SPIFFS, "/site/rgb.gif", "image/gif");
-  });
-
   _server.onNotFound([](AsyncWebServerRequest *request)
   {
     Serial.printf("Unable to find http://%s%s\n", request->host().c_str(), request->url().c_str());
-    request->send(SPIFFS, "/site/404.html", "text/html");
+    request->send(SPIFFS, "/site/notfound/index.html", "text/html");
   });
 
   _server.onFileUpload([this](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final)
@@ -288,8 +271,11 @@ void WebServer::begin()
   _setup_webserver_tree();
 
   Serial.print(F("Server starting...")); 
+  // _server.serveStatic("/404/", SPIFFS, "/site/404/");
 
-  _server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
+  _server.serveStatic("/resources/", SPIFFS, "/site/resources/");
+  _server.serveStatic("/notfound/", SPIFFS, "/site/notfound/");
+  _server.serveStatic("/", SPIFFS, "/site/main/").setDefaultFile("index.html");
   _server.begin();
 
   Serial.println(F("Done"));

@@ -2,16 +2,22 @@ const dropZone = document.getElementById('drop_zone');
 const progressBar = document.getElementById('progressBar');
 const maxUploadSize = 1024 * 1024;
 
-// Slider and Manual Input Synchronization
-const slider = document.getElementById('slider');
-const manualSlider = document.getElementById('manualSlider');
+// Synchronize all slider and input field pairs
+document.querySelectorAll('.slider-group').forEach(group => {
+  const slider = group.querySelector('.slider');
+  const manualInput = group.querySelector('.manualSlider');
 
-slider.addEventListener('input', function() {
-  manualSlider.value = this.value;
-});
+  slider.addEventListener('input', function() {
+    manualInput.value = this.value;
+  });
 
-manualSlider.addEventListener('input', function() {
-  slider.value = this.value;
+  manualInput.addEventListener('input', function() {
+    // Ensure input value is within slider's range
+    const min = slider.min || 0;
+    const max = slider.max || 100;
+    this.value = Math.max(min, Math.min(max, this.value));
+    slider.value = this.value;
+  });
 });
 
 dropZone.addEventListener('dragover', (event) => {
@@ -64,7 +70,7 @@ function updateCurrentRPM() {
     .then(data => {
       // Update the width of the progress bar based on the value received
       const rpm = parseInt(data);
-      document.getElementById('currentRPMLabel').innerText = rpm + "RPM";
+      document.getElementById('currentRPMLabel').innerText = rpm + " RPM";
     })
     .catch(error => console.error('Error:', error));
 }

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hologram ☆</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="icon" type="image/gif" href="/resources/rgb.gif">
+</head>
+<body>
+  <div id="header">
+    <h1>Welcome</h1>
+  </div>
+  <form id="dataForm">
+    <div class="grid-container">
+
+      <!-- RPM Item -->
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>RPM Control</h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content" >
+          <div class="horizontal">
+            <!-- Motor active -->
+            <div class="horizontal">
+              <label>Active:</label>
+              <input type="checkbox" id="c1" name="c1" value="False">
+              <label class="checkbox-label" for="c1"/>
+            </div>
+
+            <!-- RPM Feedback -->
+            <div class="horizontal">
+              <label>Current RPM: </label>
+              <label id="currentRPMLabel">NONE</label>
+            </div>
+          </div>
+
+          <!-- RPM Target -->
+          <div class="slider-group">
+            <label for="slider">RPM</label>
+            <input type="range" min="0" max="255" value="50" class="slider" name="s1">
+            <input type="number" class="manualSlider" min="0" max="255" value="0" name="s1">
+          </div>
+        </div>
+      </div>
+
+      <!-- Text Input Item -->
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>Text Input</h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content" >
+          <!-- Text to Show -->
+          <div class="horizontal">
+            <label>Text: </label>
+            <input type="text" id="textfield" name="t1">
+          </div>
+
+          <!-- Colors -->
+          <div class="horizontal">
+            <label for="foregroundcolor">Foreground Color:</label>
+            <input type="color" id="foregroundcolor" name="c1" value="#ff4060">
+            <label for="backgroundcolor">Background Color:</label>
+            <input type="color" id="backgroundcolor" name="c2" value="#00000000">
+          </div>
+
+          <!-- Position Offset Vertical -->
+          <div class="slider-group">
+            <label for="offset-text">Offset</label>
+            <input type="range" min="0" max="359" value="0" class="slider" name="s2">
+            <input type="number" class="manualSlider" min="0" max="359" value="0" name="s2">
+          </div>
+        </div>
+      </div>
+      
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>Radio Buttons</h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content">
+          <label>Choose an Option:</label><br>
+          <input type="radio" id="option1" name="r1" value="option1">
+          <label for="option1">Option 1</label><br>
+          <input type="radio" id="option2" name="r2" value="option2">
+          <label for="option2">Option 2</label><br>
+          <input type="radio" id="option3" name="r3" value="option3">
+          <label for="option3">Option 3</label><br>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>Drop zone</h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content">
+          <div id="drop_zone">Drag and drop files here</div>
+          <input type="file" id="fileInput" name="file" style="display: none;">
+          <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
+        </div>
+      </div>
+    </div>
+  </form>
+  <div id="footer">
+    <p>&copy; 2024 Holographic Display. All rights reserved.</p>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

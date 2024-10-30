@@ -63,29 +63,6 @@ input[type=text]:focus{
   border-color: #00000000;
 }
 
-/* Radio Buttons */
-input[type="radio"] {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-}
-
-/* Add a checked mark */
-input[type="radio"]:checked + .custom-radio::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* Add hover effect */
-input[type="radio"]:hover + .custom-radio {
-  background-color: #ff4060;
-}
 
 input[type="checkbox"] {
   align: center;
@@ -144,6 +121,12 @@ button {
 
 button {
   padding: 10px;
+}
+
+input[type="color"] {
+  width: 50px;
+  height: 46px;
+  padding: 8px;
 }
 
 button:hover {
@@ -233,7 +216,7 @@ button:hover {
 
 .item {
   background-color: #1a1a1a;
-  background-image: url("grain.png");
+  background-image: url("/resources/grain.png");
   background-repeat: repeat;
   background-blend-mode: soft-light;
   border-radius: 20px;
@@ -261,7 +244,7 @@ button:hover {
 }
 
 .item-content {
-  line-height: 3;
+  line-height: 1;
   padding: 20px;
   max-height: 500px;
   overflow-y: auto;
@@ -273,7 +256,7 @@ button:hover {
 .horizontal {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
   flex-direction: row;
   justify-content: space-around;
   font-size: 20em;
@@ -282,6 +265,15 @@ button:hover {
 .vertical {
   display: flex;
   flex-direction: column;
+}
+
+.slider-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-direction: row;
+  justify-content: space-around;
+  font-size: 20em;
 }
 
 .item-header:hover {
