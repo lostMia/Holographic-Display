@@ -1,8 +1,5 @@
-const dropZone = document.getElementById('drop_zone');
-const progressBar = document.getElementById('progressBar');
-const maxUploadSize = 1024 * 1024;
-
-// Synchronize all slider and input field pairs
+// - - - - - - - - - - - - Sliders - - - - - - - - - - - - //
+ 
 document.querySelectorAll('.slider-group').forEach(group => {
   const slider = group.querySelector('.slider');
   const manualInput = group.querySelector('.manualSlider');
@@ -20,22 +17,29 @@ document.querySelectorAll('.slider-group').forEach(group => {
   });
 });
 
+// - - - - - - - - - - - - Upload Box - - - - - - - - - - - - //
+
+const dropZone = document.getElementById('dropZone');
+const progressBar = document.getElementById('progressBar');
+const previewImage = document.getElementById('previewImage');
+const maxUploadSize = 1024 * 1024;
+
 dropZone.addEventListener('dragover', (event) => {
     event.preventDefault();
     event.stopPropagation();
-    dropZone.style.borderColor = '#0087F7';
+    dropZone.style.borderColor = '#ff4060';
 });
 
 dropZone.addEventListener('dragleave', (event) => {
     event.preventDefault();
     event.stopPropagation();
-    dropZone.style.borderColor = '#dddddd';
+    dropZone.style.borderColor = '#555555';
 });
 
 dropZone.addEventListener('drop', (event) => {
     event.preventDefault();
     event.stopPropagation();
-    dropZone.style.borderColor = '#dddddd';
+    dropZone.style.borderColor = '#555555';
     const files = event.dataTransfer.files;
     if (files.length > 0) {
         fileInput.files = files;
@@ -44,7 +48,7 @@ dropZone.addEventListener('drop', (event) => {
 });
 
 function handleFiles(files) {
-    const file = files[0];
+    const file = files[0]; // ignore all but the first image;
     const formData = new FormData();
     formData.append('file', file);
 
@@ -61,8 +65,27 @@ function handleFiles(files) {
             progressBar.value = percentComplete;
         }
     };
+
+    // When the upload is complete
+    xhr.onload = () => {
+        if (xhr.status === 200) {
+            // Read the uploaded file locally for preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result; // Set preview image source to the file
+                previewImage.style.display = 'block'; // Display the preview image
+                previewImage.style.margin = '200px';
+            };
+            reader.readAsDataURL(file); // Read the file as a Data URL
+        } else {
+            alert("Upload failed. Please try again.");
+        }
+    };
+
     xhr.send(formData);
 }
+
+// - - - - - - - - - - - - CurrentRPM - - - - - - - - - - - - //
 
 function updateCurrentRPM() {
   fetch('/CurrentRPM')
@@ -76,6 +99,8 @@ function updateCurrentRPM() {
 }
 
 setInterval(updateCurrentRPM, 500);
+
+// - - - - - - - - - - - - Data Sending - - - - - - - - - - - - //
 
 let timeout;
 
@@ -105,6 +130,8 @@ document.querySelectorAll('#dataForm input, #dataForm select').forEach(function(
   });
 });
 
+// - - - - - - - - - - - - Item-Toggle - - - - - - - - - - - - //
+
 function toggleSection(header) {
   const gridItem = header.parentElement;
   const content = header.nextElementSibling;
@@ -115,7 +142,15 @@ function toggleSection(header) {
   button.textContent = content.classList.contains('collapsed') ? '+' : '−';
 }
 
+// - - - - - - - - - - - - Gradient - - - - - - - - - - - - //
 
+const follower = document.getElementById('gradient');
+
+document.addEventListener('mousemove', (e) => {
+  follower.style.transform = `translate(${e.pageX}px, ${e.pageY}px)`;
+});
+
+// - - - - - - - - - - - - Parallax effect - - - - - - - - - - - - //
 
 // document.querySelectorAll('.item-container').forEach(container => {
 //     const box = container.querySelector('.item');
