@@ -20,6 +20,8 @@
 #define MOTOR_MIN 1000
 #define MOTOR_MAX 5000
 
+#define HAL_SENSOR_PIN 17
+
 #define GET_RPM_DELAY 250
 #define SEND_RPM_DELAY 480
 #define DEFAULT_DELAY 500

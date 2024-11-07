@@ -22,4 +22,6 @@ void get_target_speed(void *pvParameters);
 
 void send_current_speed(void *pvParameters);
 
+void count_motor_passes(void *pvParameters);
+
 void set_motor_speed();

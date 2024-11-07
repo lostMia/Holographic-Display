@@ -33,11 +33,11 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  z-index: 4;
 }
 
 #dataForm {
   flex: 1;
+  background-color: #101010;
 }
 
 ::selection {
@@ -55,7 +55,7 @@ input[type="range"]::-moz-range-progress {
   background-color: #ff4060; 
 }
 input[type="range"]::-moz-range-track {  
-  background-color: #ff406030;
+  background-color: #333333;
 }
 
 /* Text */
@@ -136,6 +136,21 @@ button:hover {
   box-shadow: 0px 0px 50px #ff406040;
 }
 
+input[type=file]::file-selector-button {
+  margin-right: 20px;
+  border: none;
+  background: #ff406050;
+  padding: 10px 20px;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  transition: background .2s ease-in-out;
+}
+
+input[type=file]::file-selector-button:hover {
+  background: #ff4060;
+}
+
 @keyframes rotate {
   0% {
     transform: rotate(0deg);
@@ -169,27 +184,26 @@ button:hover {
   cursor: normal;
 }
 
-#imageInput {
-  display: none;
-}
+/* #imageInput { */
+/*   display: none; */
+/* } */
 
 #progressBar {
   margin: 20px 0px;
 }
 
 #gradient {
-  z-index: -1;
-  top: -20vh;
-  left: -20vh;
-  height: 40vh;
-  width: 40vh;
+  top: -8vh;
+  left: -8vh;
+  height: 16vh;
+  width: 16vh;
   display: flex;
-  opacity: 0.08;
+  opacity: 0.25;
   filter: blur(100px);
-  background-image: linear-gradient(#ff4060, #9933ff);
-  border-radius: 50%;
-  transition: transform 0.5s ease-out;
+  background: radial-gradient(rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%); 
   position: absolute;
+  mix-blend-mode: lighten;
+  pointer-events: none; /* Prevents interaction with other elements */
 }
 
 .highlighted {

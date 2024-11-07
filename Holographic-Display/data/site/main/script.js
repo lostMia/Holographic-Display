@@ -40,7 +40,7 @@ dropZone.addEventListener('drop', (event) => {
     event.preventDefault();
     event.stopPropagation();
     dropZone.style.borderColor = '#555555';
-    const files = event.dataTransfer.files;
+    fileInput.files = event.dataTransfer.files;
     if (files.length > 0) {
         fileInput.files = files;
         handleFiles(files);
@@ -48,6 +48,7 @@ dropZone.addEventListener('drop', (event) => {
 });
 
 function handleFiles(files) {
+    alert("handling file")
     const file = files[0]; // ignore all but the first image;
     const formData = new FormData();
     formData.append('file', file);
@@ -63,22 +64,6 @@ function handleFiles(files) {
         if (event.lengthComputable) {
             const percentComplete = (event.loaded / event.total) * 100;
             progressBar.value = percentComplete;
-        }
-    };
-
-    // When the upload is complete
-    xhr.onload = () => {
-        if (xhr.status === 200) {
-            // Read the uploaded file locally for preview
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                previewImage.src = e.target.result; // Set preview image source to the file
-                previewImage.style.display = 'block'; // Display the preview image
-                previewImage.style.margin = '200px';
-            };
-            reader.readAsDataURL(file); // Read the file as a Data URL
-        } else {
-            alert("Upload failed. Please try again.");
         }
     };
 
@@ -144,11 +129,11 @@ function toggleSection(header) {
 
 // - - - - - - - - - - - - Gradient - - - - - - - - - - - - //
 
-const follower = document.getElementById('gradient');
-
-document.addEventListener('mousemove', (e) => {
-  follower.style.transform = `translate(${e.pageX}px, ${e.pageY}px)`;
-});
+// const follower = document.getElementById('gradient');
+//
+// document.addEventListener('mousemove', (e) => {
+//   follower.style.transform = `translate(${e.pageX}px, ${e.pageY}px)`;
+// });
 
 // - - - - - - - - - - - - Parallax effect - - - - - - - - - - - - //
 

@@ -3,7 +3,7 @@
 
 Servo motor_servo;  // create servo object to control a servo
 
-#define SERVO_PIN 7 // ESP32 pin GPIO26 connected to servo motor
+#define SERVO_PIN 17 // ESP32 pin GPIO26 connected to servo motor
 
 void setup() {
   Serial.begin(115200);

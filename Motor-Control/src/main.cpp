@@ -18,6 +18,7 @@ uint16_t target_speed = 0;
 
 TaskHandle_t get_target_speed_task = NULL;
 TaskHandle_t send_current_speed_task = NULL;
+TaskHandle_t count_motor_passes_task = NULL;
 
 Servo motor;
 
@@ -25,41 +26,51 @@ Servo motor;
 void setup() 
 {
   Serial.begin(SERIAL_BAUDRATE);
-
+ 
   // Connect to the ESP32 access point
-  WiFi.begin(AP_SSID, AP_PASSWORD);
+  // WiFi.begin(AP_SSID, AP_PASSWORD);
   Serial.print("Connecting to main μC...");
 
-  while (WiFi.status() != WL_CONNECTED) 
-  {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("Connected to WiFi");
-  
-  motor.setPeriodHertz(MOTOR_PWM_FREQUENCY);
-  motor.attach(MOTOR_PIN, MOTOR_MIN, MOTOR_MAX);
-
-  // Task for receiving the target speed.
-  xTaskCreate(
-    get_target_speed,
-    "Get Target Motor Speed",
-    4096,
-    NULL,
-    2,
-    &get_target_speed_task
-  );
-  
-  delay(100);
+  // while (WiFi.status() != WL_CONNECTED) 
+  // {
+  //   delay(500);
+  //   Serial.print(".");
+  // }
+  // Serial.println("Connected to WiFi");
+  // 
+  // motor.setPeriodHertz(MOTOR_PWM_FREQUENCY);
+  // motor.attach(MOTOR_PIN, MOTOR_MIN, MOTOR_MAX);
+  //
+  // // Task for receiving the target speed.
+  // xTaskCreate(
+  //   get_target_speed,
+  //   "Get Target Motor Speed",
+  //   4096,
+  //   NULL,
+  //   2,
+  //   &get_target_speed_task
+  // );
+  // 
+  // delay(50);
+  //
+  // // Task for sending the current speed.
+  // xTaskCreate(
+  //   send_current_speed,
+  //   "Send Motor Speed",
+  //   4096,
+  //   NULL,
+  //   1,
+  //   &send_current_speed_task
+  // );
 
   // Task for sending the current speed.
   xTaskCreate(
-    send_current_speed,
-    "Send Motor Speed",
+    count_motor_passes,
+    "Keeps track of the amount of times, the motor has passed the HALL sensor",
     4096,
     NULL,
     1,
-    &send_current_speed_task
+    &count_motor_passes_task
   );
 }
 
@@ -144,7 +155,7 @@ void send_current_speed(void *pvParameters)
 
     // Report actual motor speed back to the server
     // TODO: Get the RPM from the motor somehow.... i'm still waiting on timo for this.
-    actual_speed += (target_speed - actual_speed) / 20; // get rid of this
+    // actual_speed += (target_speed - actual_speed) / 20; // get rid of this
     String postData = "m1=" + String(actual_speed);
 
     Serial.println(postData);
@@ -156,6 +167,34 @@ void send_current_speed(void *pvParameters)
     http_send.end();
     
     vTaskDelay(SEND_RPM_DELAY / portTICK_PERIOD_MS);  
+  }
+}
+
+
+void count_motor_passes(void *pvParameters)
+{
+  int motor_passes = 0;
+
+  Serial.println("started thread......");
+  
+  while (true) 
+  {
+    while (digitalRead(HAL_SENSOR_PIN) == HIGH) 
+    {
+
+      vTaskDelay(1 / portTICK_PERIOD_MS);  
+    }
+
+    while (digitalRead(HAL_SENSOR_PIN) == LOW)
+    {
+
+      vTaskDelay(1 / portTICK_PERIOD_MS);  
+    }
+
+
+
+    motor_passes += 1;
+    Serial.println(motor_passes);
   }
 }
 
