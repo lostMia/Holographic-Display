@@ -88,9 +88,13 @@
           <!-- Image Upload -->
           <div class="vertical">
             <button id="dropZone" onclick="document.getElementById('fileInput').click(); return false;">
-              <p>Drag and drop images here<br>or<br></p><p class="highlighted">Click Here</p>
+              <div class="vertical">
+                <div>Drag and drop images here</div>
+                <div>or</div>
+                <div class="highlighted">Click Here</div>
+              </div>
             </button>
-            <input type="file" id="fileInput" class="fileInput">
+            <input type="file" id="fileInput" class="fileInput" accept="image/*">
             <progress id="progressBar" value="0" max="100"></progress>
           </div>
 
@@ -104,8 +108,9 @@
           
           <div id="imagePreviewContainer" class="imagePreviewContainer">
             <img id="previewImage" class="previewImage" alt="Image Preview">
-            <div id="previewImageSeparator" class="separator"></div>
           </div>
+
+          <div id="imagePreviewSeparator" class="separator"></div>
 
           <!-- Colors -->
           <div class="horizontal">

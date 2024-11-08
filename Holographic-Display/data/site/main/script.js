@@ -22,9 +22,14 @@ document.querySelectorAll('.slider-group').forEach(group => {
 const dropZone = document.getElementById('dropZone');
 const progressBar = document.getElementById('progressBar');
 const previewImage = document.getElementById('previewImage');
-const previewImageSeparator = document.getElementById('previewImageSeparator');
+const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+const imagePreviewSeparator = document.getElementById('imagePreviewSeparator');
 const fileInput = document.getElementById('fileInput');
 const maxUploadSize = 1024 * 1024;
+
+fileInput.addEventListener('change', (event) => {
+  handleFiles(event.target.files);
+});
 
 dropZone.addEventListener('dragover', (event) => {
     event.preventDefault();
@@ -55,8 +60,13 @@ function handleFiles(files) {
     alert('Please select a file to upload.');
     return;
   }
-
+  
   const file = files[0];
+
+  if (file.size > maxUploadSize) {
+    alert(`File Size too big! Maximum is ${maxUploadSize/1024}kB`)
+  }
+
   formData.append('file', file);
 
   const xhr = new XMLHttpRequest();
@@ -72,7 +82,8 @@ function handleFiles(files) {
   xhr.onload = () => {
     if (xhr.status === 200) {
       previewImage.src = `/datadump/${file.name}`;
-      previewImageSeparator.style.display = normal;
+      imagePreviewContainer.style.display = "inline";
+      imagePreviewSeparator.style.display = "inline";
     } else {
       alert('Error uploading file.');
     }
