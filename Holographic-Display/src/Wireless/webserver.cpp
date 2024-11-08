@@ -134,12 +134,13 @@ void WebServer::_setup_webserver_tree()
     request->send(SPIFFS, "/site/notfound/index.html", "text/html");
   });
 
-  _server.onFileUpload([this](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final)
-  {
+  _server.onFileUpload([this](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
+    Serial.printf("Starting upload!!");
+
     if (!index) 
     {
       Serial.printf("UploadStart: %s\n", filename.c_str());
-      request->_tempFile = SPIFFS.open("/" + filename, "w");
+      request->_tempFile = SPIFFS.open("/datadump/" + filename, "w");
     }
 
     size_t free_bytes = SPIFFS.totalBytes() - SPIFFS.usedBytes();
@@ -171,8 +172,9 @@ void WebServer::_setup_webserver_tree()
 
   _server.on("/post", HTTP_POST, [this](AsyncWebServerRequest *request)
   {
+    Serial.println("accessing /post...");
     uint8_t params = request->params();
-             
+    
     for(uint8_t i = 0; i < params; i++)
     {
       const AsyncWebParameter* parameter = request->getParam(i);
@@ -181,7 +183,7 @@ void WebServer::_setup_webserver_tree()
     }
       
     request->send(200, "text/plain", "OK");
-  });
+   });
 
   Serial.println(F("Done")); 
 }
@@ -190,6 +192,7 @@ void WebServer::_setup_webserver_tree()
 // This handles any responses we get from the User-Interface.
 void WebServer::_handle_input(const AsyncWebParameter* parameter)
 {
+  Serial.println("still working...");
   const char* name;
   const char* value;
   uint8_t number = 0;
@@ -275,8 +278,10 @@ void WebServer::begin()
 
   _server.serveStatic("/resources/", SPIFFS, "/site/resources/");
   _server.serveStatic("/notfound/", SPIFFS, "/site/notfound/");
+  _server.serveStatic("/datadump/", SPIFFS, "/datadump/");
   _server.serveStatic("/", SPIFFS, "/site/main/").setDefaultFile("index.html");
   _server.begin();
+  delay(1000);
 
   Serial.println(F("Done"));
 }

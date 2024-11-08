@@ -22,6 +22,8 @@ document.querySelectorAll('.slider-group').forEach(group => {
 const dropZone = document.getElementById('dropZone');
 const progressBar = document.getElementById('progressBar');
 const previewImage = document.getElementById('previewImage');
+const previewImageSeparator = document.getElementById('previewImageSeparator');
+const fileInput = document.getElementById('fileInput');
 const maxUploadSize = 1024 * 1024;
 
 dropZone.addEventListener('dragover', (event) => {
@@ -39,33 +41,42 @@ dropZone.addEventListener('dragleave', (event) => {
 dropZone.addEventListener('drop', (event) => {
     event.preventDefault();
     event.stopPropagation();
-    dropZone.style.borderColor = '#555555';
-    fileInput.files = event.dataTransfer.files;
+    dropZone.style.borderColor = '#555557';
+    const files = event.dataTransfer.files;
     if (files.length > 0) {
-        fileInput.files = files;
         handleFiles(files);
     }
 });
 
 function handleFiles(files) {
-    alert("handling file")
-    const file = files[0]; // ignore all but the first image;
-    const formData = new FormData();
-    formData.append('file', file);
+  const formData = new FormData();
 
-    if (file.size > maxUploadSize) {
-      alert("File too big!");
-      return;
+  if (files.length === 0) {
+    alert('Please select a file to upload.');
+    return;
+  }
+
+  const file = files[0];
+  formData.append('file', file);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/upload', true);
+
+  xhr.upload.onprogress = (event) => {
+    if (event.lengthComputable) {
+      const percentComplete = (event.loaded / event.total) * 100;
+      progressBar.value = percentComplete;
     }
+  };
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/upload', true);
-    xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-            const percentComplete = (event.loaded / event.total) * 100;
-            progressBar.value = percentComplete;
-        }
-    };
+  xhr.onload = () => {
+    if (xhr.status === 200) {
+      previewImage.src = `/datadump/${file.name}`;
+      previewImageSeparator.style.display = normal;
+    } else {
+      alert('Error uploading file.');
+    }
+  };
 
     xhr.send(formData);
 }
@@ -137,24 +148,28 @@ function toggleSection(header) {
 
 // - - - - - - - - - - - - Parallax effect - - - - - - - - - - - - //
 
-// document.querySelectorAll('.item-container').forEach(container => {
-//     const box = container.querySelector('.item');
-//
-//     container.addEventListener('mousemove', function (event) {
-//         const boxRect = box.getBoundingClientRect();
-//         const centerX = boxRect.left + boxRect.width / 2;
-//         const centerY = boxRect.top + boxRect.height / 2;
-//         const offsetX = (event.clientX - centerX) / boxRect.width * 2;
-//         const offsetY = (event.clientY - centerY) / boxRect.height * 2;
-//
-//         const rotateX = offsetY * 15;
-//         const rotateY = offsetX * -15;
-//         const translateZ = 30; // Adjust the 30 value for more or less pop out
-//
-//         box.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(${translateZ}px)`;
-//     });
-//
-//     container.addEventListener('mouseleave', function () {
-//         box.style.transform = `rotateX(0deg) rotateY(0deg) translateZ(0)`;
-//     });
-// });
+document.querySelectorAll('#imagePreviewContainer').forEach(container => {
+    const box = container.querySelector('.previewImage');
+
+    box.style.transition = 'transform 0.4s ease-out';
+
+    container.addEventListener('mousemove', function (event) {
+        const boxRect = box.getBoundingClientRect();
+        const centerX = boxRect.left + boxRect.width / 2;
+        const centerY = boxRect.top + boxRect.height / 2;
+        const offsetX = (event.clientX - centerX) / boxRect.width * 2;
+        const offsetY = (event.clientY - centerY) / boxRect.height * 2;
+
+        const rotateX = offsetY * 15;
+        const rotateY = offsetX * -15;
+        const translateZ = 30; // Adjust the 30 value for more or less pop out
+
+        box.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(${translateZ}px)`;
+    });
+
+    container.addEventListener('mouseleave', function () {
+        setTimeout(() => {
+            box.style.transform = `rotateX(0deg) rotateY(0deg) translateZ(0)`;
+        }, 1000);
+    });
+});

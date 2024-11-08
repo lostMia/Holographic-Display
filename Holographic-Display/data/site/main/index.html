@@ -87,25 +87,26 @@
         <div class="item-content" >
           <!-- Image Upload -->
           <div class="vertical">
-            <div id="dropZone">Drag and drop images here</div>
-            <input type="file" id="fileInput">
+            <button id="dropZone" onclick="document.getElementById('fileInput').click(); return false;">
+              <p>Drag and drop images here<br>or<br></p><p class="highlighted">Click Here</p>
+            </button>
+            <input type="file" id="fileInput" class="fileInput">
             <progress id="progressBar" value="0" max="100"></progress>
           </div>
 
-          <div class="separator"></div>
-
-          <div class="tooltip">Hover over me
-            <span class="tooltiptext">Tooltip text</span>
-          </div>
+          <!-- <div class="separator"></div> -->
+          <!---->
+          <!-- <div class="tooltip">Hover over me -->
+          <!--   <span class="tooltiptext">Tooltip text</span> -->
+          <!-- </div> -->
 
           <div class="separator"></div>
           
-          <div id="imagePreviewContainer">
+          <div id="imagePreviewContainer" class="imagePreviewContainer">
             <img id="previewImage" class="previewImage" alt="Image Preview">
+            <div id="previewImageSeparator" class="separator"></div>
           </div>
 
-
-          <div class="separator"></div>
           <!-- Colors -->
           <div class="horizontal">
             <label for="foregroundcolor">Foreground Color:</label>
