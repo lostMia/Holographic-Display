@@ -1,15 +1,33 @@
 {
   description = "Flake for building a conversion matrix for the holographic display.";
 
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-  };
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-  outputs = { self, nixpkgs }: {
+  outputs = { self, nixpkgs }:
+    let
+      pkgs = import nixpkgs { system = "x86_64-linux"; };
+    in
+    {
+      packages = {
+        default = pkgs.mkDerivation {
+          pname = "conversion-matrix";
+          version = "0.1.0";
 
-    packages.x86_64-linux.hello = nixpkgs.legacyPackages.x86_64-linux.hello;
+          src = ./.;
 
-    packages.x86_64-linux.default = self.packages.x86_64-linux.hello;
+          buildInputs = [ pkgs.gcc ];
 
-  };
+          # Define build steps
+          buildPhase = ''
+            g++ -o main src/main.cpp
+          '';
+
+          # Define install steps
+          installPhase = ''
+            mkdir -p $out/bin
+            cp main $out/bin/
+          '';
+        };
+      };
+    };
 }
