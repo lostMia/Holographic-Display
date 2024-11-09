@@ -16,13 +16,14 @@
 #include <ESPAsyncWebServer.h>
 #include <ESPmDNS.h>
 #include <SPIFFS.h>
+#include <ArduinoJson.h>
 #include <iomanip>
 #include <string>
-#include "config.hpp"
-
 #include <iostream>
 #include <string>
 #include <sstream>
+#include "config.hpp"
+#include "Rendering/rendering.hpp"
 
 #ifdef OTA_FIRMWARE
 #define ELEGANTOTA_USE_ASYNC_WEBSERVER 1
@@ -37,6 +38,7 @@ class WebServer
 {
 private:
     AsyncWebServer _server;
+    Rendering::Renderer* _renderer;
     bool _begin_SPIFFS();
 
 #ifdef OTA_FIRMWARE
@@ -53,7 +55,7 @@ private:
 
     String _format_bytes(const size_t bytes);
 public:
-    WebServer(uint16_t port);
+    WebServer(uint16_t port, Rendering::Renderer *renderer);
 
     void begin();
 };

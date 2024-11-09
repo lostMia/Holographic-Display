@@ -32,36 +32,35 @@ fileInput.addEventListener('change', (event) => {
 });
 
 dropZone.addEventListener('dragover', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dropZone.style.borderColor = '#ff4060';
+  event.preventDefault();
+  event.stopPropagation();
+  dropZone.style.borderColor = '#ff4060';
 });
 
 dropZone.addEventListener('dragleave', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dropZone.style.borderColor = '#555555';
+  event.preventDefault();
+  event.stopPropagation();
+  dropZone.style.borderColor = '#555555';
 });
 
 dropZone.addEventListener('drop', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dropZone.style.borderColor = '#555557';
-    const files = event.dataTransfer.files;
-    if (files.length > 0) {
-        handleFiles(files);
-    }
-});
-
-function handleFiles(files) {
-  const formData = new FormData();
+  event.preventDefault();
+  event.stopPropagation();
+  dropZone.style.borderColor = '#555557';
+  const files = event.dataTransfer.files;
 
   if (files.length === 0) {
     alert('Please select a file to upload.');
     return;
   }
-  
-  const file = files[0];
+
+  // uploadRawImage(files[0]);
+  // processAndUploadBytestream(files[0]);
+  handleImageFile(files[0]);
+});
+
+function uploadRawImage(file) {
+  const formData = new FormData();
 
   if (file.size > maxUploadSize) {
     alert(`File Size too big! Maximum is ${maxUploadSize/1024}kB`)
@@ -89,7 +88,148 @@ function handleFiles(files) {
     }
   };
 
-    xhr.send(formData);
+  xhr.send(formData);
+}
+
+// - - - - - - - - - - - - Experimental Image Conversion - - - - - - - - - - - - //
+
+function processAndUploadBytestream(file) {
+  const img = new Image();
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const targetSize = 128;
+
+  img.onload = () => {
+    // Make the image quadratic by cropping it if necessary
+    const minSize = Math.min(img.width, img.height);
+    const offsetX = (img.width - minSize) / 2;
+    const offsetY = (img.height - minSize) / 2;
+
+    // Set canvas size to target dimensions
+    canvas.width = targetSize;
+    canvas.height = targetSize;
+
+    // Draw the cropped, resized image on the canvas
+    ctx.drawImage(img, offsetX, offsetY, minSize, minSize, 0, 0, targetSize, targetSize);
+
+    // Get the image data from the canvas
+    const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
+    const pixels = imageData.data; // pixels with alpha
+
+    const rgbArray = []; // pixels without alpha -> 25% less dataconsumtion, because we don't care about the arpha value. 
+    for (let i = 0; i < pixels.length; i += 4) {
+      // Skip the alpha channel
+      rgbArray.push(pixels[i], pixels[i + 1], pixels[i + 2]);
+    }
+
+    const frameData = {
+      frames: [
+        {
+          delay: 0, // todo: don't hard code this xd
+          data: rgbArray
+        }
+      ]
+    };
+
+    uploadRGBArray(frameData);
+  };
+
+  const reader = new FileReader();
+  reader.onload = () => img.src = reader.result;
+  reader.readAsDataURL(file);
+}
+
+/*
+This is the Json format that will be used.
+Using this will open up the possibility of using videos or GIF's further in the future.
+
+{
+"frames":            // collection of frames
+[
+  {
+    "delay":"",      // delay in miliseconds between this frame and the one before it.
+    "data": [
+      123, 255, 244, // first pixel
+      0, 255, 255,   // second pixel
+      ...,
+    ]
+  }
+]
+}
+*/
+
+function uploadRGBArray(frameData) {
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/upload', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+
+  xhr.onload = () => {
+    if (xhr.status === 200) {
+      alert("Data uploaded successfully!");
+    } else {
+      alert("Error uploading data!");
+    }
+  };
+
+  // Convert the frame data to JSON
+  xhr.send(JSON.stringify(frameData));
+}
+
+
+async function handleImageFile(file) {
+  const canvas = document.createElement('canvas');
+  const img = new Image();
+  
+  img.src = URL.createObjectURL(file);
+  await img.decode();
+
+  // Set canvas size (e.g., 128x128)
+  const size = 128;
+  canvas.width = size;
+  canvas.height = size;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, size, size);
+
+  // Extract pixel data
+  const imageData = ctx.getImageData(0, 0, size, size);
+  const { data } = imageData;
+  const jsonStructure = { frames: [{ delay: 100, data: [] }] };
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    jsonStructure.frames[0].data.push(r, g, b);
+  }
+
+  // Convert JSON object to Blob
+  const jsonBlob = new Blob([JSON.stringify(jsonStructure)], { type: 'application/json' });
+
+  console.log(jsonBlob);
+  console.log(jsonStructure);
+  console.log(JSON.stringify(jsonStructure))
+  
+  // Send JSON to ESP32
+  await uploadJSON(jsonBlob, 'image.json');
+}
+
+async function uploadJSON(jsonBlob, fileName) {
+  console.log(fileName);
+
+  const formData = new FormData();
+  formData.append('file', jsonBlob, fileName);
+
+  const response = await fetch('/upload', {
+    method: 'POST',
+    body: formData
+  });
+
+  if (response.ok) {
+    alert('File uploaded successfully!');
+  } else {
+    alert('Error uploading file.');
+  }
 }
 
 // - - - - - - - - - - - - CurrentRPM - - - - - - - - - - - - //
@@ -105,7 +245,7 @@ function updateCurrentRPM() {
     .catch(error => console.error('Error:', error));
 }
 
-setInterval(updateCurrentRPM, 500);
+// setInterval(updateCurrentRPM, 500);
 
 // - - - - - - - - - - - - Data Sending - - - - - - - - - - - - //
 
@@ -136,6 +276,7 @@ document.querySelectorAll('#dataForm input, #dataForm select').forEach(function(
     sendData(event.target);
   });
 });
+
 
 // - - - - - - - - - - - - Item-Toggle - - - - - - - - - - - - //
 

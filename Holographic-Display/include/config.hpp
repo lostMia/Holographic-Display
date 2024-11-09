@@ -12,6 +12,16 @@
 
 #include "credentials.hpp"
 
+// Defines the width/height of the image to create.
+// This is equal to the number of LED's per strip times 2.
+#define IMAGE_SIZE 64 * 2
+
+// Defines the max number of frames that can be loaded.
+#define MAX_FRAMES 3
+
+#define IMAGE_JSON_NAME "/image.json"
+#define DATA_FOLDER "/datadump"
+
 // Define this for Over-The-Air sketch/firmware updates.
 // - - - - - - WARNING - - - - - - 
 // If you disable this, then all OTA Updates will be non-functional.

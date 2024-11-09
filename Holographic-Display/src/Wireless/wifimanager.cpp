@@ -10,7 +10,6 @@
 
 #include "Wireless/wifimanager.hpp"
 
-
 namespace Wireless
 {
 

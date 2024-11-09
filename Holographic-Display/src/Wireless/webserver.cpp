@@ -16,8 +16,10 @@ uint16_t current_speed = 0;
 namespace Wireless
 {
 
-WebServer::WebServer(uint16_t port) : _server(port)
-{}
+WebServer::WebServer(uint16_t port, Rendering::Renderer *renderer) : _server(port)
+{
+  _renderer = renderer;
+}
 
 String WebServer::_format_bytes(const size_t bytes) 
 {
@@ -26,7 +28,6 @@ String WebServer::_format_bytes(const size_t bytes)
   else if (bytes < (1024 * 1024 * 1024)) return String(bytes / (1024.0 * 1024.0)) + " MB";
   else return String(bytes / (1024.0 * 1024.0 * 1024.0)) + " GB";
 }
-
 
 bool WebServer::_begin_SPIFFS()
 {
@@ -127,7 +128,7 @@ void WebServer::_setup_webserver_tree()
 
     request->send(200, "text/plain", RPM_string);
   });
-
+  
   _server.onNotFound([](AsyncWebServerRequest *request)
   {
     Serial.printf("Unable to find http://%s%s\n", request->host().c_str(), request->url().c_str());
@@ -135,8 +136,6 @@ void WebServer::_setup_webserver_tree()
   });
 
   _server.onFileUpload([this](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
-    Serial.printf("Starting upload!!");
-
     if (!index) 
     {
       Serial.printf("UploadStart: %s\n", filename.c_str());
@@ -164,6 +163,11 @@ void WebServer::_setup_webserver_tree()
       {
         request->_tempFile.close();
         Serial.printf("UploadEnd: %s, %u\n", filename.c_str(), _format_bytes(index + len));
+
+        Serial.print("Free Heap:");
+        Serial.println(ESP.getFreeHeap());
+          
+        _renderer->load_image_data();
       } else {
         Serial.printf("Upload failed: %s exceeds maximum size of %u bytes\n", filename.c_str(), free_bytes);
       }
@@ -183,16 +187,14 @@ void WebServer::_setup_webserver_tree()
     }
       
     request->send(200, "text/plain", "OK");
-   });
+  });
 
   Serial.println(F("Done")); 
 }
 
-
 // This handles any responses we get from the User-Interface.
 void WebServer::_handle_input(const AsyncWebParameter* parameter)
 {
-  Serial.println("still working...");
   const char* name;
   const char* value;
   uint8_t number = 0;

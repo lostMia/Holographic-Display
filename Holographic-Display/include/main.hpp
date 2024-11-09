@@ -16,3 +16,4 @@
 #include "config.hpp"
 #include "Wireless/webserver.hpp"
 #include "Wireless/wifimanager.hpp"
+#include "Rendering/rendering.hpp"

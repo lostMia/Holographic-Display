@@ -11,7 +11,8 @@
 
 #include "main.hpp"
 
-Wireless::WebServer server(WEBSERVER_PORT);
+Rendering::Renderer renderer;
+Wireless::WebServer server(WEBSERVER_PORT, &renderer);
 Wireless::WifiManager wifi_manager;
 
 
