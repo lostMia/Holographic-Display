@@ -6,6 +6,7 @@
   outputs = { self, nixpkgs }:
     let
       pkgs = import nixpkgs { system = "x86_64-linux"; };
+      opencvGtk = pkgs.opencv.override (old : { enableGtk2 = true; });
     in
     {
       packages.x86_64-linux.default = pkgs.stdenv.mkDerivation {
@@ -14,7 +15,10 @@
 
         src = ./.;
 
-        buildInputs = [ pkgs.gcc ];
+        buildInputs = [ 
+          pkgs.gcc
+          opencvGtk
+        ];
 
         # Define build steps
         buildPhase = ''

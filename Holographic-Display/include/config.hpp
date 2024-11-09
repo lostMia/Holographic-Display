@@ -16,6 +16,12 @@
 // This is equal to the number of LED's per strip times 2.
 #define IMAGE_SIZE 64 * 2
 
+// The amount of angles the image will be cut into.
+#define ANGLES_PER_ROTATION 360
+
+// The amount of LEDs on each strip.
+#define LEDS_PER_STRIP 64
+
 // Defines the max number of frames that can be loaded.
 #define MAX_FRAMES 1
 

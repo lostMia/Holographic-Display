@@ -1,5 +1,5 @@
 /*
- * @file webserver.cpp
+ * @file rendering.cpp
  * @authors mia
  * @brief Manages the rendering of the images on the display.
  * @version 0.1.0
