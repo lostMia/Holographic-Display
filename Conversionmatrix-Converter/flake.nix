@@ -8,26 +8,24 @@
       pkgs = import nixpkgs { system = "x86_64-linux"; };
     in
     {
-      packages = {
-        default = pkgs.mkDerivation {
-          pname = "conversion-matrix";
-          version = "0.1.0";
+      packages.x86_64-linux.default = pkgs.stdenv.mkDerivation {
+        pname = "conversion-matrix";
+        version = "0.1.0";
 
-          src = ./.;
+        src = ./.;
 
-          buildInputs = [ pkgs.gcc ];
+        buildInputs = [ pkgs.gcc ];
 
-          # Define build steps
-          buildPhase = ''
-            g++ -o main src/main.cpp
-          '';
+        # Define build steps
+        buildPhase = ''
+          g++ -o main src/main.cpp
+        '';
 
-          # Define install steps
-          installPhase = ''
-            mkdir -p $out/bin
-            cp main $out/bin/
-          '';
-        };
+        # Define install steps
+        installPhase = ''
+          mkdir -p $out/bin
+          cp main $out/bin/
+        '';
       };
     };
 }
