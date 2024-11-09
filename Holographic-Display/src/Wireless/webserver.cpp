@@ -139,7 +139,7 @@ void WebServer::_setup_webserver_tree()
     if (!index) 
     {
       Serial.printf("UploadStart: %s\n", filename.c_str());
-      request->_tempFile = SPIFFS.open("/datadump/" + filename, "w");
+      request->_tempFile = SPIFFS.open(IMAGE_JSON_NAME, "w");
     }
 
     size_t free_bytes = SPIFFS.totalBytes() - SPIFFS.usedBytes();

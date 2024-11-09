@@ -36,11 +36,15 @@ struct ColorValue {
 class Renderer
 {
 private:
-    // [frame][height][width](ColorValue) = [frame Count] = 128 * 128 * 3 = frames * 49152 Bytes
-    ColorValue imageData[MAX_FRAMES][IMAGE_SIZE][IMAGE_SIZE];
-    size_t imageDataSize = MAX_FRAMES * IMAGE_SIZE * IMAGE_SIZE * sizeof(ColorValue);
+    uint16_t _delayData[MAX_FRAMES];
+    // [frame][height][width](ColorValue) = [frame Count] * 128 * 128 * 3 = frames * 49152 Bytes
+    ColorValue _imageData[MAX_FRAMES][IMAGE_SIZE][IMAGE_SIZE];
+    size_t _imageDataSize = MAX_FRAMES * IMAGE_SIZE * IMAGE_SIZE * sizeof(ColorValue);
 
     void _clear_image_data();
+    void _print_image_data();
+    
+    void _next_pixel(uint8_t *x, uint8_t *y);
 
 public:
     void load_image_data();

@@ -13,21 +13,66 @@
 namespace Rendering 
 {
 
-
 // Clears the imageData Array.
 void Renderer::_clear_image_data()
 {
   Serial.println("Clear Image Data");
-  memset(&imageData, 0, imageDataSize);
+  memset(&_imageData, 0, _imageDataSize);
 }
 
+void Renderer::_next_pixel(uint8_t *px, uint8_t *py)
+{
+  int x = *px;
+  int y = *py;
+  // Move onto the next Pixel on the X-Axis.
+  x++;
+  if (x != IMAGE_SIZE)
+  {
+    *px = x;
+    return;
+  };
 
- 
+  // Move onto the next Pixel on the Y-Axis and reset X-Axis, if already at the end on the X-Axis.
+  x = 0;
+  
+  y = (y == IMAGE_SIZE) ? 0 : y + 1;
+  
+  *px = x;
+  *py = y;
+}
+
+void Renderer::_print_image_data()
+ {
+  for (uint8_t frameIndex = 0; frameIndex < MAX_FRAMES; frameIndex++)
+  {
+    for (uint8_t x = 0; x < IMAGE_SIZE; x++)
+    {
+      for (uint8_t y = 0; y < IMAGE_SIZE; y++)
+      {
+        Serial.print(_imageData[frameIndex][x][y].Red == 255 ? "#" : " ");
+      }
+      
+      Serial.println();
+    }
+  }
+  
+  // for (uint8_t x = 0; x < IMAGE_SIZE; x++)
+  // {
+  //   for (uint8_t y = 0; y < IMAGE_SIZE; y++)
+  //   {
+  //     Serial.print(_imageData[0][x][y].Red);
+  //     Serial.print(_imageData[0][x][y].Green);
+  //     Serial.print(_imageData[0][x][y].Blue);
+  //   }
+  //   
+  //   Serial.println();
+  // }
+}
 
 // Loads the .json file from the file system into the imageData Array, so it can be used for displaying.
 void Renderer::load_image_data()
 {
-  File file = SPIFFS.open("/datadump/image.json", "r", false);
+  File file = SPIFFS.open(IMAGE_JSON_NAME, "r", false);
 
   if (!file) 
   {
@@ -43,8 +88,7 @@ void Renderer::load_image_data()
     return;
   }
 
-  // Create a JSON document with a suitable capacity
-  StaticJsonDocument<1024> jsonDoc;
+  JsonDocument jsonDoc;
 
   // Parse the file contents to the JSON document
   DeserializationError error = deserializeJson(jsonDoc, file);
@@ -60,21 +104,45 @@ void Renderer::load_image_data()
 
   // If the JSON file has nested arrays or objects
   JsonArray frames = jsonDoc["frames"];
+  uint8_t frameCount = 0;
+
   for (JsonObject frame : frames) 
   {
-    int delay = frame["delay"];
+    uint16_t delay = frame["delay"];
     JsonArray data = frame["data"];
-
-    Serial.print("Frame delay: ");
-    Serial.println(delay);
-    Serial.print("Data: ");
+        
+    _delayData[frameCount] = delay;
+    
+    uint8_t indexCount = 0;
+    uint8_t x = 0;
+    uint8_t y = 0;
+    
     for (int value : data) 
     {
-      Serial.print(value);
-      Serial.print(", ");
+      switch (indexCount) 
+      {
+        case 0:
+            _imageData[frameCount][y][x].Red = value; 
+            break;
+        case 1:
+            _imageData[frameCount][y][x].Green = value; 
+            break;
+        case 2:
+            _imageData[frameCount][y][x].Blue = value; 
+            _next_pixel(&x, &y);
+          
+            break;
+        default:
+          Serial.println("We are inside of default, this can never happen!!!!");
+          break;
+      }
+
+      indexCount == 2 ? indexCount = 0 : indexCount++;
     }
-    Serial.println();
+    frameCount++;
   }
+  
+  _print_image_data();
 }
 
 }

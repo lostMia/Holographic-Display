@@ -17,10 +17,9 @@
 #define IMAGE_SIZE 64 * 2
 
 // Defines the max number of frames that can be loaded.
-#define MAX_FRAMES 3
+#define MAX_FRAMES 1
 
-#define IMAGE_JSON_NAME "/image.json"
-#define DATA_FOLDER "/datadump"
+#define IMAGE_JSON_NAME "/datadump/image.json"
 
 // Define this for Over-The-Air sketch/firmware updates.
 // - - - - - - WARNING - - - - - - 
