@@ -22,6 +22,9 @@
 // The amount of LEDs on each strip.
 #define LEDS_PER_STRIP 64
 
+// The data pin the LEDs are connected to
+#define LED_DATA_PIN 36
+
 // Defines the max number of frames that can be loaded.
 #define MAX_FRAMES 1
 

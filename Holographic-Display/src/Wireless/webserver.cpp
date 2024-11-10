@@ -13,12 +13,15 @@
 uint16_t target_speed = 0;
 uint16_t current_speed = 0;
 
+unsigned long delay_between_frames_ms = 1000;
+
 namespace Wireless
 {
 
 WebServer::WebServer(uint16_t port, Rendering::Renderer *renderer) : _server(port)
 {
   _renderer = renderer;
+  renderer->init(&delay_between_frames_ms);
 }
 
 String WebServer::_format_bytes(const size_t bytes) 
@@ -135,7 +138,8 @@ void WebServer::_setup_webserver_tree()
     request->send(SPIFFS, "/site/notfound/index.html", "text/html");
   });
 
-  _server.onFileUpload([this](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
+  _server.onFileUpload([this](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) 
+  {
     if (!index) 
     {
       Serial.printf("UploadStart: %s\n", filename.c_str());
@@ -168,7 +172,9 @@ void WebServer::_setup_webserver_tree()
         Serial.println(ESP.getFreeHeap());
           
         _renderer->load_image_data();
-      } else {
+      } 
+      else
+      {
         Serial.printf("Upload failed: %s exceeds maximum size of %u bytes\n", filename.c_str(), free_bytes);
       }
     }
@@ -225,9 +231,6 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
         // RPM-Slider
         case 1:
           target_speed = std::stoi(value);
-          Serial.print("New target speed: ");
-          Serial.println(target_speed);
-      
           break;
         default:
           break;
@@ -242,9 +245,12 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
     // RPM-Motor response 
     case 'm':
         current_speed = std::stoi(value);
-          Serial.print("New current speed: ");
-        Serial.println(current_speed);
-        
+
+        // Get the current rpm -> rps -> delay between every rotation -> delay between every degree
+        delay_between_frames_ms;
+      
+
+        // todo: fix this. find out, if we should transmit the rpm or just the last delay between rotations....
       break;
 
     // Text-Field
@@ -276,15 +282,13 @@ void WebServer::begin()
   _setup_webserver_tree();
 
   Serial.print(F("Server starting...")); 
-  // _server.serveStatic("/404/", SPIFFS, "/site/404/");
 
   _server.serveStatic("/resources/", SPIFFS, "/site/resources/");
   _server.serveStatic("/notfound/", SPIFFS, "/site/notfound/");
   _server.serveStatic("/datadump/", SPIFFS, "/datadump/");
   _server.serveStatic("/", SPIFFS, "/site/main/").setDefaultFile("index.html");
   _server.begin();
-  delay(1000);
-
+  
   Serial.println(F("Done"));
 }
 

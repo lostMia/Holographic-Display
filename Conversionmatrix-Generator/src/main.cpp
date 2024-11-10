@@ -29,8 +29,8 @@ int main()
   auto conversion_matrix = create_conversion_matrix(center_x, center_y);
 
   // print_conversion_matrix_pretty(&conversion_matrix);
-  // print_conversion_matrix_array(&conversion_matrix);
-  print_shown_coordinates(&conversion_matrix);
+  print_conversion_matrix_array(&conversion_matrix);
+  // print_shown_coordinates(&conversion_matrix);
 
   return 0;
 }

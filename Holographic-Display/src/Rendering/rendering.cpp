@@ -13,6 +13,7 @@
 namespace Rendering 
 {
 
+
 // Clears the imageData Array.
 void Renderer::_clear_image_data()
 {
@@ -42,7 +43,7 @@ void Renderer::_next_pixel(uint8_t *px, uint8_t *py)
 }
 
 void Renderer::_print_image_data()
- {
+{
   for (uint8_t frameIndex = 0; frameIndex < MAX_FRAMES; frameIndex++)
   {
     for (uint8_t x = 0; x < IMAGE_SIZE; x++)
@@ -55,18 +56,77 @@ void Renderer::_print_image_data()
       Serial.println();
     }
   }
+}
+
+void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
+{
+  // Go through all the LEDs and change their current color value.  
+  for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
+  {
+    // Get the cartesian coordinates the LED should be showing inside of the image at that time.
+    auto coordinates = conversion_matrix[current_degrees][led_index];
+
+    // Get the color value from the image at those coordinates.
+    CRGB color = _imageData[current_frame][coordinates.x][coordinates.y];
+
+    _leds[led_index] = color;
+  }
+
+  FastLED.show();
+}
+
+void Renderer::_display_loop(void *parameter)
+{
+  Renderer *renderer = (Renderer*)parameter;
+
+  uint16_t current_degrees = 0;
+  unsigned long current_milliseconds, previous_milliseconds;
+
+  while (true)
+  {
+    current_milliseconds = millis();
+
+    if (current_milliseconds - previous_milliseconds >= *renderer->delay_between_frames_ms) 
+    {
+      previous_milliseconds = current_milliseconds;
+      
+      renderer->_draw_led_strip_colors(current_degrees);
+    }
+
+    current_degrees = (current_degrees == 360 ? 0 : current_degrees += 1);
+  }
+}
+
+Renderer::Renderer()
+{
+  FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(_leds, LEDS_PER_STRIP);
+
+  xTaskCreatePinnedToCore(
+    _display_loop,
+    "Display Loop",
+    190000,
+    this,
+    5,
+    &_display_loop_task,
+    0
+  );
   
-  // for (uint8_t x = 0; x < IMAGE_SIZE; x++)
-  // {
-  //   for (uint8_t y = 0; y < IMAGE_SIZE; y++)
-  //   {
-  //     Serial.print(_imageData[0][x][y].Red);
-  //     Serial.print(_imageData[0][x][y].Green);
-  //     Serial.print(_imageData[0][x][y].Blue);
-  //   }
-  //   
-  //   Serial.println();
-  // }
+  stop();
+}
+
+void Renderer::init(unsigned long *pdelay_between_frames_ms)
+{
+  delay_between_frames_ms = pdelay_between_frames_ms;
+}
+
+void Renderer::start()
+{
+  vTaskResume(_display_loop_task);
+}
+
+void Renderer::stop()
+{
+  vTaskSuspend(_display_loop_task);
 }
 
 // Loads the .json file from the file system into the imageData Array, so it can be used for displaying.
@@ -105,6 +165,8 @@ void Renderer::load_image_data()
   // If the JSON file has nested arrays or objects
   JsonArray frames = jsonDoc["frames"];
   uint8_t frameCount = 0;
+  
+  stop();
 
   for (JsonObject frame : frames) 
   {
@@ -122,18 +184,16 @@ void Renderer::load_image_data()
       switch (indexCount) 
       {
         case 0:
-            _imageData[frameCount][y][x].Red = value; 
+            _imageData[frameCount][y][x].r = value; 
             break;
         case 1:
-            _imageData[frameCount][y][x].Green = value; 
+            _imageData[frameCount][y][x].g = value; 
             break;
         case 2:
-            _imageData[frameCount][y][x].Blue = value; 
+            _imageData[frameCount][y][x].b = value; 
             _next_pixel(&x, &y);
-          
             break;
         default:
-          Serial.println("We are inside of default, this can never happen!!!!");
           break;
       }
 
@@ -142,7 +202,10 @@ void Renderer::load_image_data()
     frameCount++;
   }
   
-  _print_image_data();
+  // _print_image_data();
+
+  start();
 }
 
 }
+
