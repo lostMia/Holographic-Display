@@ -2,6 +2,7 @@
 #include <vector>
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <utility>
 
 using namespace std;
@@ -13,17 +14,19 @@ const int LEDS_PER_STRIP = 64;
 vector<vector<pair<int, int>>> create_conversion_matrix(int center_x, int center_y);
 void print_conversion_matrix_pretty(vector<vector<pair<int, int>>> *conversion_matrix);
 void print_conversion_matrix_array(vector<vector<pair<int, int>>> *conversion_matrix);
+void print_shown_coordinates(vector<vector<pair<int, int>>> *conversion_matrix);
 
 //  - - - - - - - - - - Code - - - - - - - - - -
 
 int main() 
 {
-  int center_x = LEDS_PER_STRIP / 2, center_y = LEDS_PER_STRIP / 2;
+  int center_x = LEDS_PER_STRIP, center_y = LEDS_PER_STRIP;
 
   auto conversion_matrix = create_conversion_matrix(center_x, center_y);
 
   // print_conversion_matrix_pretty(&conversion_matrix);
-  print_conversion_matrix_array(&conversion_matrix);
+  // print_conversion_matrix_array(&conversion_matrix);
+  print_shown_coordinates(&conversion_matrix);
 
   return 0;
 }
@@ -56,7 +59,7 @@ void print_conversion_matrix_pretty(vector<vector<pair<int, int>>> *conversion_m
   {
     cout << "Angle " << angle << " Degrees:\n";
 
-    for (int led_index = 0; led_index < LEDS_PER_STRIP; led_index++) 
+    for (int led_index = 60; led_index < LEDS_PER_STRIP; led_index++) 
     {
       pair<int, int> coordinates = (*conversion_matrix)[angle][led_index];
       cout << " LED: " << led_index << " -> (x, y): (" << coordinates.first << ", " << coordinates.second << ")";
@@ -66,6 +69,32 @@ void print_conversion_matrix_pretty(vector<vector<pair<int, int>>> *conversion_m
   }
 }
 
+
+void print_shown_coordinates(vector<vector<pair<int, int>>> *conversion_matrix) 
+{
+  char coordinate_field[LEDS_PER_STRIP * 2][LEDS_PER_STRIP * 2];
+
+  memset(&coordinate_field, ' ', LEDS_PER_STRIP * 2 * LEDS_PER_STRIP * 2);
+
+
+  for (uint16_t angle = 0; angle < ANGLES_PER_ROTATION; angle++) 
+  {
+    for (int led_index = 0; led_index < LEDS_PER_STRIP; led_index++) 
+    {
+      pair<int, int> coordinates = (*conversion_matrix)[angle][led_index];
+      coordinate_field[coordinates.first][coordinates.second] = '#';
+    }
+  }
+
+  for (uint16_t x = 0; x < LEDS_PER_STRIP * 2; x++)
+  {
+    for (uint16_t y = 0; y < LEDS_PER_STRIP * 2; y++)
+    {
+      cout << coordinate_field[x][y] << coordinate_field[x][y];
+    }
+    cout << "\n";
+  }
+}
 
 // Define a 2D array to store (x, y) coordinates for each angle and led index
 vector<vector<pair<int, int>>> create_conversion_matrix(int center_x, int center_y)
