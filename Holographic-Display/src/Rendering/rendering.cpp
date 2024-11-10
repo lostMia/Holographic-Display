@@ -60,19 +60,44 @@ void Renderer::_print_image_data()
 
 void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
 {
+  Serial.println("setting the leds...");
   // Go through all the LEDs and change their current color value.  
   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
+  // for (uint8_t led_index = 0; led_index < 1; led_index++)
   {
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
     auto coordinates = conversion_matrix[current_degrees][led_index];
 
     // Get the color value from the image at those coordinates.
     CRGB color = _imageData[current_frame][coordinates.x][coordinates.y];
-
     _leds[led_index] = color;
   }
 
-  FastLED.show();
+  Serial.print("4. Free Heap:");
+  Serial.println(ESP.getFreeHeap());
+  UBaseType_t stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+
+  // Print the remaining stack size
+  Serial.print("Remaining stack size: ");
+  Serial.println(stackHighWaterMark);
+
+  try 
+  {
+    FastLED.show();
+  }
+  catch (const std::runtime_error& e)
+  {
+    Serial.println("Runtime error:");
+    Serial.println(e.what());
+  }
+  catch (...)
+  {
+    Serial.print("Unknown error caught!");
+  }
+
+  
+  
+  Serial.print("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
 }
 
 void Renderer::_display_loop(void *parameter)
@@ -86,8 +111,12 @@ void Renderer::_display_loop(void *parameter)
   {
     current_milliseconds = millis();
 
+    vTaskDelay(1 / portTICK_PERIOD_MS);
+
     if (current_milliseconds - previous_milliseconds >= *renderer->delay_between_frames_ms) 
     {
+
+      Serial.println("time reached...");
       previous_milliseconds = current_milliseconds;
       
       renderer->_draw_led_strip_colors(current_degrees);
@@ -97,41 +126,52 @@ void Renderer::_display_loop(void *parameter)
   }
 }
 
-Renderer::Renderer()
+void Renderer::init(unsigned long *pdelay_between_frames_ms)
 {
+  BaseType_t result;
+
+  delay_between_frames_ms = pdelay_between_frames_ms;
   FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(_leds, LEDS_PER_STRIP);
 
-  xTaskCreatePinnedToCore(
+  result = xTaskCreatePinnedToCore(
     _display_loop,
     "Display Loop",
-    190000,
+    180000,
     this,
-    5,
+    1,
     &_display_loop_task,
-    0
+    1
   );
+  
+  if (result != pdPASS)
+    Serial.println(F("Couldn't allocate enough memory!!"));
   
   stop();
 }
 
-void Renderer::init(unsigned long *pdelay_between_frames_ms)
-{
-  delay_between_frames_ms = pdelay_between_frames_ms;
-}
-
 void Renderer::start()
 {
+  if (eTaskGetState(_display_loop_task) == eRunning)
+    return;
+
+  Serial.println("starting display loop task");
   vTaskResume(_display_loop_task);
 }
 
 void Renderer::stop()
 {
+  if (eTaskGetState(_display_loop_task) == eSuspended)
+    return;
+
+  Serial.println("stopping display loop task");
   vTaskSuspend(_display_loop_task);
 }
 
 // Loads the .json file from the file system into the imageData Array, so it can be used for displaying.
 void Renderer::load_image_data()
 {
+  Serial.println("Loading image from flash....");
+
   File file = SPIFFS.open(IMAGE_JSON_NAME, "r", false);
 
   if (!file) 

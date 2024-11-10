@@ -48,8 +48,6 @@ private:
     void _draw_led_strip_colors(uint16_t current_degrees);
 
 public:
-    Renderer();
-
     void init(unsigned long *pdelay_between_frames_ms);
     void start();
     void stop();

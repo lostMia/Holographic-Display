@@ -21,7 +21,6 @@ namespace Wireless
 WebServer::WebServer(uint16_t port, Rendering::Renderer *renderer) : _server(port)
 {
   _renderer = renderer;
-  renderer->init(&delay_between_frames_ms);
 }
 
 String WebServer::_format_bytes(const size_t bytes) 
@@ -247,8 +246,7 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
         current_speed = std::stoi(value);
 
         // Get the current rpm -> rps -> delay between every rotation -> delay between every degree
-        delay_between_frames_ms;
-      
+        // delay_between_frames_ms;
 
         // todo: fix this. find out, if we should transmit the rpm or just the last delay between rotations....
       break;
@@ -288,6 +286,8 @@ void WebServer::begin()
   _server.serveStatic("/datadump/", SPIFFS, "/datadump/");
   _server.serveStatic("/", SPIFFS, "/site/main/").setDefaultFile("index.html");
   _server.begin();
+
+  _renderer->init(&delay_between_frames_ms);
   
   Serial.println(F("Done"));
 }
