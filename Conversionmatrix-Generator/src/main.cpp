@@ -7,16 +7,20 @@
 
 using namespace std;
 
+
+//  - - - - - - - - - - Constants - - - - - - - - - -
+
 const int ANGLES_PER_ROTATION = 360;
 const int LEDS_PER_STRIP = 64;
 
-// Function prototypes
+//  - - - - - - - - - - Function Declarations - - - - - - - - - -
+
 vector<vector<pair<int, int>>> create_conversion_matrix(int center_x, int center_y);
 void print_conversion_matrix_pretty(vector<vector<pair<int, int>>> *conversion_matrix);
 void print_conversion_matrix_array(vector<vector<pair<int, int>>> *conversion_matrix);
 void print_shown_coordinates(vector<vector<pair<int, int>>> *conversion_matrix);
 
-//  - - - - - - - - - - Code - - - - - - - - - -
+//  - - - - - - - - - - Function Definitons - - - - - - - - - -
 
 int main() 
 {
@@ -31,11 +35,10 @@ int main()
   return 0;
 }
 
+// Prints out the actual conversionm matrix usable in cpp.
 void print_conversion_matrix_array(vector<vector<pair<int, int>>> *conversion_matrix) 
 {
-  // [angle][led_index] = [x][y]
-  
-  cout << "const Coordinates conversion_matrix[ANGLES_PER_ROTATION][LEDS_PER_STRIP] = \n{\n";
+  cout << "const Coordinates conversion_matrix[ANGLES_PER_ROTATION][LEDS_PER_STRIP] PROGMEM = \n{\n";
 
   for (uint16_t angle = 0; angle < ANGLES_PER_ROTATION; angle++) 
   {
@@ -52,7 +55,7 @@ void print_conversion_matrix_array(vector<vector<pair<int, int>>> *conversion_ma
   cout << "};";
 }
 
-
+// Prints out values in a human readable way. Useful for debugging.
 void print_conversion_matrix_pretty(vector<vector<pair<int, int>>> *conversion_matrix) 
 {
   for (uint16_t angle = 0; angle < ANGLES_PER_ROTATION; angle++) 
@@ -69,34 +72,47 @@ void print_conversion_matrix_pretty(vector<vector<pair<int, int>>> *conversion_m
   }
 }
 
-
+// Prints out the affected coordinates in a 2D Array. Useful for showing the cardesian coordinates
+// that certain LEDs will display.
 void print_shown_coordinates(vector<vector<pair<int, int>>> *conversion_matrix) 
 {
   char coordinate_field[LEDS_PER_STRIP * 2][LEDS_PER_STRIP * 2];
 
   memset(&coordinate_field, ' ', LEDS_PER_STRIP * 2 * LEDS_PER_STRIP * 2);
 
+  // Shows *all* the affected coordinates.
+  // for (uint16_t angle = 0; angle < ANGLES_PER_ROTATION; angle++) 
+  // {
+  //   for (int led_index = 0; led_index < LEDS_PER_STRIP; led_index++) 
+  //   {
+  //     pair<int, int> coordinates = (*conversion_matrix)[angle][led_index];
+  //     coordinate_field[coordinates.first][coordinates.second] = '#';
+  //   }
+  // }
 
+  // Shows only coordinates affected by a certain LED.
   for (uint16_t angle = 0; angle < ANGLES_PER_ROTATION; angle++) 
   {
-    for (int led_index = 0; led_index < LEDS_PER_STRIP; led_index++) 
-    {
-      pair<int, int> coordinates = (*conversion_matrix)[angle][led_index];
-      coordinate_field[coordinates.first][coordinates.second] = '#';
-    }
+    // LED 50 for example.
+    uint16_t led_index = 50;
+
+    pair<int, int> coordinates = (*conversion_matrix)[angle][led_index];
+    coordinate_field[coordinates.first][coordinates.second] = '#';
   }
 
+  // Prints out the full coordinate system.
   for (uint16_t x = 0; x < LEDS_PER_STRIP * 2; x++)
   {
     for (uint16_t y = 0; y < LEDS_PER_STRIP * 2; y++)
     {
+      // Print every character twice, because every character has about a 2:1 ratio.
       cout << coordinate_field[x][y] << coordinate_field[x][y];
     }
     cout << "\n";
   }
 }
 
-// Define a 2D array to store (x, y) coordinates for each angle and led index
+// Define a 2D array to store (x, y) coordinates for each angle and led index.
 vector<vector<pair<int, int>>> create_conversion_matrix(int center_x, int center_y)
 {
   vector<vector<pair<int, int>>> conversion_matrix(
