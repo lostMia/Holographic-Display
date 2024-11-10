@@ -32,5 +32,9 @@
 *.app
 
 
-# Result of the Generator
+# Result of the generator
 Conversionmatrix-Generator/result
+
+# Platformio folders
+.platformio/
+.pio/
