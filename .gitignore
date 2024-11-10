@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+
+# Result of the Generator
+Conversionmatrix-Generator/result

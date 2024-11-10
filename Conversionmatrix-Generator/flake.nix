@@ -26,7 +26,7 @@
         # Define install steps
         installPhase = ''
           mkdir -p $out/bin
-          cp main $out/bin/
+          cp conversionmatrix-generator $out/bin/
         '';
       };
     };
