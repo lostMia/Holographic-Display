@@ -14,7 +14,7 @@
   <form id="dataForm">
     <div class="grid-container">
 
-      <!-- <div id="gradient"></div> -->
+      <div id="gradient"></div>
       <!-- RPM Item -->
       <div class="item">
         <div class="item-header" onclick="toggleSection(this)">
@@ -125,6 +125,47 @@
             <label for="offset-text">Offset</label>
             <input type="range" min="0" max="359" value="0" class="slider" name="s2">
             <input type="number" class="manualSlider" min="0" max="359" value="0" name="s2">
+          </div>
+        </div>
+      </div>
+
+      <!-- LED Control -->
+      <div class="item">
+        <div class="item-header" onclick="toggleSection(this)">
+          <h2>LED Control</h2>
+          <button class="toggle-btn">−</button>
+        </div>
+        <div class="item-content" >
+          <div class="vertical">
+            <!-- Brightness Slider -->
+            <div class="slider-group">
+              <label>Brightness</label>
+              <input type="range" min="0" max="255" value="100" class="slider" name="s2">
+              <input type="number" class="manualSlider" min="0" max="255" value="100" name="s2">
+            </div>
+
+            <div class="separator"></div>
+          
+            <!-- Red Channel Adjust -->
+            <div class="slider-group">
+              <label>Red Color Adjust</label>
+              <input type="range" min="-255" max="255" value="0" class="slider" name="s3">
+              <input type="number" class="manualSlider" min="-255" max="255" value="0" name="s3">
+            </div>
+
+            <!-- Green Channel Adjust -->
+            <div class="slider-group">
+              <label>Green Color Adjust</label>
+              <input type="range" min="-255" max="255" value="0" class="slider" name="s4">
+              <input type="number" class="manualSlider" min="-255" max="255" value="0" name="s4">
+            </div>
+
+            <!-- Blue Channel Adjust -->
+            <div class="slider-group">
+              <label>Blue Color Adjust</label>
+              <input type="range" min="-255" max="255" value="0" class="slider" name="s5">
+              <input type="number" class="manualSlider" min="-255" max="255" value="0" name="s5">
+            </div>
           </div>
         </div>
       </div>

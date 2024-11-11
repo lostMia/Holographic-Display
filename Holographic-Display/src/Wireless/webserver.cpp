@@ -11,9 +11,10 @@
 #include "Wireless/webserver.hpp"
 
 uint16_t target_speed = 0;
+uint8_t led_brightness = 100;
 uint16_t current_speed = 0;
 
-unsigned long delay_between_frames_ms = 1000;
+unsigned long delay_between_frames_ms = 10;
 
 namespace Wireless
 {
@@ -234,6 +235,23 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
         // RPM-Slider
         case 1:
           target_speed = std::stoi(value);
+          break;
+        // LED-Slider
+        case 2:
+          led_brightness = std::stoi(value);
+          FastLED.setBrightness(led_brightness);
+          break;
+        // Red-Color-Slider
+        case 3:
+          _renderer->options.red_color_adjust = std::stoi(value);
+          break;
+        // Green-Color-Slider
+        case 4:
+          _renderer->options.green_color_adjust = std::stoi(value);
+          break;
+        // Blue-Color-Slider
+        case 5:
+          _renderer->options.blue_color_adjust = std::stoi(value);
           break;
         default:
           break;

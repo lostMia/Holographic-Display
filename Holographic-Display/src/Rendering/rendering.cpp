@@ -49,7 +49,10 @@ void Renderer::_print_image_data()
     {
       for (uint8_t y = 0; y < IMAGE_SIZE; y++)
       {
-        Serial.print(_imageData[frameIndex][x][y].Red == 255 ? "#" : " ");
+        // Serial.print(_imageData[frameIndex][x][y].Red == 255 ? "#" : " ");
+        Serial.print(_imageData[frameIndex][x][y].r);
+        Serial.print(_imageData[frameIndex][x][y].g);
+        Serial.print(_imageData[frameIndex][x][y].b);
       }
       
       Serial.println();
@@ -59,41 +62,49 @@ void Renderer::_print_image_data()
 
 void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
 {
-  Serial.println("setting the leds...");
   // Go through all the LEDs and change their current color value.  
   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
   {
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
-    auto coordinates = conversion_matrix[current_degrees][led_index];
+    auto coordinates = conversion_matrix[current_degrees][LEDS_PER_STRIP - led_index];
 
     // Get the color value from the image at those coordinates.
     CRGB color = _imageData[current_frame][coordinates.x][coordinates.y];
+    
+    color.r += options.red_color_adjust;
+    color.g += options.green_color_adjust;
+    color.b += options.blue_color_adjust;
+
+    _leds[led_index] = color;
+  }
+  
+  uint16_t opposite_degrees = (current_degrees + 180) % 360;
+  
+  if (opposite_degrees == 0)
+  {
+    Serial.println("0... is it broken??");
+    delay(5000);
+  }
+
+  // Note: this is the one that is broken. below
+
+  // Go through all the LEDs and change their current color value.  
+  for (uint8_t led_index = LEDS_PER_STRIP; led_index < LEDS_PER_STRIP * 2; led_index++)
+  {
+    // Get the cartesian coordinates the LED should be showing inside of the image at that time.
+    auto coordinates = conversion_matrix[opposite_degrees][led_index];
+
+    // Get the color value from the image at those coordinates.
+    CRGB color = _imageData[current_frame][coordinates.x][coordinates.y];
+    
+    color.r += options.red_color_adjust;
+    color.g += options.green_color_adjust;
+    color.b += options.blue_color_adjust;
+
     _leds[led_index] = color;
   }
 
-  Serial.print("4. Free Heap:");
-  Serial.println(ESP.getFreeHeap());
-  UBaseType_t stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
-
-  // Print the remaining stack size
-  Serial.print("Remaining stack size: ");
-  Serial.println(stackHighWaterMark);
-
-  try 
-  {
-    FastLED.show();
-  }
-  catch (const std::runtime_error& e)
-  {
-    Serial.println("Runtime error:");
-    Serial.println(e.what());
-  }
-  catch (...)
-  {
-    Serial.print("Unknown error caught!");
-  }
-
-  Serial.print("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+  FastLED.show();
 }
 
 void Renderer::_display_loop(void *parameter)
@@ -107,18 +118,16 @@ void Renderer::_display_loop(void *parameter)
   {
     current_milliseconds = millis();
 
-    vTaskDelay(1 / portTICK_PERIOD_MS);
+    vTaskDelay(50 / portTICK_PERIOD_MS);
 
     if (current_milliseconds - previous_milliseconds >= *renderer->delay_between_frames_ms) 
     {
+      current_degrees = (current_degrees == 359 ? 0 : current_degrees + 1);
 
-      Serial.println("time reached...");
       previous_milliseconds = current_milliseconds;
       
       renderer->_draw_led_strip_colors(current_degrees);
     }
-
-    current_degrees = (current_degrees == 360 ? 0 : current_degrees += 1);
   }
 }
 
@@ -127,22 +136,23 @@ void Renderer::init(unsigned long *pdelay_between_frames_ms)
   BaseType_t result;
 
   delay_between_frames_ms = pdelay_between_frames_ms;
-  FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(_leds, LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(_leds, LEDS_PER_STRIP * 2);
+  FastLED.setBrightness(50);
 
   result = xTaskCreatePinnedToCore(
     _display_loop,
     PSTR("Display Loop"),
-    180000,
+    100000,
     this,
-    1,
+    5,
     &_display_loop_task,
-    1
+    0
   );
   
   if (result != pdPASS)
     Serial.println(F("Couldn't allocate enough memory!!"));
   
-  stop();
+  load_image_data();
 }
 
 void Renderer::start()
@@ -150,7 +160,6 @@ void Renderer::start()
   if (eTaskGetState(_display_loop_task) == eRunning)
     return;
 
-  Serial.println("starting display loop task");
   vTaskResume(_display_loop_task);
 }
 
@@ -159,7 +168,6 @@ void Renderer::stop()
   if (eTaskGetState(_display_loop_task) == eSuspended)
     return;
 
-  Serial.println("stopping display loop task");
   vTaskSuspend(_display_loop_task);
 }
 

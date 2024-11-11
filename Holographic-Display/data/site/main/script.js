@@ -93,51 +93,51 @@ function uploadRawImage(file) {
 
 // - - - - - - - - - - - - Experimental Image Conversion - - - - - - - - - - - - //
 
-function processAndUploadBytestream(file) {
-  const img = new Image();
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  const targetSize = 128;
-
-  img.onload = () => {
-    // Make the image quadratic by cropping it if necessary
-    const minSize = Math.min(img.width, img.height);
-    const offsetX = (img.width - minSize) / 2;
-    const offsetY = (img.height - minSize) / 2;
-
-    // Set canvas size to target dimensions
-    canvas.width = targetSize;
-    canvas.height = targetSize;
-
-    // Draw the cropped, resized image on the canvas
-    ctx.drawImage(img, offsetX, offsetY, minSize, minSize, 0, 0, targetSize, targetSize);
-
-    // Get the image data from the canvas
-    const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
-    const pixels = imageData.data; // pixels with alpha
-
-    const rgbArray = []; // pixels without alpha -> 25% less dataconsumtion, because we don't care about the arpha value. 
-    for (let i = 0; i < pixels.length; i += 4) {
-      // Skip the alpha channel
-      rgbArray.push(pixels[i], pixels[i + 1], pixels[i + 2]);
-    }
-
-    const frameData = {
-      frames: [
-        {
-          delay: 0, // todo: don't hard code this xd
-          data: rgbArray
-        }
-      ]
-    };
-
-    uploadRGBArray(frameData);
-  };
-
-  const reader = new FileReader();
-  reader.onload = () => img.src = reader.result;
-  reader.readAsDataURL(file);
-}
+// function processAndUploadBytestream(file) {
+//   const img = new Image();
+//   const canvas = document.createElement('canvas');
+//   const ctx = canvas.getContext('2d');
+//   const targetSize = 22;
+//
+//   img.onload = () => {
+//     // Make the image quadratic by cropping it if necessary
+//     const minSize = Math.min(img.width, img.height);
+//     const offsetX = (img.width - minSize) / 2;
+//     const offsetY = (img.height - minSize) / 2;
+//
+//     // Set canvas size to target dimensions
+//     canvas.width = targetSize;
+//     canvas.height = targetSize;
+//
+//     // Draw the cropped, resized image on the canvas
+//     ctx.drawImage(img, offsetX, offsetY, minSize, minSize, 0, 0, targetSize, targetSize);
+//
+//     // Get the image data from the canvas
+//     const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
+//     const pixels = imageData.data; // pixels with alpha
+//
+//     const rgbArray = []; // pixels without alpha -> 25% less data consumption, because we don't care about the alpha value. 
+//     for (let i = 0; i < pixels.length; i += 4) {
+//       // Skip the alpha channel
+//       rgbArray.push(pixels[i], pixels[i + 1], pixels[i + 2]);
+//     }
+//
+//     const frameData = {
+//       frames: [
+//         {
+//           delay: 0, // todo: don't hard code this xd
+//           data: rgbArray
+//         }
+//       ]
+//     };
+//
+//     uploadRGBArray(frameData);
+//   };
+//
+//   const reader = new FileReader();
+//   reader.onload = () => img.src = reader.result;
+//   reader.readAsDataURL(file);
+// }
 
 /*
 This is the Json format that will be used.
@@ -157,25 +157,6 @@ Using this will open up the possibility of using videos or GIF's further in the 
 ]
 }
 */
-
-function uploadRGBArray(frameData) {
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', '/upload', true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
-
-  xhr.onload = () => {
-    if (xhr.status === 200) {
-      alert("Data uploaded successfully!");
-    } else {
-      alert("Error uploading data!");
-    }
-  };
-
-  // Convert the frame data to JSON
-  xhr.send(JSON.stringify(frameData));
-}
-
-
 async function handleImageFile(file) {
   const canvas = document.createElement('canvas');
   const img = new Image();
@@ -184,7 +165,7 @@ async function handleImageFile(file) {
   await img.decode();
 
   // Set canvas size (e.g., 128x128)
-  const size = 128;
+  const size = 22;
   canvas.width = size;
   canvas.height = size;
 
@@ -215,21 +196,28 @@ async function handleImageFile(file) {
 }
 
 async function uploadJSON(jsonBlob, fileName) {
-  console.log(fileName);
-
   const formData = new FormData();
   formData.append('file', jsonBlob, fileName);
 
-  const response = await fetch('/upload', {
-    method: 'POST',
-    body: formData
-  });
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/upload', true);
 
-  if (response.ok) {
-    alert('File uploaded successfully!');
-  } else {
-    alert('Error uploading file.');
-  }
+  xhr.upload.onprogress = (event) => {
+    if (event.lengthComputable) {
+      const percentComplete = (event.loaded / event.total) * 100;
+      progressBar.value = percentComplete;
+    }
+  };
+
+  xhr.onload = () => {
+    if (xhr.status === 200) {
+      alert('Finished uploading the image! :)');
+    } else {
+      alert('Error uploading file.');
+    }
+  };
+
+  xhr.send(formData);
 }
 
 // - - - - - - - - - - - - CurrentRPM - - - - - - - - - - - - //

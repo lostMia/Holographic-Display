@@ -12,22 +12,23 @@
 
 #include "credentials.hpp"
 
-// Defines the width/height of the image to create.
-// This is equal to the number of LED's per strip times 2.
-#define IMAGE_SIZE 64 * 2
-
 // The amount of angles the image will be cut into.
 #define ANGLES_PER_ROTATION 360
 
 // The amount of LEDs on each strip.
-#define LEDS_PER_STRIP 64
+#define LEDS_PER_STRIP 11
 
 // The data pin the LEDs are connected to
-#define LED_DATA_PIN 36
+#define LED_DATA_PIN 11
+
+// Defines the width/height of the image to create.
+// This is equal to the number of LED's per strip times 2.
+#define IMAGE_SIZE LEDS_PER_STRIP * 2
 
 // Defines the max number of frames that can be loaded.
 #define MAX_FRAMES 1
 
+// Defines the most current image that has been uploaded from the website.
 #define IMAGE_JSON_NAME "/datadump/image.json"
 
 // Define this for Over-The-Air sketch/firmware updates.

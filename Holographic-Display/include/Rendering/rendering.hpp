@@ -26,6 +26,13 @@
 namespace Rendering 
 {
 
+struct Options 
+{
+    int16_t red_color_adjust = 0;
+    int16_t green_color_adjust = 0;
+    int16_t blue_color_adjust = 0;
+};
+
 // Class managing the displaying of images using the led strips.
 class Renderer
 {
@@ -35,8 +42,7 @@ private:
     size_t _imageDataSize = MAX_FRAMES * IMAGE_SIZE * IMAGE_SIZE * sizeof(CRGB);
     TaskHandle_t _display_loop_task = NULL;
     unsigned long *delay_between_frames_ms;
-    CRGB _leds[LEDS_PER_STRIP];
-
+    CRGB _leds[LEDS_PER_STRIP * 2];
     uint8_t current_frame = 0;
 
     void _clear_image_data();
@@ -46,6 +52,8 @@ private:
     void _draw_led_strip_colors(uint16_t current_degrees);
 
 public:
+    Options options;
+    
     void init(unsigned long *pdelay_between_frames_ms);
     void start();
     void stop();

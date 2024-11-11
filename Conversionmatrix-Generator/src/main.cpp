@@ -11,7 +11,7 @@ using namespace std;
 //  - - - - - - - - - - Constants - - - - - - - - - -
 
 const int ANGLES_PER_ROTATION = 360;
-const int LEDS_PER_STRIP = 64;
+const int LEDS_PER_STRIP = 11;
 
 //  - - - - - - - - - - Function Declarations - - - - - - - - - -
 
@@ -29,8 +29,8 @@ int main()
   auto conversion_matrix = create_conversion_matrix(center_x, center_y);
 
   // print_conversion_matrix_pretty(&conversion_matrix);
-  // print_conversion_matrix_array(&conversion_matrix);
-  print_shown_coordinates(&conversion_matrix);
+  print_conversion_matrix_array(&conversion_matrix);
+  // print_shown_coordinates(&conversion_matrix);
 
   return 0;
 }
@@ -81,24 +81,24 @@ void print_shown_coordinates(vector<vector<pair<int, int>>> *conversion_matrix)
   memset(&coordinate_field, ' ', LEDS_PER_STRIP * 2 * LEDS_PER_STRIP * 2);
 
   // Shows *all* the affected coordinates.
-  // for (uint16_t angle = 0; angle < ANGLES_PER_ROTATION; angle++) 
-  // {
-  //   for (int led_index = 0; led_index < LEDS_PER_STRIP; led_index++) 
-  //   {
-  //     pair<int, int> coordinates = (*conversion_matrix)[angle][led_index];
-  //     coordinate_field[coordinates.first][coordinates.second] = '#';
-  //   }
-  // }
-
-  // Shows only coordinates affected by a certain LED.
   for (uint16_t angle = 0; angle < ANGLES_PER_ROTATION; angle++) 
   {
-    // LED 50 for example.
-    uint16_t led_index = 50;
-
-    pair<int, int> coordinates = (*conversion_matrix)[angle][led_index];
-    coordinate_field[coordinates.first][coordinates.second] = '#';
+    for (int led_index = 0; led_index < LEDS_PER_STRIP; led_index++) 
+    {
+      pair<int, int> coordinates = (*conversion_matrix)[angle][led_index];
+      coordinate_field[coordinates.first][coordinates.second] = '#';
+    }
   }
+
+  // Shows only coordinates affected by a certain LED.
+  // for (uint16_t angle = 0; angle < ANGLES_PER_ROTATION; angle++) 
+  // {
+  //   // LED 50 for example.
+  //   uint16_t led_index = 50;
+  //
+  //   pair<int, int> coordinates = (*conversion_matrix)[angle][led_index];
+  //   coordinate_field[coordinates.first][coordinates.second] = '#';
+  // }
 
   // Prints out the full coordinate system.
   for (uint16_t x = 0; x < LEDS_PER_STRIP * 2; x++)
