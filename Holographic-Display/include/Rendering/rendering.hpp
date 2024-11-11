@@ -10,7 +10,6 @@
 
 #pragma once
 
-
 #include <Arduino.h>
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
@@ -24,11 +23,10 @@
 #include "FastLED.h"
 
 
-
 namespace Rendering 
 {
 
-
+// Class managing the displaying of images using the led strips.
 class Renderer
 {
 private:
@@ -37,9 +35,9 @@ private:
     size_t _imageDataSize = MAX_FRAMES * IMAGE_SIZE * IMAGE_SIZE * sizeof(CRGB);
     TaskHandle_t _display_loop_task = NULL;
     unsigned long *delay_between_frames_ms;
-    uint8_t current_frame = 0;
     CRGB _leds[LEDS_PER_STRIP];
-    
+
+    uint8_t current_frame = 0;
 
     void _clear_image_data();
     void _print_image_data();

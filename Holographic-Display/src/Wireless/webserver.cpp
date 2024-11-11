@@ -25,10 +25,14 @@ WebServer::WebServer(uint16_t port, Rendering::Renderer *renderer) : _server(por
 
 String WebServer::_format_bytes(const size_t bytes) 
 {
-  if (bytes < 1024) return String(bytes) + " B";
-  else if (bytes < (1024 * 1024)) return String(bytes / 1024.0) + " KB";
-  else if (bytes < (1024 * 1024 * 1024)) return String(bytes / (1024.0 * 1024.0)) + " MB";
-  else return String(bytes / (1024.0 * 1024.0 * 1024.0)) + " GB";
+  if (bytes < 1024) 
+    return String(bytes) + " B";
+  else if (bytes < (1024 * 1024)) 
+    return String(bytes / 1024.0) + " KB";
+  else if (bytes < (1024 * 1024 * 1024)) 
+    return String(bytes / (1024.0 * 1024.0)) + " MB";
+  else 
+    return String(bytes / (1024.0 * 1024.0 * 1024.0)) + " GB";
 }
 
 bool WebServer::_begin_SPIFFS()

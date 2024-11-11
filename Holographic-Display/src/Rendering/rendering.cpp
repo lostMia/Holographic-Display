@@ -13,7 +13,6 @@
 namespace Rendering 
 {
 
-
 // Clears the imageData Array.
 void Renderer::_clear_image_data()
 {
@@ -63,7 +62,6 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
   Serial.println("setting the leds...");
   // Go through all the LEDs and change their current color value.  
   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
-  // for (uint8_t led_index = 0; led_index < 1; led_index++)
   {
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
     auto coordinates = conversion_matrix[current_degrees][led_index];
@@ -95,8 +93,6 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
     Serial.print("Unknown error caught!");
   }
 
-  
-  
   Serial.print("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
 }
 

@@ -10,7 +10,6 @@
 
 #pragma once
 
-
 #include <Arduino.h>
 #include "credentials.hpp"
 #include "config.hpp"

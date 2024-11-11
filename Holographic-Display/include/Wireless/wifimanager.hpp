@@ -8,9 +8,7 @@
  * Copyright Deimo Elektronik GmbH (c) 2024
 */
 
-
 #pragma once
-
 
 #include <Arduino.h>
 #include <WiFi.h>

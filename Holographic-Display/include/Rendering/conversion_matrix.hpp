@@ -1,5 +1,5 @@
 /*
- * @file rendering.cpp
+ * @file conversion_matrix.hpp
  * @authors mia
  * @brief Used for storing the very lengthy conversion matrix.
  * @version 0.1.0
@@ -11,6 +11,7 @@
 #include <Arduino.h>
 #include "config.h"
 
+
 namespace Rendering
 {
 
@@ -19,6 +20,7 @@ struct Coordinates {
   uint8_t y;
 };
   
+// The Conversion Matrix, translating an angle in degrees and the index of the led to a set of coordinates in the input image.
 const Coordinates conversion_matrix[ANGLES_PER_ROTATION][LEDS_PER_STRIP] PROGMEM = 
 {
   { {64, 64}, {65, 64}, {66, 64}, {67, 64}, {68, 64}, {69, 64}, {70, 64}, {71, 64}, {72, 64}, {73, 64}, {74, 64}, {75, 64}, {76, 64}, {77, 64}, {78, 64}, {79, 64}, {80, 64}, {81, 64}, {82, 64}, {83, 64}, {84, 64}, {85, 64}, {86, 64}, {87, 64}, {88, 64}, {89, 64}, {90, 64}, {91, 64}, {92, 64}, {93, 64}, {94, 64}, {95, 64}, {96, 64}, {97, 64}, {98, 64}, {99, 64}, {100, 64}, {101, 64}, {102, 64}, {103, 64}, {104, 64}, {105, 64}, {106, 64}, {107, 64}, {108, 64}, {109, 64}, {110, 64}, {111, 64}, {112, 64}, {113, 64}, {114, 64}, {115, 64}, {116, 64}, {117, 64}, {118, 64}, {119, 64}, {120, 64}, {121, 64}, {122, 64}, {123, 64}, {124, 64}, {125, 64}, {126, 64}, {127, 64},  },
