@@ -26,13 +26,13 @@ WebServer::WebServer(uint16_t port, Rendering::Renderer *renderer) : _server(por
 String WebServer::_format_bytes(const size_t bytes) 
 {
   if (bytes < 1024) 
-    return String(bytes) + " B";
+    return String(bytes) + F(" B");
   else if (bytes < (1024 * 1024)) 
-    return String(bytes / 1024.0) + " KB";
+    return String(bytes / 1024.0) + F(" KB");
   else if (bytes < (1024 * 1024 * 1024)) 
-    return String(bytes / (1024.0 * 1024.0)) + " MB";
+    return String(bytes / (1024.0 * 1024.0)) + F(" MB");
   else 
-    return String(bytes / (1024.0 * 1024.0 * 1024.0)) + " GB";
+    return String(bytes / (1024.0 * 1024.0 * 1024.0)) + F(" GB");
 }
 
 bool WebServer::_begin_SPIFFS()
@@ -110,42 +110,42 @@ void WebServer::_setup_webserver_tree()
 {
   Serial.print(F("Setting up server tree...")); 
 
-  _server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+  _server.on(PSTR("/"), HTTP_GET, [](AsyncWebServerRequest *request)
   {
     Serial.print(F("Serving to IP: "));
     Serial.println(request->client()->remoteIP().toString());
-    request->send(SPIFFS, "/site/main/index.html", "text/html");
+    request->send(SPIFFS, F("/site/main/index.html"), F("text/html"));
   });
   
-  _server.on("/TargetRPM", HTTP_GET, [](AsyncWebServerRequest *request)
+  _server.on(PSTR("/TargetRPM"), HTTP_GET, [](AsyncWebServerRequest *request)
   {
     char RPM_string[10];
     
     sprintf(RPM_string, "%d", target_speed);
 
-    request->send(200, "text/plain", RPM_string);
+    request->send(200, F("text/plain"), RPM_string);
   });
  
-  _server.on("/CurrentRPM", HTTP_GET, [](AsyncWebServerRequest *request)
+  _server.on(PSTR("/CurrentRPM"), HTTP_GET, [](AsyncWebServerRequest *request)
   {
     char RPM_string[10];
     
     sprintf(RPM_string, "%d", current_speed);
 
-    request->send(200, "text/plain", RPM_string);
+    request->send(200, F("text/plain"), RPM_string);
   });
   
   _server.onNotFound([](AsyncWebServerRequest *request)
   {
-    Serial.printf("Unable to find http://%s%s\n", request->host().c_str(), request->url().c_str());
-    request->send(SPIFFS, "/site/notfound/index.html", "text/html");
+    Serial.printf(PSTR("Unable to find http://%s%s\n"), request->host().c_str(), request->url().c_str());
+    request->send(SPIFFS, F("/site/notfound/index.html"), F("text/html"));
   });
 
   _server.onFileUpload([this](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) 
   {
     if (!index) 
     {
-      Serial.printf("UploadStart: %s\n", filename.c_str());
+      Serial.printf(PSTR("UploadStart: %s\n"), filename.c_str());
       request->_tempFile = SPIFFS.open(IMAGE_JSON_NAME, "w");
     }
 
@@ -169,23 +169,23 @@ void WebServer::_setup_webserver_tree()
       if (request->_tempFile)
       {
         request->_tempFile.close();
-        Serial.printf("UploadEnd: %s, %u\n", filename.c_str(), _format_bytes(index + len));
+        Serial.printf(PSTR("UploadEnd: %s, %u\n"), filename.c_str(), _format_bytes(index + len));
 
-        Serial.print("Free Heap:");
+        Serial.print(F("Free Heap:"));
         Serial.println(ESP.getFreeHeap());
           
         _renderer->load_image_data();
       } 
       else
       {
-        Serial.printf("Upload failed: %s exceeds maximum size of %u bytes\n", filename.c_str(), free_bytes);
+        Serial.printf(PSTR("Upload failed: %s exceeds maximum size of %u bytes\n"), filename.c_str(), free_bytes);
       }
     }
   });
 
-  _server.on("/post", HTTP_POST, [this](AsyncWebServerRequest *request)
+  _server.on(PSTR("/post"), HTTP_POST, [this](AsyncWebServerRequest *request)
   {
-    Serial.println("accessing /post...");
+    Serial.println(F("accessing /post..."));
     uint8_t params = request->params();
     
     for(uint8_t i = 0; i < params; i++)
@@ -195,7 +195,7 @@ void WebServer::_setup_webserver_tree()
       _handle_input(parameter);
     }
       
-    request->send(200, "text/plain", "OK");
+    request->send(200, F("text/plain"), F("OK"));
   });
 
   Serial.println(F("Done")); 
@@ -285,10 +285,10 @@ void WebServer::begin()
 
   Serial.print(F("Server starting...")); 
 
-  _server.serveStatic("/resources/", SPIFFS, "/site/resources/");
-  _server.serveStatic("/notfound/", SPIFFS, "/site/notfound/");
-  _server.serveStatic("/datadump/", SPIFFS, "/datadump/");
-  _server.serveStatic("/", SPIFFS, "/site/main/").setDefaultFile("index.html");
+  _server.serveStatic(PSTR("/resources/"), SPIFFS, PSTR("/site/resources/"));
+  _server.serveStatic(PSTR("/notfound/"), SPIFFS, PSTR("/site/notfound/"));
+  _server.serveStatic(PSTR("/datadump/"), SPIFFS, PSTR("/datadump/"));
+  _server.serveStatic(PSTR("/"), SPIFFS, PSTR("/site/main/")).setDefaultFile(PSTR("index.html"));
   _server.begin();
 
   _renderer->init(&delay_between_frames_ms);

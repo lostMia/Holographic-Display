@@ -131,7 +131,7 @@ void Renderer::init(unsigned long *pdelay_between_frames_ms)
 
   result = xTaskCreatePinnedToCore(
     _display_loop,
-    "Display Loop",
+    PSTR("Display Loop"),
     180000,
     this,
     1,
@@ -172,14 +172,14 @@ void Renderer::load_image_data()
 
   if (!file) 
   {
-    Serial.println("Failed to open file for reading");
+    Serial.println(F("Failed to open file for reading"));
     return;
   }
 
   size_t size = file.size();
   if (size == 0) 
   {
-    Serial.println("File is empty");
+    Serial.println(F("File is empty"));
     file.close();
     return;
   }
@@ -190,7 +190,7 @@ void Renderer::load_image_data()
   DeserializationError error = deserializeJson(jsonDoc, file);
   if (error) 
   {
-    Serial.print("Failed to parse JSON: ");
+    Serial.print(F("Failed to parse JSON: "));
     Serial.println(error.c_str());
     file.close();
     return;
