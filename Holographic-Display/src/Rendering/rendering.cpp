@@ -80,11 +80,6 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
   
   uint16_t opposite_degrees = (current_degrees + 180) % 360;
   
-  if (opposite_degrees == 0)
-  {
-    Serial.println("0... is it broken??");
-    delay(5000);
-  }
 
   // Note: this is the one that is broken. below
 
@@ -92,18 +87,19 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
   for (uint8_t led_index = LEDS_PER_STRIP; led_index < LEDS_PER_STRIP * 2; led_index++)
   {
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
-    auto coordinates = conversion_matrix[opposite_degrees][led_index];
+    //
+    auto coordinates = conversion_matrix[opposite_degrees][led_index - LEDS_PER_STRIP];
 
     // Get the color value from the image at those coordinates.
     CRGB color = _imageData[current_frame][coordinates.x][coordinates.y];
-    
+       
     color.r += options.red_color_adjust;
     color.g += options.green_color_adjust;
     color.b += options.blue_color_adjust;
 
     _leds[led_index] = color;
   }
-
+ 
   FastLED.show();
 }
 
@@ -118,7 +114,7 @@ void Renderer::_display_loop(void *parameter)
   {
     current_milliseconds = millis();
 
-    vTaskDelay(50 / portTICK_PERIOD_MS);
+    vTaskDelay(5 / portTICK_PERIOD_MS);
 
     if (current_milliseconds - previous_milliseconds >= *renderer->delay_between_frames_ms) 
     {
