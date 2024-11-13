@@ -15,10 +15,10 @@
     <div class="grid-container">
 
       <div id="gradient"></div>
-      <!-- RPM Item -->
+      <!-- Motor Control -->
       <div class="item">
         <div class="item-header" onclick="toggleSection(this)">
-          <h2>RPM Control</h2>
+          <h2>Motor Control</h2>
           <button class="toggle-btn">−</button>
         </div>
         <div class="item-content" >
@@ -26,8 +26,8 @@
             <!-- Motor active -->
             <div class="horizontal">
               <label>Active:</label>
-              <input type="checkbox" id="c1" name="c1" value="False">
-              <label class="checkbox-label" for="c1"/>
+              <input type="checkbox" id="l1" name="l1" value="0">
+              <label class="checkbox-label" for="l1"/>
             </div>
 
             <!-- RPM Feedback -->
@@ -37,11 +37,11 @@
             </div>
           </div>
 
-          <!-- RPM Target -->
+          <!-- Power Target -->
           <div class="slider-group">
-            <label for="slider">RPM</label>
+            <label for="slider">Power</label>
             <input type="range" min="0" max="255" value="50" class="slider" name="s1">
-            <input type="number" class="manualSlider" min="0" max="255" value="0" name="s1">
+            <input type="number" class="manualSlider" min="0" max="255" value="false" name="s1">
           </div>
         </div>
       </div>
@@ -137,11 +137,20 @@
         </div>
         <div class="item-content" >
           <div class="vertical">
-            <!-- Brightness Slider -->
-            <div class="slider-group">
-              <label>Brightness</label>
-              <input type="range" min="0" max="255" value="100" class="slider" name="s2">
-              <input type="number" class="manualSlider" min="0" max="255" value="100" name="s2">
+            <div class="horizontal">
+              <!-- LED active -->
+              <div class="horizontal">
+                <label>Active:</label>
+                <input type="checkbox" id="l2" name="l2" value="false">
+                <label class="checkbox-label" for="l2"/>
+              </div>
+
+              <!-- Brightness Slider -->
+              <div class="slider-group">
+                <label>Brightness</label>
+                <input type="range" min="0" max="255" value="100" class="slider" name="s2">
+                <input type="number" class="manualSlider" min="0" max="255" value="100" name="s2">
+              </div>
             </div>
 
             <div class="separator"></div>

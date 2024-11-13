@@ -10,11 +10,6 @@
 
 #include "Wireless/webserver.hpp"
 
-uint16_t target_speed = 0;
-uint8_t led_brightness = 100;
-uint16_t current_speed = 0;
-
-unsigned long delay_between_frames_ms = 10;
 
 namespace Wireless
 {
@@ -118,20 +113,20 @@ void WebServer::_setup_webserver_tree()
     request->send(SPIFFS, F("/site/main/index.html"), F("text/html"));
   });
   
-  _server.on(PSTR("/TargetRPM"), HTTP_GET, [](AsyncWebServerRequest *request)
+  _server.on(PSTR("/TargetPower"), HTTP_GET, [this](AsyncWebServerRequest *request)
   {
     char RPM_string[10];
     
-    sprintf(RPM_string, "%d", target_speed);
+    sprintf(RPM_string, "%d", _target_power);
 
     request->send(200, F("text/plain"), RPM_string);
   });
  
-  _server.on(PSTR("/CurrentRPM"), HTTP_GET, [](AsyncWebServerRequest *request)
+  _server.on(PSTR("/CurrentPower"), HTTP_GET, [this](AsyncWebServerRequest *request)
   {
     char RPM_string[10];
     
-    sprintf(RPM_string, "%d", current_speed);
+    sprintf(RPM_string, "%d", _delay_between_degrees_us);
 
     request->send(200, F("text/plain"), RPM_string);
   });
@@ -186,7 +181,6 @@ void WebServer::_setup_webserver_tree()
 
   _server.on(PSTR("/post"), HTTP_POST, [this](AsyncWebServerRequest *request)
   {
-    Serial.println(F("accessing /post..."));
     uint8_t params = request->params();
     
     for(uint8_t i = 0; i < params; i++)
@@ -224,22 +218,22 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
     return;
   }
   
-  // Figure out, what type of element sent the response
+  // Figure out what type of element sent the response.
   switch (name[0])
   {
     // Slider
     case 's':
-      // Figure out what slider was used
+      // Figure out what slider was used.
       switch (number)
       {
-        // RPM-Slider
+        // Motor-Power-Slider
         case 1:
-          target_speed = std::stoi(value);
+          _target_power = std::stoi(value);
           break;
         // LED-Slider
         case 2:
-          led_brightness = std::stoi(value);
-          FastLED.setBrightness(led_brightness);
+          _led_brightness = std::stoi(value);
+          FastLED.setBrightness(_led_brightness);
           break;
         // Red-Color-Slider
         case 3:
@@ -263,18 +257,43 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
     case 'r':
       break;
 
-    // RPM-Motor response 
+    // Motor-Speed response 
     case 'm':
-        current_speed = std::stoi(value);
-
-        // Get the current rpm -> rps -> delay between every rotation -> delay between every degree
-        // delay_between_frames_ms;
-
-        // todo: fix this. find out, if we should transmit the rpm or just the last delay between rotations....
+        _delay_between_degrees_us = std::stoi(value);
       break;
 
     // Text-Field
     case 't':
+      break;
+      
+     // Lever-Field
+    case 'l':
+      // Figure out what lever was used.
+      switch (number)
+      {
+        // Motor-Active-Lever
+        case 1:
+          // _target_power = std::stoi(value);
+          // TODO: add logik to this.
+          break;
+        // LED-Active-Lever
+        case 2:
+          if (strncmp(value, "true", 8))
+          {
+            Serial.println("disabling leds...");
+            _renderer->options.leds_enabled = false;
+
+            CRGB black = black.Black;
+
+            FastLED.showColor(black.Black);
+          }
+          else
+          {
+            Serial.println("enabling leds...");
+            _renderer->options.leds_enabled = true;
+          }
+          break;
+      }
       break;
 
     // Color-Input
@@ -309,7 +328,7 @@ void WebServer::begin()
   _server.serveStatic(PSTR("/"), SPIFFS, PSTR("/site/main/")).setDefaultFile(PSTR("index.html"));
   _server.begin();
 
-  _renderer->init(&delay_between_frames_ms);
+  _renderer->init(&_delay_between_degrees_us);
   
   Serial.println(F("Done"));
 }

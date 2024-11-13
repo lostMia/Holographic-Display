@@ -11,6 +11,7 @@
 #include "Rendering/rendering.hpp"
 
 namespace Rendering 
+
 {
 
 // Clears the imageData Array.
@@ -69,11 +70,11 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
     auto coordinates = conversion_matrix[current_degrees][LEDS_PER_STRIP - led_index];
 
     // Get the color value from the image at those coordinates.
-    CRGB color = _imageData[current_frame][coordinates.x][coordinates.y];
+    CRGB color = _imageData[_current_frame][coordinates.x][coordinates.y];
     
-    color.r += options.red_color_adjust;
-    color.g += options.green_color_adjust;
-    color.b += options.blue_color_adjust;
+    // color.r = _add_colors(color1, color2);
+    // color.g = _add_colors(color.g, options.green_color_adjust);
+    // color.b = _add_colors(color.b, options.blue_color_adjust);
 
     _leds[led_index] = color;
   }
@@ -87,15 +88,13 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
   for (uint8_t led_index = LEDS_PER_STRIP; led_index < LEDS_PER_STRIP * 2; led_index++)
   {
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
-    //
     auto coordinates = conversion_matrix[opposite_degrees][led_index - LEDS_PER_STRIP];
 
     // Get the color value from the image at those coordinates.
-    CRGB color = _imageData[current_frame][coordinates.x][coordinates.y];
-       
-    color.r += options.red_color_adjust;
-    color.g += options.green_color_adjust;
-    color.b += options.blue_color_adjust;
+    CRGB color = _imageData[_current_frame][coordinates.x][coordinates.y];
+    // _add_colors(&color.r, &options.red_color_adjust);
+    // _add_colors(&color.g, &options.green_color_adjust);
+    // _add_colors(&color.b, &options.blue_color_adjust);
 
     _leds[led_index] = color;
   }
@@ -108,30 +107,40 @@ void Renderer::_display_loop(void *parameter)
   Renderer *renderer = (Renderer*)parameter;
 
   uint16_t current_degrees = 0;
-  unsigned long current_milliseconds, previous_milliseconds;
+  unsigned long current_microseconds, previous_microseconds;
 
   while (true)
   {
-    current_milliseconds = millis();
+    current_microseconds = micros();
 
-    vTaskDelay(5 / portTICK_PERIOD_MS);
-
-    if (current_milliseconds - previous_milliseconds >= *renderer->delay_between_frames_ms) 
+    if (current_microseconds - previous_microseconds >= *renderer->_delay_between_degrees_us) 
     {
       current_degrees = (current_degrees == 359 ? 0 : current_degrees + 1);
 
-      previous_milliseconds = current_milliseconds;
+      previous_microseconds = current_microseconds;
       
-      renderer->_draw_led_strip_colors(current_degrees);
+      if (renderer->options.leds_enabled)
+        renderer->_draw_led_strip_colors(current_degrees);
     }
   }
 }
 
-void Renderer::init(unsigned long *pdelay_between_frames_ms)
+uint8_t _add_colors(uint8_t color, int16_t addition)
+{
+  int16_t temp_color = (int16_t)color;
+  return (uint8_t)clamp((int)(temp_color + addition), 0, 255);
+}
+
+void Renderer::init(unsigned long *pdelay_between_degrees_us)
 {
   BaseType_t result;
 
-  delay_between_frames_ms = pdelay_between_frames_ms;
+  _delay_between_degrees_us = pdelay_between_degrees_us;
+  
+  // Disable Watchdog on core 0, as the renderer must not lag behind or have any disturbances and
+  // the entire core is getting blocked.
+  disableCore0WDT();
+
   FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(_leds, LEDS_PER_STRIP * 2);
   FastLED.setBrightness(50);
 
@@ -144,7 +153,7 @@ void Renderer::init(unsigned long *pdelay_between_frames_ms)
     &_display_loop_task,
     0
   );
-  
+
   if (result != pdPASS)
     Serial.println(F("Couldn't allocate enough memory!!"));
   

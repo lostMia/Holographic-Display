@@ -13,18 +13,19 @@
 
 #define SERVER_DNS_NAME "http://holo.local"
 #define SERVER_POST_SUFFIX "/post"
-#define SERVER_GET_SUFFIX "/TargetRPM"
+#define SERVER_GET_SUFFIX "/TargetPower"
 
 #define MOTOR_PIN 27
 #define MOTOR_PWM_FREQUENCY 50
 #define MOTOR_MIN 1000
 #define MOTOR_MAX 5000
 
-#define HAL_SENSOR_PIN 17
+#define HAL_SENSOR1_PIN 17
+#define HAL_SENSOR2_PIN 18
 
-#define GET_RPM_DELAY 250
-#define SEND_RPM_DELAY 480
+#define GET_RPM_DELAY 480
+#define SEND_RPM_DELAY 250
 #define DEFAULT_DELAY 500
 
-// Define the Baudrate the Serial interface will use.
+// Define the baudrate the serial interface will use.
 #define SERIAL_BAUDRATE 115200

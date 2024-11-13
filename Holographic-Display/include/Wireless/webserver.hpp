@@ -39,6 +39,11 @@ class WebServer
 private:
     AsyncWebServer _server;
     Rendering::Renderer* _renderer;
+    
+    uint16_t _target_power = 0;
+    uint8_t _led_brightness = 100;
+    unsigned long _delay_between_degrees_us;
+    
     bool _begin_SPIFFS();
 
 #ifdef OTA_FIRMWARE

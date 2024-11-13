@@ -13,15 +13,14 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <ESP32Servo.h> 
 
 #include "credentials.hpp"
 #include "config.hpp"
 
 
-void get_target_speed(void *pvParameters);
+void get_target_power(void *pvParameters);
 
 void send_current_speed(void *pvParameters);
 
-void count_motor_passes(void *pvParameters);
-
-void set_motor_speed();
+void get_last_pass_delay(void *pvParameters);

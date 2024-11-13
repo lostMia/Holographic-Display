@@ -9,16 +9,16 @@
 */
 
 #include "main.hpp"
-#include <ESP32Servo.h> 
 
 HTTPClient http_receive;
 HTTPClient http_send;
-uint16_t actual_speed = 0;
-uint16_t target_speed = 0;
 
-TaskHandle_t get_target_speed_task = NULL;
+uint16_t target_power = 0;
+unsigned long delay_between_degrees_us = 0;
+
+TaskHandle_t get_target_power_task = NULL;
 TaskHandle_t send_current_speed_task = NULL;
-TaskHandle_t count_motor_passes_task = NULL;
+TaskHandle_t get_last_pass_delay_task = NULL;
 
 Servo motor;
 
@@ -28,49 +28,58 @@ void setup()
   Serial.begin(SERIAL_BAUDRATE);
  
   // Connect to the ESP32 access point
-  // WiFi.begin(AP_SSID, AP_PASSWORD);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
   Serial.print("Connecting to main μC...");
 
-  // while (WiFi.status() != WL_CONNECTED) 
-  // {
-  //   delay(500);
-  //   Serial.print(".");
-  // }
-  // Serial.println("Connected to WiFi");
-  // 
-  // motor.setPeriodHertz(MOTOR_PWM_FREQUENCY);
-  // motor.attach(MOTOR_PIN, MOTOR_MIN, MOTOR_MAX);
-  //
-  // // Task for receiving the target speed.
-  // xTaskCreate(
-  //   get_target_speed,
-  //   "Get Target Motor Speed",
-  //   4096,
-  //   NULL,
-  //   2,
-  //   &get_target_speed_task
-  // );
-  // 
-  // delay(50);
-  //
-  // // Task for sending the current speed.
-  // xTaskCreate(
-  //   send_current_speed,
-  //   "Send Motor Speed",
-  //   4096,
-  //   NULL,
-  //   1,
-  //   &send_current_speed_task
-  // );
+  while (WiFi.status() != WL_CONNECTED) 
+  {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("Connected to WiFi");
+
+  motor.setPeriodHertz(MOTOR_PWM_FREQUENCY);
+  motor.attach(MOTOR_PIN, MOTOR_MIN, MOTOR_MAX);
+
+  // Disable Watchdog because we want core 1 to be blocking all the time!
+  disableCore1WDT();
+
+  // Task for receiving the target power.
+  // This task will be pinned to the first (0) core.
+  xTaskCreatePinnedToCore(
+    get_target_power,
+    "Get Motor Power",
+    4096,
+    NULL,
+    2,
+    &get_target_power_task,
+    0
+  );
 
   // Task for sending the current speed.
-  xTaskCreate(
-    count_motor_passes,
-    "Keeps track of the amount of times, the motor has passed the HALL sensor",
+  // This task will be pinned to the first (0) core.
+  xTaskCreatePinnedToCore(
+    send_current_speed,
+    "Send Motor Speed",
     4096,
     NULL,
     1,
-    &count_motor_passes_task
+    &send_current_speed_task,
+    0
+  );
+
+  // Task for sending the current speed.
+  // This task will be pinned to the second (1) core.
+  // Getting an accurate time here will require us to use the whole core doing constant polling.
+  xTaskCreatePinnedToCore(
+    get_last_pass_delay,
+    "HAL Sensor Tracker",
+    4096,
+    NULL,
+    1,
+    &get_last_pass_delay_task,
+    1
   );
 }
 
@@ -80,7 +89,7 @@ void loop()
 }
 
 
-void get_target_speed(void *pvParameters)
+void get_target_power(void *pvParameters)
 {
   int httpCode;
 
@@ -100,36 +109,36 @@ void get_target_speed(void *pvParameters)
       continue;
     }
 
-    // Fetch desired motor speed from ESP32 server
+    // Fetch desired motor power from ESP32 server
     httpCode = http_receive.GET();
 
     if (httpCode != HTTP_CODE_OK) 
     {
-      Serial.println("Error fetching motor speed");
+      Serial.println("Error fetching motor power");
       http_receive.end();
       vTaskDelay(DEFAULT_DELAY / portTICK_PERIOD_MS);  
       continue;
     }
 
     String payload = http_receive.getString();
-    int target_speed_temp = payload.toInt();
+    int target_power_temp = payload.toInt();
 
-    if (target_speed == target_speed_temp)
+    if (target_power == target_power_temp)
     {
       http_receive.end();
       vTaskDelay(GET_RPM_DELAY / portTICK_PERIOD_MS);  
       continue;
     }
 
-    target_speed = target_speed_temp;
-    Serial.println("New target speed: " + String(target_speed));
+    target_power = target_power_temp;
+    Serial.println("New target speed: " + String(target_power));
     
-    set_motor_speed();
+    motor.write(target_power);
     http_receive.end();
+
     vTaskDelay(GET_RPM_DELAY / portTICK_PERIOD_MS);  
   }
 }
-
 
 void send_current_speed(void *pvParameters)
 {
@@ -154,11 +163,11 @@ void send_current_speed(void *pvParameters)
     http_send.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
     // Report actual motor speed back to the server
-    // TODO: Get the RPM from the motor somehow.... i'm still waiting on timo for this.
-    // actual_speed += (target_speed - actual_speed) / 20; // get rid of this
-    String postData = "m1=" + String(actual_speed);
+    // TODO: get rid of this hardcoded stuff when we get an actual prototype we can test things out on..
+    delay_between_degrees_us = 25000; // that's about 20 rps
+    delay_between_degrees_us = target_power * 500; // todo: replace this with actual thing
+    String postData = "m1=" + String(delay_between_degrees_us);
 
-    Serial.println(postData);
     httpCode = http_send.POST(postData);
     
     if (httpCode != HTTP_CODE_OK)
@@ -170,37 +179,38 @@ void send_current_speed(void *pvParameters)
   }
 }
 
-
-void count_motor_passes(void *pvParameters)
+void get_last_pass_delay(void *pvParameters)
 {
-  int motor_passes = 0;
+  unsigned long delay_between_last_pass_us;
+  unsigned long last_pass = micros();
+  unsigned long current_time;
 
-  Serial.println("started thread......");
-  
   while (true) 
   {
-    while (digitalRead(HAL_SENSOR_PIN) == HIGH) 
-    {
+    // Wait for the motor to pass the first sensor.
+    while (digitalRead(HAL_SENSOR1_PIN) == HIGH);
+    
+    current_time = micros();
+    delay_between_last_pass_us = current_time - last_pass;
+    delay_between_degrees_us = delay_between_degrees_us * 2 / 360;
+    last_pass = current_time;
+    
+    Serial.println("Sensor passed! new delay:");
+    Serial.println(delay_between_last_pass_us);
 
-      vTaskDelay(1 / portTICK_PERIOD_MS);  
-    }
+    while (digitalRead(HAL_SENSOR1_PIN) == LOW);
+    
+    // Wait for the motor to pass the second sensor.
+    while (digitalRead(HAL_SENSOR2_PIN) == HIGH);
+    
+    current_time = micros();
+    delay_between_last_pass_us = current_time - last_pass;
+    delay_between_degrees_us = delay_between_degrees_us * 2 / 360;
+    last_pass = current_time;
+    
+    Serial.println("Sensor passed! new delay:");
+    Serial.println(delay_between_last_pass_us);
 
-    while (digitalRead(HAL_SENSOR_PIN) == LOW)
-    {
-
-      vTaskDelay(1 / portTICK_PERIOD_MS);  
-    }
-
-
-
-    motor_passes += 1;
-    Serial.println(motor_passes);
+    while (digitalRead(HAL_SENSOR2_PIN) == LOW);
   }
-}
-
-
-void set_motor_speed()
-{
-  int motor_value = target_speed; // ToDo: improve this 
-  motor.write(motor_value);
 }
