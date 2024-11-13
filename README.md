@@ -1,1 +1,1 @@
-This ist he development repository of the holographic display.
+This ist the development repository of the holographic display.
