@@ -27,7 +27,7 @@
 
 body {
   font-family: 'Lucida Console', monospace;
-  color: white;
+  color: #ffffff;
   line-height: 1.6;
   background-color: #101010;
   display: flex;
@@ -37,12 +37,31 @@ body {
 
 #dataForm {
   flex: 1;
-  background-color: #101010;
+  opacity: 0.8;
+  --s: 16vmin;
+  --c1: #171717;
+  --c2: #0d0d0d;
+  --c3: #121212;
+  
+  --_g: 0 120deg,#0000 0;
+  background:
+    conic-gradient(             at calc(250%/3) calc(100%/3),var(--c3) var(--_g)),
+    conic-gradient(from -120deg at calc( 50%/3) calc(100%/3),var(--c2) var(--_g)),
+    conic-gradient(from  120deg at calc(100%/3) calc(250%/3),var(--c1) var(--_g)),
+    conic-gradient(from  120deg at calc(200%/3) calc(250%/3),var(--c1) var(--_g)),
+    conic-gradient(from -180deg at calc(100%/3) 50%,var(--c2)  60deg,var(--c1) var(--_g)),
+    conic-gradient(from   60deg at calc(200%/3) 50%,var(--c1)  60deg,var(--c3) var(--_g)),
+    conic-gradient(from  -60deg at 50% calc(100%/3),var(--c1) 120deg,var(--c2) 0 240deg,var(--c3) 0);
+  background-size: calc(var(--s)*sqrt(3)) var(--s);
 }
 
 ::selection {
   color: black;
   background: #ff4060;
+}
+
+label {
+  margin-left: 8px;
 }
 
 input {
@@ -52,7 +71,8 @@ input {
 
 /* Slider */
 input[type="range"] {
-  width: 60%;
+  width: 100%;
+  border: none;
 }
 
 input[type="range"]::-moz-range-progress {
@@ -65,7 +85,8 @@ input[type="range"]::-moz-range-track {
 
 /* Text */
 input[type="text"] {
-  width: 60%;
+  margin: 10px 0px;
+  width: 100%;
 }
 
 input[type="text"]:focus {
@@ -74,20 +95,20 @@ input[type="text"]:focus {
 }
 
 input[type="checkbox"] {
-  align: center;
+  margin: 0px;
   height: 0;
   width: 0;
   visibility: hidden;
 }
 
 .checkbox-label {
+  margin: 0px;
   cursor: pointer;
   text-indent: -9999px;
-  width: 48px;
-  height: 24px;
+  width: 4.4vh;
+  height: 2.2vh;
   background: grey;
-  display: block;
-  border-radius: 24px;
+  border-radius: 2vh;
   position: relative;
   background-color: #444444;
 }
@@ -95,11 +116,11 @@ input[type="checkbox"] {
 .checkbox-label:after {
   content: "";
   position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  background: #fff;
+  top: 0.2vh;
+  left: 0.2vh;
+  width: 1.8vh;
+  height: 1.8vh;
+  background: #ffffff;
   border-radius: 20px;
   transition: 0.3s;
 }
@@ -109,12 +130,12 @@ input:checked + .checkbox-label {
 }
 
 input:checked + .checkbox-label:after {
-  left: calc(100% - 2px);
+  left: calc(100% - 0.2vh);
   transform: translateX(-100%);
 }
 
 .checkbox-label:active:after {
-  width: 28px;
+  width: 1.8vh;
 }
 
 /* Buttons */
@@ -133,15 +154,15 @@ button {
 }
 
 input[type="color"] {
-  width: 50px;
-  height: 46px;
-  padding: 8px;
+  width: 40%;
+  height: 60px;
+  border: none;
 }
 
 button:hover {
-  background-color: #ff4060;
+  background-color: #222222;
   color: #000000;
-  box-shadow: 0px 0px 50px #ff406040;
+  box-shadow: 0px 0px 50px #222222;
 }
 
 input[type=file]::file-selector-button {
@@ -150,7 +171,7 @@ input[type=file]::file-selector-button {
   background: #ff406050;
   padding: 10px 20px;
   border-radius: 10px;
-  color: #fff;
+  color: #ffffff;
   cursor: pointer;
   transition: background .2s ease-in-out;
 }
@@ -171,7 +192,8 @@ input[type=file]::file-selector-button:hover {
 #dropZone {
   height: 100%;
   min-height: 200px;
-  padding: 20px;
+  padding: 10px;
+  margin: 10px;
   border: 2px dashed #555555;
   border-radius: 10px;
   display: flex;
@@ -186,18 +208,16 @@ input[type=file]::file-selector-button:hover {
   color: #000000;
 }
 
-/* Style the label text */
-.radio-label {
-  margin-left: 10px;
-  cursor: normal;
-}
-
-/* #imageInput { */
-/*   display: none; */
-/* } */
-
 #progressBar {
-  margin: 20px 0px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: #222222;
+  border: none;
+  color: #ff4060;
+  border-radius: 20px;
+  margin: 10px 5px;
+  height: 20px;
 }
 
 #gradient {
@@ -223,28 +243,27 @@ input[type=file]::file-selector-button:hover {
 .separator {
   border: 1px dashed #555555;
   margin: 16px 0px;
+  width: 90%;
 }
 
 .grid-container { 
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
   grid-auto-flow: dense;
-  gap: 20px;
+  gap: 40px;
   width: 90vw;
   max-width: 2000px;
   margin: 20px auto;
 }
 
 .item {
-  background-color: #1a1a1a;
-  background-image: url("/resources/grain.png");
-  background-repeat: repeat;
-  background-blend-mode: soft-light;
+  background-color: #22222250;
+  backdrop-filter: blur(0.5vmax);
   border-radius: 20px;
-  border: 2px dotted #555555;
-  color: white;
+  border: 1px solid #55555570;
+  color: #ffffff;
   text-align: center;
-  box-shadow: 0 8px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   transition: all 0.3s ease-in-out;
   grid-row: span 3;
@@ -261,12 +280,12 @@ input[type=file]::file-selector-button:hover {
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  border-bottom: 2px solid #ff4060;
+  border-bottom: 2px solid #ff406080;
 }
 
 .item-content {
   line-height: 1;
-  padding: 20px;
+  padding: 10px;
   max-height: 1000px;
   overflow-y: auto;
   transition: max-height 0.3s ease-in-out;
@@ -276,10 +295,9 @@ input[type=file]::file-selector-button:hover {
 
 .horizontal {
   display: flex;
-  align-items: center;
   margin: 8px 0px;
   flex-direction: row;
-  justify-content: space-around;
+  justify-content: left;
   font-size: 20em;
 }
 
@@ -291,11 +309,31 @@ input[type=file]::file-selector-button:hover {
 .slider-group {
   display: flex;
   align-items: center;
-  margin-bottom: 16px;
   flex-direction: row;
   justify-content: space-around;
   font-size: 20em;
 }
+
+.option-group-small,
+.option-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  border-radius: 16px;
+  /* border: 1px solid #333333; */
+  line-height: 1.5;
+  padding: 2%;
+  text-align: left;
+}
+
+.option-group-small {
+  min-width: 20%;
+}
+
+.option-group {
+  width: 100%;
+}
+
 
 .item-header:hover {
   background-color: #333333;
@@ -358,7 +396,7 @@ input[type=file]::file-selector-button:hover {
   visibility: hidden;
   width: 120px;
   background-color: black;
-  color: #fff;
+  color: #ffffff;
   text-align: center;
   padding: 5px 0;
   border-radius: 6px;
@@ -376,13 +414,13 @@ input[type=file]::file-selector-button:hover {
 }
 
 #header {
-  background-color: #222222;
+  background-color: #121212;
   text-align: center;
   padding: 20px 0;
 }
 
 #footer {
-  background-color: #090909;
+  background-color: #0d0d0d;
   text-align: center;
   padding: 20px 0;
 }

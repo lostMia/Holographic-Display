@@ -122,11 +122,11 @@ void WebServer::_setup_webserver_tree()
     request->send(200, F("text/plain"), RPM_string);
   });
  
-  _server.on(PSTR("/CurrentPower"), HTTP_GET, [this](AsyncWebServerRequest *request)
+  _server.on(PSTR("/CurrentRPM"), HTTP_GET, [this](AsyncWebServerRequest *request)
   {
     char RPM_string[10];
     
-    sprintf(RPM_string, "%d", _delay_between_degrees_us);
+    sprintf(RPM_string, "%d", _current_RPM);
 
     request->send(200, F("text/plain"), RPM_string);
   });
@@ -259,7 +259,13 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
 
     // Motor-Speed response 
     case 'm':
-        _delay_between_degrees_us = std::stoi(value);
+      _delay_between_degrees_us = std::stoi(value);
+
+      float delay_between_full_rotation_s;
+
+      delay_between_full_rotation_s = (float)(_delay_between_degrees_us * 360 * 1000000);
+
+      _current_RPM = (uint16_t)(1.0 / delay_between_full_rotation_s);
       break;
 
     // Text-Field
@@ -278,19 +284,19 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
           break;
         // LED-Active-Lever
         case 2:
-          if (strncmp(value, "true", 8))
-          {
-            Serial.println("disabling leds...");
-            _renderer->options.leds_enabled = false;
-
-            CRGB black = black.Black;
-
-            FastLED.showColor(black.Black);
-          }
+          if (!strncmp(value, "true", 8))
+            _renderer->start();
           else
           {
-            Serial.println("enabling leds...");
-            _renderer->options.leds_enabled = true;
+            _renderer->stop();
+            //
+            // for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
+            // {
+            //   _renderer->_leds[led_index] = CRGB::Purple;
+            // }
+            //
+            // FastLED.show();
+            // // FastLED.clear();
           }
           break;
       }

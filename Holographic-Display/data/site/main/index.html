@@ -13,8 +13,6 @@
   </div>
   <form id="dataForm">
     <div class="grid-container">
-
-      <div id="gradient"></div>
       <!-- Motor Control -->
       <div class="item">
         <div class="item-header" onclick="toggleSection(this)">
@@ -24,24 +22,30 @@
         <div class="item-content" >
           <div class="horizontal">
             <!-- Motor active -->
-            <div class="horizontal">
-              <label>Active:</label>
-              <input type="checkbox" id="l1" name="l1" value="0">
-              <label class="checkbox-label" for="l1"/>
+            <div class="option-group-small">
+              <label>Active</label>
+              <div class="horizontal">
+                <input type="checkbox" id="l1" name="l1" value="0">
+                <label class="checkbox-label" for="l1"/>
+              </div>
             </div>
 
             <!-- RPM Feedback -->
-            <div class="horizontal">
-              <label>Current RPM: </label>
-              <label id="currentRPMLabel">NONE</label>
+            <div class="option-group">
+              <label>Current RPM </label>
+              <div class="horizontal">
+                <label id="currentRPMLabel">NONE</label>
+              </div>
             </div>
           </div>
 
           <!-- Power Target -->
-          <div class="slider-group">
+          <div class="option-group">
             <label for="slider">Power</label>
-            <input type="range" min="0" max="255" value="50" class="slider" name="s1">
-            <input type="number" class="manualSlider" min="0" max="255" value="false" name="s1">
+            <div class="slider-group">
+              <input type="range" min="0" max="255" value="50" class="slider" name="s1">
+              <input type="number" class="manualSlider" min="0" max="255" value="false" name="s1">
+            </div>
           </div>
         </div>
       </div>
@@ -54,8 +58,8 @@
         </div>
         <div class="item-content" >
           <!-- Text to Show -->
-          <div class="horizontal">
-            <label>Text: </label>
+          <div class="option-group">
+            <label>Text </label>
             <input type="text" id="textfield" name="t1">
           </div>
 
@@ -63,17 +67,24 @@
 
           <!-- Colors -->
           <div class="horizontal">
-            <label for="foregroundcolor">Foreground Color:</label>
-            <input type="color" id="foregroundcolor" name="c1" value="#ff4060">
-            <label for="backgroundcolor">Background Color:</label>
-            <input type="color" id="backgroundcolor" name="c2" value="#00000000">
+            <div class="option-group">
+              <label for="foregroundcolor">Foreground Color</label>
+              <input type="color" id="foregroundcolor" name="c1" value="#ff4060">
+            </div>
+
+            <div class="option-group">
+              <label for="backgroundcolor">Background Color</label>
+              <input type="color" id="backgroundcolor" name="c2" value="#00000000">
+            </div>
           </div>
 
           <!-- Position Offset Vertical -->
-          <div class="slider-group">
+          <div class="option-group">
             <label for="offset-text">Offset</label>
-            <input type="range" min="0" max="359" value="0" class="slider" name="s2">
-            <input type="number" class="manualSlider" min="0" max="359" value="0" name="s2">
+            <div class="slider-group">
+              <input type="range" min="0" max="359" value="0" class="slider" name="s2">
+              <input type="number" class="manualSlider" min="0" max="359" value="0" name="s2">
+            </div>
           </div>
         </div>
       </div>
@@ -86,16 +97,19 @@
         </div>
         <div class="item-content" >
           <!-- Image Upload -->
-          <div class="vertical">
-            <button id="dropZone" onclick="document.getElementById('fileInput').click(); return false;">
-              <div class="vertical">
-                <div>Drag and drop images here</div>
-                <div>or</div>
-                <div class="highlighted">Click Here</div>
-              </div>
-            </button>
-            <input type="file" id="fileInput" class="fileInput" accept="image/*">
-            <progress id="progressBar" value="0" max="100"></progress>
+          <div class="option-group">
+            <label>Drag-and-Drop Box</label>
+            <div class="vertical">
+              <button id="dropZone" onclick="document.getElementById('fileInput').click(); return false;">
+                <div class="vertical">
+                  <div>Drag and drop images here</div>
+                  <div>or</div>
+                  <div class="highlighted">Click Here</div>
+                </div>
+              </button>
+              <input type="file" id="fileInput" class="fileInput" accept="image/*">
+              <progress id="progressBar" class="w3-size" value="0" max="100"></progress>
+            </div>
           </div>
 
           <!-- <div class="separator"></div> -->
@@ -113,18 +127,26 @@
           <div id="imagePreviewSeparator" class="separator"></div>
 
           <!-- Colors -->
+
           <div class="horizontal">
-            <label for="foregroundcolor">Foreground Color:</label>
-            <input type="color" id="foregroundcolor" name="c1" value="#ff4060">
-            <label for="backgroundcolor">Background Color:</label>
-            <input type="color" id="backgroundcolor" name="c2" value="#00000000">
+            <div class="option-group">
+              <label for="foregroundcolor">Foreground Color</label>
+              <input type="color" id="foregroundcolor" name="c1" value="#ff4060">
+            </div>
+
+            <div class="option-group">
+              <label for="backgroundcolor">Background Color</label>
+              <input type="color" id="backgroundcolor" name="c2" value="#00000000">
+            </div>
           </div>
 
           <!-- Position Offset Vertical -->
-          <div class="slider-group">
+          <div class="option-group">
             <label for="offset-text">Offset</label>
-            <input type="range" min="0" max="359" value="0" class="slider" name="s2">
-            <input type="number" class="manualSlider" min="0" max="359" value="0" name="s2">
+            <div class="slider-group">
+              <input type="range" min="0" max="359" value="0" class="slider" name="s2">
+              <input type="number" class="manualSlider" min="0" max="359" value="0" name="s2">
+            </div>
           </div>
         </div>
       </div>
@@ -139,41 +161,52 @@
           <div class="vertical">
             <div class="horizontal">
               <!-- LED active -->
-              <div class="horizontal">
-                <label>Active:</label>
-                <input type="checkbox" id="l2" name="l2" value="false">
-                <label class="checkbox-label" for="l2"/>
+              <div class="option-group-small">
+                <label>Active</label>
+                <div class="horizontal">
+                  <input type="checkbox" id="l2" name="l2" value="true">
+                  <label class="checkbox-label" for="l2"/>
+                </div>
               </div>
 
               <!-- Brightness Slider -->
-              <div class="slider-group">
+              <div class="option-group">
                 <label>Brightness</label>
-                <input type="range" min="0" max="255" value="100" class="slider" name="s2">
-                <input type="number" class="manualSlider" min="0" max="255" value="100" name="s2">
+                <div class="slider-group">
+                  <input type="range" min="0" max="255" value="50" class="slider" name="s2">
+                  <input type="number" class="manualSlider" min="0" max="255" value="50" name="s2">
+                </div>
               </div>
             </div>
 
             <div class="separator"></div>
           
             <!-- Red Channel Adjust -->
-            <div class="slider-group">
+            <div class="option-group">
               <label>Red Color Adjust</label>
-              <input type="range" min="-255" max="255" value="0" class="slider" name="s3">
-              <input type="number" class="manualSlider" min="-255" max="255" value="0" name="s3">
+              <div class="slider-group">
+                <input type="range" min="-255" max="255" value="0" class="slider" name="s3">
+                <input type="number" class="manualSlider" min="-255" max="255" value="0" name="s3">
+              </div>
             </div>
 
             <!-- Green Channel Adjust -->
-            <div class="slider-group">
+
+            <div class="option-group">
               <label>Green Color Adjust</label>
-              <input type="range" min="-255" max="255" value="0" class="slider" name="s4">
-              <input type="number" class="manualSlider" min="-255" max="255" value="0" name="s4">
+              <div class="slider-group">
+                <input type="range" min="-255" max="255" value="0" class="slider" name="s4">
+                <input type="number" class="manualSlider" min="-255" max="255" value="0" name="s4">
+              </div>
             </div>
 
             <!-- Blue Channel Adjust -->
-            <div class="slider-group">
+            <div class="option-group">
               <label>Blue Color Adjust</label>
-              <input type="range" min="-255" max="255" value="0" class="slider" name="s5">
-              <input type="number" class="manualSlider" min="-255" max="255" value="0" name="s5">
+              <div class="slider-group">
+                <input type="range" min="-255" max="255" value="0" class="slider" name="s5">
+                <input type="number" class="manualSlider" min="-255" max="255" value="0" name="s5">
+              </div>
             </div>
           </div>
         </div>

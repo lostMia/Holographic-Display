@@ -43,6 +43,7 @@ private:
     uint16_t _target_power = 0;
     uint8_t _led_brightness = 100;
     unsigned long _delay_between_degrees_us;
+    uint16_t _current_RPM;
     
     bool _begin_SPIFFS();
 

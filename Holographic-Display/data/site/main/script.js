@@ -278,14 +278,6 @@ function toggleSection(header) {
   button.textContent = content.classList.contains('collapsed') ? '+' : '−';
 }
 
-// - - - - - - - - - - - - Gradient - - - - - - - - - - - - //
-
-// const follower = document.getElementById('gradient');
-//
-// document.addEventListener('mousemove', (e) => {
-//   follower.style.transform = `translate(${e.pageX}px, ${e.pageY}px)`;
-// });
-
 // - - - - - - - - - - - - Parallax effect - - - - - - - - - - - - //
 
 document.querySelectorAll('#imagePreviewContainer').forEach(container => {

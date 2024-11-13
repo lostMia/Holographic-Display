@@ -44,8 +44,7 @@ private:
     uint16_t _delayData[MAX_FRAMES];
     size_t _imageDataSize = MAX_FRAMES * IMAGE_SIZE * IMAGE_SIZE * sizeof(CRGB);
     TaskHandle_t _display_loop_task = NULL;
-    unsigned long *_delay_between_degrees_us;
-    CRGB _leds[LEDS_PER_STRIP * 2];
+    unsigned long *_delay_between_degrees_us = 0;
     uint8_t _current_frame = 0;
 
     void _clear_image_data();
@@ -56,6 +55,8 @@ private:
     uint8_t _add_colors(uint8_t color, int16_t addition);
 
 public:
+
+    CRGB _leds[LEDS_PER_STRIP * 2];
     Options options;
     
     void init(unsigned long *pdelay_between_degrees_us);

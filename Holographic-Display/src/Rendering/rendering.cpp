@@ -67,7 +67,7 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
   {
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
-    auto coordinates = conversion_matrix[current_degrees][LEDS_PER_STRIP - led_index];
+    auto coordinates = conversion_matrix[current_degrees][LEDS_PER_STRIP - led_index - 1];
 
     // Get the color value from the image at those coordinates.
     CRGB color = _imageData[_current_frame][coordinates.x][coordinates.y];
@@ -76,14 +76,16 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
     // color.g = _add_colors(color.g, options.green_color_adjust);
     // color.b = _add_colors(color.b, options.blue_color_adjust);
 
+
+
+
+
+
     _leds[led_index] = color;
   }
   
   uint16_t opposite_degrees = (current_degrees + 180) % 360;
   
-
-  // Note: this is the one that is broken. below
-
   // Go through all the LEDs and change their current color value.  
   for (uint8_t led_index = LEDS_PER_STRIP; led_index < LEDS_PER_STRIP * 2; led_index++)
   {
@@ -92,13 +94,14 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
 
     // Get the color value from the image at those coordinates.
     CRGB color = _imageData[_current_frame][coordinates.x][coordinates.y];
+
     // _add_colors(&color.r, &options.red_color_adjust);
     // _add_colors(&color.g, &options.green_color_adjust);
     // _add_colors(&color.b, &options.blue_color_adjust);
 
     _leds[led_index] = color;
   }
- 
+  
   FastLED.show();
 }
 
@@ -108,6 +111,8 @@ void Renderer::_display_loop(void *parameter)
 
   uint16_t current_degrees = 0;
   unsigned long current_microseconds, previous_microseconds;
+  
+  *renderer->_delay_between_degrees_us = (unsigned long)1;
 
   while (true)
   {
@@ -136,20 +141,22 @@ void Renderer::init(unsigned long *pdelay_between_degrees_us)
   BaseType_t result;
 
   _delay_between_degrees_us = pdelay_between_degrees_us;
-  
+
   // Disable Watchdog on core 0, as the renderer must not lag behind or have any disturbances and
   // the entire core is getting blocked.
   disableCore0WDT();
 
   FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(_leds, LEDS_PER_STRIP * 2);
-  FastLED.setBrightness(50);
+  // FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, RGB>(_leds, LEDS_PER_STRIP * 2);
+  FastLED.setBrightness(20);
+  FastLED.setMaxRefreshRate(0);
 
   result = xTaskCreatePinnedToCore(
     _display_loop,
     PSTR("Display Loop"),
     100000,
     this,
-    5,
+    32,
     &_display_loop_task,
     0
   );
