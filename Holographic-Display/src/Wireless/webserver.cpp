@@ -73,6 +73,25 @@ void WebServer::_begin_OTA()
 #endif
 
   Serial.println(F("Done")); 
+  
+  Serial.print(F("Starting the ElegantOTA task")); 
+  
+  xTaskCreatePinnedToCore(
+    _OTA_loop,
+    PSTR("OTA loop"),
+    1024,
+    NULL,
+    1,
+    &_OTA_loop_task,
+    0
+  );
+  
+  Serial.println(F("Done")); 
+}
+
+void WebServer::_OTA_loop(void* parameter)
+{
+  ElegantOTA.loop();
 }
 #endif
 
@@ -193,7 +212,22 @@ void WebServer::_setup_webserver_tree()
     request->send(200, F("text/plain"), F("OK"));
   });
 
+  _server.serveStatic(PSTR("/resources/"), SPIFFS, PSTR("/site/resources/"));
+  _server.serveStatic(PSTR("/notfound/"), SPIFFS, PSTR("/site/notfound/"));
+  _server.serveStatic(PSTR("/datadump/"), SPIFFS, PSTR("/datadump/"));
+  _server.serveStatic(PSTR("/"), SPIFFS, PSTR("/site/main/")).setDefaultFile(PSTR("index.html"));
+  _server.begin();
+
   Serial.println(F("Done")); 
+}
+
+void WebServer::_begin_renderer()
+{
+  Serial.print(F("Starting the renderer..."));
+
+  _renderer->init(&_delay_between_degrees_us);
+
+  Serial.print(F("Done"));
 }
 
 // This handles any responses we get from the User-Interface.
@@ -332,17 +366,7 @@ void WebServer::begin()
  
   _setup_webserver_tree();
 
-  Serial.print(F("Server starting...")); 
-
-  _server.serveStatic(PSTR("/resources/"), SPIFFS, PSTR("/site/resources/"));
-  _server.serveStatic(PSTR("/notfound/"), SPIFFS, PSTR("/site/notfound/"));
-  _server.serveStatic(PSTR("/datadump/"), SPIFFS, PSTR("/datadump/"));
-  _server.serveStatic(PSTR("/"), SPIFFS, PSTR("/site/main/")).setDefaultFile(PSTR("index.html"));
-  _server.begin();
-
-  // _renderer->init(&_delay_between_degrees_us);
-  
-  Serial.println(F("Done"));
+  _begin_renderer();
 }
 
 } // Namespace Wireless

@@ -55,7 +55,6 @@ private:
     uint8_t _add_colors(uint8_t color, int16_t addition);
 
 public:
-
     CRGB _leds[LEDS_PER_STRIP * 2];
     Options options;
     

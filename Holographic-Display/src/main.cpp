@@ -13,20 +13,23 @@
 
 Rendering::Renderer renderer;
 Wireless::WebServer server(WEBSERVER_PORT, &renderer);
-Wireless::WifiManager wifi_manager;
+Wireless::WifiManager wifimanager;
 
 
 void setup() 
 {
   Serial.begin(SERIAL_BAUDRATE);
+
+  // Delete the loop task from the scheduler, as we don't need it.
+  vTaskDelete(NULL);
   
-  wifi_manager.begin();
+  // Start the wifi manager
+  wifimanager.begin();
+  
+  // Start the webserver manager + rendering engine.
   server.begin();
 }
 
 void loop()
 {
-#ifdef OTA_FIRMWARE
-  ElegantOTA.loop();
-#endif
 }

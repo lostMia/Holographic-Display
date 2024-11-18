@@ -45,11 +45,14 @@ private:
     unsigned long _delay_between_last_pass_us;
     unsigned long _delay_between_degrees_us = (unsigned long)10000;
     uint16_t _current_RPM = 0;
+
+    TaskHandle_t _OTA_loop_task = NULL;
     
     bool _begin_SPIFFS();
 
 #ifdef OTA_FIRMWARE
     void _begin_OTA();
+    static void _OTA_loop(void* parameter);
 #endif
 
 #ifdef MDNS_HOSTNAME
@@ -57,6 +60,9 @@ private:
 #endif
     
     void _setup_webserver_tree();
+    
+    void _begin_renderer();
+
     void _handle_input(const AsyncWebParameter* parameter);
     String _format_bytes(const size_t bytes);
 public:

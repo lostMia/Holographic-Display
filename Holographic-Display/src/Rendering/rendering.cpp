@@ -120,7 +120,7 @@ void Renderer::_display_loop(void *parameter)
       previous_microseconds = current_microseconds;
       
       // if (renderer->options.leds_enabled)
-        // renderer->_draw_led_strip_colors(current_degrees);
+        renderer->_draw_led_strip_colors(current_degrees);
     }
   }
 }
@@ -265,6 +265,5 @@ void Renderer::load_image_data()
 
   Serial.println("heree 14");
 }
-
 }
 
