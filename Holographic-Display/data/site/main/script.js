@@ -187,7 +187,6 @@ async function handleImageFile(file) {
   // Convert JSON object to Blob
   const jsonBlob = new Blob([JSON.stringify(jsonStructure)], { type: 'application/json' });
 
-  console.log(jsonBlob);
   console.log(jsonStructure);
   console.log(JSON.stringify(jsonStructure))
   

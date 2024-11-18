@@ -159,10 +159,10 @@ void Renderer::init(unsigned long *pdelay_between_degrees_us)
   if (result != pdPASS)
     Serial.println(F("Couldn't allocate enough memory!!"));
   
-  load_image_data();
+  load_image_from_flash();
 }
 
-void Renderer::start()
+void Renderer::start_renderer()
 {
   if (eTaskGetState(_display_loop_task) == eRunning)
     return;
@@ -170,7 +170,7 @@ void Renderer::start()
   vTaskResume(_display_loop_task);
 }
 
-void Renderer::stop()
+void Renderer::stop_renderer()
 {
   if (eTaskGetState(_display_loop_task) == eSuspended)
     return;
@@ -179,10 +179,8 @@ void Renderer::stop()
 }
 
 // Loads the .json file from the file system into the imageData Array, so it can be used for displaying.
-void Renderer::load_image_data()
+void Renderer::load_image_from_flash()
 {
-  Serial.println("Loading image from flash....");
-
   File file = SPIFFS.open(IMAGE_JSON_NAME, "r", false);
 
   if (!file) 
@@ -199,8 +197,6 @@ void Renderer::load_image_data()
     return;
   }
 
-  Serial.println("heree 11");
-
   JsonDocument jsonDoc;
 
   // Parse the file contents to the JSON document
@@ -215,13 +211,11 @@ void Renderer::load_image_data()
 
   file.close();
 
-
-  Serial.println("heree 132nnnnnnnn");
   // If the JSON file has nested arrays or objects
   JsonArray frames = jsonDoc["frames"];
   uint8_t frameCount = 0;
   
-  stop();
+  stop_renderer();
 
   for (JsonObject frame : frames) 
   {
@@ -257,13 +251,9 @@ void Renderer::load_image_data()
     frameCount++;
   }
   
+  _print_image_data();
 
-  Serial.println("heree 13");
-  // _print_image_data();
-
-  start();
-
-  Serial.println("heree 14");
+  start_renderer();
 }
 }
 

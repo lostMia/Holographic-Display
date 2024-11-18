@@ -24,7 +24,8 @@
 
 // Defines the width/height of the image to create.
 // This is equal to the number of LED's per strip times 2.
-#define IMAGE_SIZE LEDS_PER_STRIP * 2
+// #define IMAGE_SIZE LEDS_PER_STRIP * 2
+#define IMAGE_SIZE 128
 
 // Defines the max number of frames that can be loaded.
 #define MAX_FRAMES 1

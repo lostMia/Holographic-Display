@@ -189,7 +189,7 @@ void WebServer::_setup_webserver_tree()
         Serial.print(F("Free Heap:"));
         Serial.println(ESP.getFreeHeap());
           
-        _renderer->load_image_data();
+        _renderer->load_image_from_flash();
       } 
       else
       {
@@ -325,10 +325,10 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
         // LED-Active-Lever
         case 2:
           if (!strncmp(value, "true", 8))
-            _renderer->start();
+            _renderer->start_renderer();
           else
           {
-            _renderer->stop();
+            _renderer->stop_renderer();
             //
             // for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
             // {

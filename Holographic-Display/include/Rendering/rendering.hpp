@@ -59,9 +59,9 @@ public:
     Options options;
     
     void init(unsigned long *pdelay_between_degrees_us);
-    void start();
-    void stop();
-    void load_image_data();
+    void start_renderer();
+    void stop_renderer();
+    void load_image_from_flash();
 };
 
 }

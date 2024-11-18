@@ -30,6 +30,5 @@ void setup()
 
 void loop() 
 {
-
   Serial.println("You shouldn't be able to see this because i'm in side of loop!!!!!!!p");
 }
