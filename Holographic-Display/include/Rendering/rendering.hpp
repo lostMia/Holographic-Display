@@ -41,9 +41,8 @@ class Renderer
 {
 private:
     // Allocate the image inside of PSRAM
-    CRGB* _imageData = (CRGB*)ps_malloc(IMAGE_DATA_SIZE);
-
-    uint16_t _delayData[MAX_FRAMES];
+    CRGB* _image_data;
+    uint16_t _delay_data[MAX_FRAMES];
     TaskHandle_t _display_loop_task = NULL;
     unsigned long *_delay_between_degrees_us;
     uint8_t _current_frame = 0;

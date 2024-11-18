@@ -52,7 +52,6 @@ private:
 
 #ifdef OTA_FIRMWARE
     void _begin_OTA();
-    static void _OTA_loop(void* parameter);
 #endif
 
 #ifdef MDNS_HOSTNAME

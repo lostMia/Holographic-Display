@@ -30,7 +30,7 @@
 #define IMAGE_DATA_SIZE (MAX_FRAMES * IMAGE_SIZE * IMAGE_SIZE * sizeof(CRGB))
 
 // Defines the max number of frames that can be loaded.
-#define MAX_FRAMES 1
+#define MAX_FRAMES 100
 //
 // Defines the most current image that has been uploaded from the website.
 #define IMAGE_JSON_NAME "/datadump/image.json"
@@ -52,8 +52,6 @@
 #define WEBSERVER_PORT 80
 
 // Define to turn the μController into a WiFi Access Point. 
-//#define AP_MODE
-
 #define AP_MODE
 
 #ifndef AP_MODE // Connect to a WiFi Access point.

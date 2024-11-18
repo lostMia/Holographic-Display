@@ -11,25 +11,29 @@
 
 #include "main.hpp"
 
-Rendering::Renderer renderer;
-Wireless::WebServer server(WEBSERVER_PORT, &renderer);
-Wireless::WifiManager wifimanager;
-
-
 void setup() 
 {
   Serial.begin(SERIAL_BAUDRATE);
-
-   // Delete the loop task from the scheduler, as we don't need it.
-  vTaskDelete(NULL);
   
+  delay(1000);
+
+  psramInit();
+
   // Start the wifi manager
   wifimanager.begin();
   
   // Start the webserver manager + rendering engine.
   server.begin();
+
+#ifndef OTA_FIRMWARE
+   // Delete the loop task from the scheduler, as we don't need it.
+  vTaskDelete(NULL);
+#endif
 }
 
 void loop()
 {
+#ifdef OTA_FIRMWARE
+ElegantOTA.loop();
+#endif
 }

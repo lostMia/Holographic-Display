@@ -15,44 +15,44 @@ namespace Wireless
 
 void WifiManager::_begin_AP()
 {
-    Serial.print(F("Setting up AP with SSID "));
-    Serial.print(AP_SSID);
-    Serial.print(F("..."));
+  Serial.print(F("Setting up AP with SSID "));
+  Serial.print(AP_SSID);
+  Serial.print(F("..."));
 
-    while (!WiFi.softAP(AP_SSID, AP_PASSWORD))
-    {
-      Serial.println(F("Failed to set up AP"));
-      delay(500);
-    }
+  while (!WiFi.softAP(AP_SSID, AP_PASSWORD))
+  {
+    Serial.println(F("Failed to set up AP"));
+    delay(500);
+  }
 
-    Serial.println(F("Done"));
-    
-    _IP = WiFi.softAPIP();
+  Serial.println(F("Done"));
+  
+  _IP = WiFi.softAPIP();
 
-    Serial.print(F("AP IP:"));
-    Serial.println(_IP);
+  Serial.print(F("AP IP:"));
+  Serial.println(_IP);
 }
 
 void WifiManager::_connect_AP()
 {
-    Serial.print(F("Connecting to "));
-    Serial.println(WIFI_SSID);
-    Serial.print(F("..."));
+  Serial.print(F("Connecting to "));
+  Serial.println(WIFI_SSID);
+  Serial.print(F("..."));
 
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-    while (WiFi.status() != WL_CONNECTED) 
-    {
-        delay(500);
-        Serial.print(F("."));
-    }
+  while (WiFi.status() != WL_CONNECTED) 
+  {
+      delay(500);
+      Serial.print(F("."));
+  }
 
-    Serial.println(F("Done"));
-    
-    _IP = WiFi.localIP();
-    
-    Serial.print(F("Local IP:"));
-    Serial.println(_IP);
+  Serial.println(F("Done"));
+  
+  _IP = WiFi.localIP();
+  
+  Serial.print(F("Local IP:"));
+  Serial.println(_IP);
 }
 
 void WifiManager::begin()

@@ -71,27 +71,7 @@ void WebServer::_begin_OTA()
   ElegantOTA.setAuth(OTA_USERNAME, OTA_PASSWORD);
 #endif
 #endif
-
   Serial.println(F("Done")); 
-  
-  Serial.print(F("Starting the ElegantOTA task")); 
-  
-  xTaskCreatePinnedToCore(
-    _OTA_loop,
-    PSTR("OTA loop"),
-    1024,
-    NULL,
-    1,
-    &_OTA_loop_task,
-    0
-  );
-  
-  Serial.println(F("Done")); 
-}
-
-void WebServer::_OTA_loop(void* parameter)
-{
-  ElegantOTA.loop();
 }
 #endif
 

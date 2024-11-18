@@ -18,7 +18,7 @@ namespace Rendering
 void Renderer::_clear_image_data()
 {
   Serial.println("Clear Image Data");
-  memset(&_imageData, 0, IMAGE_DATA_SIZE);
+  memset(&_image_data, 0, IMAGE_DATA_SIZE);
 }
 
 void Renderer::_next_pixel(uint8_t *px, uint8_t *py)
@@ -53,9 +53,9 @@ void Renderer::_print_image_data()
         uint32_t index = frameIndex * IMAGE_SIZE * IMAGE_SIZE + y * IMAGE_SIZE + x;
 
         // Serial.print(_imageData[frameIndex][x][y].Red == 255 ? "#" : " ");
-        Serial.print(_imageData[index].r);
-        Serial.print(_imageData[index].g);
-        Serial.print(_imageData[index].b);
+        Serial.print(_image_data[index].r);
+        Serial.print(_image_data[index].g);
+        Serial.print(_image_data[index].b);
       }
       
       Serial.println();
@@ -66,6 +66,7 @@ void Renderer::_print_image_data()
 void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
 {
   uint32_t index;
+  CRGB color;
 
   // Go through all the LEDs and change their current color value.  
   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
@@ -76,7 +77,7 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
     index = _current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x;
 
     // Get the color value from the image at those coordinates.
-    CRGB color = _imageData[index];
+    color = _image_data[index];
     
     // color.r = _add_colors(color1, color2);
     // color.g = _add_colors(color.g, options.green_color_adjust);
@@ -93,19 +94,19 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
     auto coordinates = conversion_matrix[opposite_degrees][led_index - LEDS_PER_STRIP];
 
-    index = _current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x;
+    index = (_current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x) * 3;
 
     // Get the color value from the image at those coordinates.
-    CRGB color = _imageData[index];
-
+    color = _image_data[0];
+    
     // _add_colors(&color.r, &options.red_color_adjust);
     // _add_colors(&color.g, &options.green_color_adjust);
     // _add_colors(&color.b, &options.blue_color_adjust);
 
-    _leds[led_index] = color;
+    _leds[led_index] = color; 
   }
   
-  FastLED.show();
+  // FastLED.show();
 }
 
 void Renderer::_display_loop(void *parameter)
@@ -116,6 +117,8 @@ void Renderer::_display_loop(void *parameter)
   unsigned long current_microseconds, previous_microseconds;
   
   *renderer->_delay_between_degrees_us = (unsigned long)1;
+
+  unsigned long start, end;
 
   while (true)
   {
@@ -145,10 +148,15 @@ void Renderer::init(unsigned long *pdelay_between_degrees_us)
 
   _delay_between_degrees_us = pdelay_between_degrees_us;
 
+  _image_data= (CRGB*)ps_malloc(IMAGE_DATA_SIZE);
+
+  for (uint32_t index = 0; index < (IMAGE_DATA_SIZE / sizeof(CRGB)); index++)
+    _image_data[index] = CRGB::Black;
+
   // Disable Watchdog on core 0, as the renderer must not lag behind or have any disturbances and
   // the entire core is getting blocked.
   disableCore0WDT();
-
+  
   FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(_leds, LEDS_PER_STRIP * 2);
   // FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, RGB>(_leds, LEDS_PER_STRIP * 2);
   FastLED.setBrightness(20);
@@ -230,7 +238,7 @@ void Renderer::load_image_from_flash()
     uint16_t delay = frame["delay"];
     JsonArray data = frame["data"];
         
-    _delayData[frameCount] = delay;
+    _image_data[frameCount] = delay;
     
     uint8_t indexCount = 0;
     uint8_t x = 0;
@@ -242,13 +250,13 @@ void Renderer::load_image_from_flash()
       switch (indexCount) 
       {
         case 0:
-            _imageData[index].r = value; 
+            _image_data[index].r = value; 
             break;
         case 1:
-            _imageData[index].g = value; 
+            _image_data[index].g = value; 
             break;
         case 2:
-            _imageData[index].b = value; 
+            _image_data[index].b = value; 
             _next_pixel(&x, &y);
 
             index = frameCount * IMAGE_SIZE * IMAGE_SIZE + y * IMAGE_SIZE + x;
