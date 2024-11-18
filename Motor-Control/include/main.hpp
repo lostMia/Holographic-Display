@@ -11,13 +11,14 @@
 #pragma once
 
 #include <Arduino.h>
-#include <WiFi.h>
-#include <HTTPClient.h>
-#include <ESP32Servo.h> 
 
 #include "credentials.hpp"
 #include "config.hpp"
+#include "motorcontroller.hpp"
+#include "wifimanager.hpp"
 
+
+void calculate_new_delay(unsigned long *plast_pass);
 
 void get_target_power(void *pvParameters);
 
