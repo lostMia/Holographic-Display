@@ -27,6 +27,8 @@
 // #define IMAGE_SIZE LEDS_PER_STRIP * 2
 #define IMAGE_SIZE 128
 
+#define IMAGE_DATA_SIZE (MAX_FRAMES * IMAGE_SIZE * IMAGE_SIZE * sizeof(CRGB))
+
 // Defines the max number of frames that can be loaded.
 #define MAX_FRAMES 1
 //

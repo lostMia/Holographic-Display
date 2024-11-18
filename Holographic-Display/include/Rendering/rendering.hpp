@@ -40,9 +40,10 @@ struct Options
 class Renderer
 {
 private:
-    CRGB _imageData[MAX_FRAMES][IMAGE_SIZE][IMAGE_SIZE];
+    // Allocate the image inside of PSRAM
+    CRGB* _imageData = (CRGB*)ps_malloc(IMAGE_DATA_SIZE);
+
     uint16_t _delayData[MAX_FRAMES];
-    size_t _imageDataSize = MAX_FRAMES * IMAGE_SIZE * IMAGE_SIZE * sizeof(CRGB);
     TaskHandle_t _display_loop_task = NULL;
     unsigned long *_delay_between_degrees_us;
     uint8_t _current_frame = 0;

@@ -18,7 +18,7 @@ namespace Rendering
 void Renderer::_clear_image_data()
 {
   Serial.println("Clear Image Data");
-  memset(&_imageData, 0, _imageDataSize);
+  memset(&_imageData, 0, IMAGE_DATA_SIZE);
 }
 
 void Renderer::_next_pixel(uint8_t *px, uint8_t *py)
@@ -50,10 +50,12 @@ void Renderer::_print_image_data()
     {
       for (uint8_t y = 0; y < IMAGE_SIZE; y++)
       {
+        uint32_t index = frameIndex * IMAGE_SIZE * IMAGE_SIZE + y * IMAGE_SIZE + x;
+
         // Serial.print(_imageData[frameIndex][x][y].Red == 255 ? "#" : " ");
-        Serial.print(_imageData[frameIndex][x][y].r);
-        Serial.print(_imageData[frameIndex][x][y].g);
-        Serial.print(_imageData[frameIndex][x][y].b);
+        Serial.print(_imageData[index].r);
+        Serial.print(_imageData[index].g);
+        Serial.print(_imageData[index].b);
       }
       
       Serial.println();
@@ -63,14 +65,18 @@ void Renderer::_print_image_data()
 
 void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
 {
+  uint32_t index;
+
   // Go through all the LEDs and change their current color value.  
   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
   {
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
     auto coordinates = conversion_matrix[current_degrees][LEDS_PER_STRIP - led_index - 1];
+    
+    index = _current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x;
 
     // Get the color value from the image at those coordinates.
-    CRGB color = _imageData[_current_frame][coordinates.x][coordinates.y];
+    CRGB color = _imageData[index];
     
     // color.r = _add_colors(color1, color2);
     // color.g = _add_colors(color.g, options.green_color_adjust);
@@ -87,8 +93,10 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
     auto coordinates = conversion_matrix[opposite_degrees][led_index - LEDS_PER_STRIP];
 
+    index = _current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x;
+
     // Get the color value from the image at those coordinates.
-    CRGB color = _imageData[_current_frame][coordinates.x][coordinates.y];
+    CRGB color = _imageData[index];
 
     // _add_colors(&color.r, &options.red_color_adjust);
     // _add_colors(&color.g, &options.green_color_adjust);
@@ -227,20 +235,23 @@ void Renderer::load_image_from_flash()
     uint8_t indexCount = 0;
     uint8_t x = 0;
     uint8_t y = 0;
+    uint32_t index = frameCount * IMAGE_SIZE * IMAGE_SIZE + y * IMAGE_SIZE + x;
     
     for (int value : data) 
     {
       switch (indexCount) 
       {
         case 0:
-            _imageData[frameCount][y][x].r = value; 
+            _imageData[index].r = value; 
             break;
         case 1:
-            _imageData[frameCount][y][x].g = value; 
+            _imageData[index].g = value; 
             break;
         case 2:
-            _imageData[frameCount][y][x].b = value; 
+            _imageData[index].b = value; 
             _next_pixel(&x, &y);
+
+            index = frameCount * IMAGE_SIZE * IMAGE_SIZE + y * IMAGE_SIZE + x;
             break;
         default:
           break;
