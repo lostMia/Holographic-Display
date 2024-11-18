@@ -259,13 +259,19 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
 
     // Motor-Speed response 
     case 'm':
-      _delay_between_degrees_us = std::stoi(value);
+      _delay_between_last_pass_us = std::stoi(value);
 
-      float delay_between_full_rotation_s;
+      float delay_between_last_pass_s, delay_between_rotation_s, frequency_hz;
+      
+      delay_between_last_pass_s = (float)(_delay_between_last_pass_us) / 1000000.0;
+      delay_between_rotation_s = delay_between_last_pass_s * 2.0;
+      frequency_hz = 1.0 / delay_between_last_pass_s;
+      
+      // Calculate the time between each degree in μs.
+      _delay_between_degrees_us = (unsigned long)((float)(_delay_between_last_pass_us) / 180.0);
 
-      delay_between_full_rotation_s = (float)(_delay_between_degrees_us * 360 * 1000000);
-
-      _current_RPM = (uint16_t)(1.0 / delay_between_full_rotation_s);
+      // Calculate the RPM.
+      _current_RPM = (unsigned long)(frequency_hz * 60.0);
       break;
 
     // Text-Field
@@ -296,7 +302,7 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
             // }
             //
             // FastLED.show();
-            // // FastLED.clear();
+            // FastLED.clear();
           }
           break;
       }
@@ -334,7 +340,7 @@ void WebServer::begin()
   _server.serveStatic(PSTR("/"), SPIFFS, PSTR("/site/main/")).setDefaultFile(PSTR("index.html"));
   _server.begin();
 
-  _renderer->init(&_delay_between_degrees_us);
+  // _renderer->init(&_delay_between_degrees_us);
   
   Serial.println(F("Done"));
 }

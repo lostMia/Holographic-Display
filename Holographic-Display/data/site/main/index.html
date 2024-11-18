@@ -22,25 +22,27 @@
         <div class="item-content" >
           <div class="horizontal">
             <!-- Motor active -->
-            <div class="option-group-small">
-              <label>Active</label>
-              <div class="horizontal">
-                <input type="checkbox" id="l1" name="l1" value="0">
-                <label class="checkbox-label" for="l1"/>
-              </div>
-            </div>
+            <!-- <div class="option-group-small"> -->
+            <!--   <label>Active</label> -->
+            <!--   <div class="horizontal"> -->
+            <!--     <input type="checkbox" id="l1" name="l1" value="0"> -->
+            <!--     <label class="checkbox-label" for="l1"/> -->
+            <!--   </div> -->
+            <!-- </div> -->
 
             <!-- RPM Feedback -->
             <div class="option-group">
               <label>Current RPM </label>
               <div class="horizontal">
-                <label id="currentRPMLabel">NONE</label>
+                <label class="highlighted" id="currentRPMLabel">NONE</label>
               </div>
             </div>
           </div>
 
           <!-- Power Target -->
-          <div class="option-group">
+          <div class="option-group tooltip">
+            <span class="tooltiptext">Tooltip text</span>
+
             <label for="slider">Power</label>
             <div class="slider-group">
               <input type="range" min="0" max="255" value="50" class="slider" name="s1">
@@ -114,10 +116,6 @@
 
           <!-- <div class="separator"></div> -->
           <!---->
-          <!-- <div class="tooltip">Hover over me -->
-          <!--   <span class="tooltiptext">Tooltip text</span> -->
-          <!-- </div> -->
-
           <div class="separator"></div>
           
           <div id="imagePreviewContainer" class="imagePreviewContainer">
@@ -125,20 +123,6 @@
           </div>
 
           <div id="imagePreviewSeparator" class="separator"></div>
-
-          <!-- Colors -->
-
-          <div class="horizontal">
-            <div class="option-group">
-              <label for="foregroundcolor">Foreground Color</label>
-              <input type="color" id="foregroundcolor" name="c1" value="#ff4060">
-            </div>
-
-            <div class="option-group">
-              <label for="backgroundcolor">Background Color</label>
-              <input type="color" id="backgroundcolor" name="c2" value="#00000000">
-            </div>
-          </div>
 
           <!-- Position Offset Vertical -->
           <div class="option-group">

@@ -76,11 +76,6 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
     // color.g = _add_colors(color.g, options.green_color_adjust);
     // color.b = _add_colors(color.b, options.blue_color_adjust);
 
-
-
-
-
-
     _leds[led_index] = color;
   }
   
@@ -124,8 +119,8 @@ void Renderer::_display_loop(void *parameter)
 
       previous_microseconds = current_microseconds;
       
-      if (renderer->options.leds_enabled)
-        renderer->_draw_led_strip_colors(current_degrees);
+      // if (renderer->options.leds_enabled)
+        // renderer->_draw_led_strip_colors(current_degrees);
     }
   }
 }
@@ -204,6 +199,8 @@ void Renderer::load_image_data()
     return;
   }
 
+  Serial.println("heree 11");
+
   JsonDocument jsonDoc;
 
   // Parse the file contents to the JSON document
@@ -218,6 +215,8 @@ void Renderer::load_image_data()
 
   file.close();
 
+
+  Serial.println("heree 132nnnnnnnn");
   // If the JSON file has nested arrays or objects
   JsonArray frames = jsonDoc["frames"];
   uint8_t frameCount = 0;
@@ -258,9 +257,13 @@ void Renderer::load_image_data()
     frameCount++;
   }
   
+
+  Serial.println("heree 13");
   // _print_image_data();
 
   start();
+
+  Serial.println("heree 14");
 }
 
 }

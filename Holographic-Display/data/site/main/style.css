@@ -27,6 +27,7 @@
 
 body {
   font-family: 'Lucida Console', monospace;
+  font-weight: 800;
   color: #ffffff;
   line-height: 1.6;
   background-color: #101010;
@@ -38,21 +39,21 @@ body {
 #dataForm {
   flex: 1;
   opacity: 0.8;
-  --s: 16vmin;
-  --c1: #171717;
-  --c2: #0d0d0d;
-  --c3: #121212;
+  --cube_size: 16vmin;
+  --color_top: #171717;
+  --color_left: #0d0d0d;
+  --color_right: #121212;
   
-  --_g: 0 120deg,#0000 0;
+  --_rotation: 0 120deg,#0000 0;
   background:
-    conic-gradient(             at calc(250%/3) calc(100%/3),var(--c3) var(--_g)),
-    conic-gradient(from -120deg at calc( 50%/3) calc(100%/3),var(--c2) var(--_g)),
-    conic-gradient(from  120deg at calc(100%/3) calc(250%/3),var(--c1) var(--_g)),
-    conic-gradient(from  120deg at calc(200%/3) calc(250%/3),var(--c1) var(--_g)),
-    conic-gradient(from -180deg at calc(100%/3) 50%,var(--c2)  60deg,var(--c1) var(--_g)),
-    conic-gradient(from   60deg at calc(200%/3) 50%,var(--c1)  60deg,var(--c3) var(--_g)),
-    conic-gradient(from  -60deg at 50% calc(100%/3),var(--c1) 120deg,var(--c2) 0 240deg,var(--c3) 0);
-  background-size: calc(var(--s)*sqrt(3)) var(--s);
+    conic-gradient(             at calc(250%/3) calc(100%/3),var(--color_right) var(--_rotation)),
+    conic-gradient(from -120deg at calc( 50%/3) calc(100%/3),var(--color_left) var(--_rotation)),
+    conic-gradient(from  120deg at calc(100%/3) calc(250%/3),var(--color_top) var(--_rotation)),
+    conic-gradient(from  120deg at calc(200%/3) calc(250%/3),var(--color_top) var(--_rotation)),
+    conic-gradient(from -180deg at calc(100%/3) 50%,var(--color_left)  60deg,var(--color_top) var(--_rotation)),
+    conic-gradient(from   60deg at calc(200%/3) 50%,var(--color_top)  60deg,var(--color_right) var(--_rotation)),
+    conic-gradient(from  -60deg at 50% calc(100%/3),var(--color_top) 120deg,var(--color_left) 0 240deg,var(--color_right) 0);
+  background-size: calc(var(--cube_size)*sqrt(3)) var(--cube_size);
 }
 
 ::selection {
@@ -209,8 +210,8 @@ input[type=file]::file-selector-button:hover {
 }
 
 #progressBar {
-  -webkit-appearance: none;
-  -moz-appearance: none;
+  -webkit-progress-value: { background: #ff4060; }
+  -moz-progress-value: { background: #ff4060; }
   appearance: none;
   background-color: #222222;
   border: none;
@@ -258,7 +259,7 @@ input[type=file]::file-selector-button:hover {
 
 .item {
   background-color: #22222250;
-  backdrop-filter: blur(0.5vmax);
+  backdrop-filter: blur(0.6vmax);
   border-radius: 20px;
   border: 1px solid #55555570;
   color: #ffffff;
@@ -320,7 +321,8 @@ input[type=file]::file-selector-button:hover {
   flex-direction: column;
   justify-content: flex-start;
   border-radius: 16px;
-  /* border: 1px solid #333333; */
+  border-bottom: 1px solid #000000; 
+  border-top: 1px solid #ffffff50; 
   line-height: 1.5;
   padding: 2%;
   text-align: left;
