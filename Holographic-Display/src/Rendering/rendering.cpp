@@ -78,10 +78,10 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
 
     // Get the color value from the image at those coordinates.
     color = _image_data[index];
-    
-    // color.r = _add_colors(color1, color2);
-    // color.g = _add_colors(color.g, options.green_color_adjust);
-    // color.b = _add_colors(color.b, options.blue_color_adjust);
+
+    color.r = _add_colors(color.r, options.red_color_adjust);
+    color.g = _add_colors(color.g, options.green_color_adjust);
+    color.b = _add_colors(color.b, options.blue_color_adjust);
 
     _leds[led_index] = color;
   }
@@ -96,13 +96,12 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
 
     index = (_current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x) * 3;
 
+    color.r = _add_colors(color.r, options.red_color_adjust);
+    color.g = _add_colors(color.g, options.green_color_adjust);
+    color.b = _add_colors(color.b, options.blue_color_adjust);
+
     // Get the color value from the image at those coordinates.
     color = _image_data[0];
-    
-    // _add_colors(&color.r, &options.red_color_adjust);
-    // _add_colors(&color.g, &options.green_color_adjust);
-    // _add_colors(&color.b, &options.blue_color_adjust);
-
     _leds[led_index] = color; 
   }
   
@@ -136,10 +135,12 @@ void Renderer::_display_loop(void *parameter)
   }
 }
 
-uint8_t _add_colors(uint8_t color, int16_t addition)
+uint8_t Renderer::_add_colors(uint8_t color, int16_t addition)
 {
   int16_t temp_color = (int16_t)color;
-  return (uint8_t)clamp((int)(temp_color + addition), 0, 255);
+  int16_t clamped_color = clamp((temp_color + addition), 0, 255);
+
+  return (uint8_t)clamped_color;
 }
 
 void Renderer::init(unsigned long *pdelay_between_degrees_us)
