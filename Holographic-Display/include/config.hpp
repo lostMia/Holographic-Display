@@ -25,12 +25,12 @@
 // Defines the width/height of the image to create.
 // This is equal to the number of LED's per strip times 2.
 // #define IMAGE_SIZE LEDS_PER_STRIP * 2
-#define IMAGE_SIZE 128
+#define IMAGE_SIZE 22
 
 #define IMAGE_DATA_SIZE (MAX_FRAMES * IMAGE_SIZE * IMAGE_SIZE * sizeof(CRGB))
 
 // Defines the max number of frames that can be loaded.
-#define MAX_FRAMES 100
+#define MAX_FRAMES 1
 //
 // Defines the most current image that has been uploaded from the website.
 #define IMAGE_JSON_NAME "/datadump/image.json"

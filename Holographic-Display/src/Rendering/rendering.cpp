@@ -44,22 +44,20 @@ void Renderer::_next_pixel(uint8_t *px, uint8_t *py)
 
 void Renderer::_print_image_data()
 {
-  for (uint8_t frameIndex = 0; frameIndex < MAX_FRAMES; frameIndex++)
+  // for (uint8_t frameIndex = 0; frameIndex < MAX_FRAMES; frameIndex++)
+  for (uint8_t x = 0; x < IMAGE_SIZE; x++)
   {
-    for (uint8_t x = 0; x < IMAGE_SIZE; x++)
+    for (uint8_t y = 0; y < IMAGE_SIZE; y++)
     {
-      for (uint8_t y = 0; y < IMAGE_SIZE; y++)
-      {
-        uint32_t index = frameIndex * IMAGE_SIZE * IMAGE_SIZE + y * IMAGE_SIZE + x;
+      uint32_t index = 0 * IMAGE_SIZE * IMAGE_SIZE + y * IMAGE_SIZE + x;
 
-        // Serial.print(_imageData[frameIndex][x][y].Red == 255 ? "#" : " ");
-        Serial.print(_image_data[index].r);
-        Serial.print(_image_data[index].g);
-        Serial.print(_image_data[index].b);
-      }
-      
-      Serial.println();
+      Serial.print(_image_data[index].r == 255 ? '#' : '.');
+      //   Serial.print(_image_data[index].r);
+      //   Serial.print(_image_data[index].g);
+      //   Serial.print(_image_data[index].b);
     }
+    
+    Serial.println();
   }
 }
 
@@ -94,18 +92,19 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
     auto coordinates = conversion_matrix[opposite_degrees][led_index - LEDS_PER_STRIP];
 
-    index = (_current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x) * 3;
+    index = _current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x;
+
+    // Get the color value from the image at those coordinates.
+    color = _image_data[index];
 
     color.r = _add_colors(color.r, options.red_color_adjust);
     color.g = _add_colors(color.g, options.green_color_adjust);
     color.b = _add_colors(color.b, options.blue_color_adjust);
-
-    // Get the color value from the image at those coordinates.
-    color = _image_data[0];
+;
     _leds[led_index] = color; 
   }
   
-  // FastLED.show();
+  FastLED.show();
 }
 
 void Renderer::_display_loop(void *parameter)
@@ -115,7 +114,7 @@ void Renderer::_display_loop(void *parameter)
   uint16_t current_degrees = 0;
   unsigned long current_microseconds, previous_microseconds;
   
-  *renderer->_delay_between_degrees_us = (unsigned long)1;
+  *renderer->_delay_between_degrees_us = (unsigned long)30000;
 
   unsigned long start, end;
 
@@ -123,13 +122,13 @@ void Renderer::_display_loop(void *parameter)
   {
     current_microseconds = micros();
 
-    if (current_microseconds - previous_microseconds >= *renderer->_delay_between_degrees_us) 
+    if (current_microseconds - previous_microseconds >= *(renderer->_delay_between_degrees_us)) 
     {
       current_degrees = (current_degrees == 359 ? 0 : current_degrees + 1);
 
       previous_microseconds = current_microseconds;
       
-      // if (renderer->options.leds_enabled)
+      if (renderer->options.leds_enabled)
         renderer->_draw_led_strip_colors(current_degrees);
     }
   }
@@ -198,6 +197,7 @@ void Renderer::stop_renderer()
 // Loads the .json file from the file system into the imageData Array, so it can be used for displaying.
 void Renderer::load_image_from_flash()
 {
+  Serial.println("oh god no");
   File file = SPIFFS.open(IMAGE_JSON_NAME, "r", false);
 
   if (!file) 
@@ -244,7 +244,7 @@ void Renderer::load_image_from_flash()
     uint8_t indexCount = 0;
     uint8_t x = 0;
     uint8_t y = 0;
-    uint32_t index = frameCount * IMAGE_SIZE * IMAGE_SIZE + y * IMAGE_SIZE + x;
+    uint32_t index = frameCount * IMAGE_SIZE * IMAGE_SIZE + x * IMAGE_SIZE + y;
     
     for (int value : data) 
     {
@@ -260,7 +260,7 @@ void Renderer::load_image_from_flash()
             _image_data[index].b = value; 
             _next_pixel(&x, &y);
 
-            index = frameCount * IMAGE_SIZE * IMAGE_SIZE + y * IMAGE_SIZE + x;
+            index = frameCount * IMAGE_SIZE * IMAGE_SIZE + x * IMAGE_SIZE + y;
             break;
         default:
           break;
