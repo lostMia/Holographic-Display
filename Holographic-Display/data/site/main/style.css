@@ -322,9 +322,10 @@ input[type=file]::file-selector-button:hover {
   justify-content: flex-start;
   border-radius: 16px;
   border-bottom: 1px solid #000000; 
-  border-top: 1px solid #ffffff50; 
+  border-top: 1px solid #ffffff20; 
   line-height: 1.5;
   padding: 2%;
+  margin: 1%;
   text-align: left;
 }
 
@@ -333,7 +334,8 @@ input[type=file]::file-selector-button:hover {
 }
 
 .option-group {
-  width: 100%;
+  max-width: 98%;
+  min-width: 40%;
 }
 
 

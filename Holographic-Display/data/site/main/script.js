@@ -26,6 +26,7 @@ const imagePreviewContainer = document.getElementById('imagePreviewContainer');
 const imagePreviewSeparator = document.getElementById('imagePreviewSeparator');
 const fileInput = document.getElementById('fileInput');
 const maxUploadSize = 1024 * 1024;
+const imageSize = 22;
 
 fileInput.addEventListener('change', (event) => {
   handleFiles(event.target.files);
@@ -54,9 +55,20 @@ dropZone.addEventListener('drop', (event) => {
     return;
   }
 
+  const file = files[0];
+
+  // Detect file type
+  if (file.type === 'image/gif') {
+    console.log('GIF detected.');
+    handleGIFFile(file);
+  } else if (file.type.startsWith('image/')) {
+    console.log('Image detected.');
+    handleImageFile(file);
+  } else {
+    alert('Unsupported file type. Please upload a valid image or GIF.');
+  }
+
   // uploadRawImage(files[0]);
-  // processAndUploadBytestream(files[0]);
-  handleImageFile(files[0]);
 });
 
 function uploadRawImage(file) {
@@ -93,52 +105,6 @@ function uploadRawImage(file) {
 
 // - - - - - - - - - - - - Experimental Image Conversion - - - - - - - - - - - - //
 
-// function processAndUploadBytestream(file) {
-//   const img = new Image();
-//   const canvas = document.createElement('canvas');
-//   const ctx = canvas.getContext('2d');
-//   const targetSize = 22;
-//
-//   img.onload = () => {
-//     // Make the image quadratic by cropping it if necessary
-//     const minSize = Math.min(img.width, img.height);
-//     const offsetX = (img.width - minSize) / 2;
-//     const offsetY = (img.height - minSize) / 2;
-//
-//     // Set canvas size to target dimensions
-//     canvas.width = targetSize;
-//     canvas.height = targetSize;
-//
-//     // Draw the cropped, resized image on the canvas
-//     ctx.drawImage(img, offsetX, offsetY, minSize, minSize, 0, 0, targetSize, targetSize);
-//
-//     // Get the image data from the canvas
-//     const imageData = ctx.getImageData(0, 0, targetSize, targetSize);
-//     const pixels = imageData.data; // pixels with alpha
-//
-//     const rgbArray = []; // pixels without alpha -> 25% less data consumption, because we don't care about the alpha value. 
-//     for (let i = 0; i < pixels.length; i += 4) {
-//       // Skip the alpha channel
-//       rgbArray.push(pixels[i], pixels[i + 1], pixels[i + 2]);
-//     }
-//
-//     const frameData = {
-//       frames: [
-//         {
-//           delay: 0, // todo: don't hard code this xd
-//           data: rgbArray
-//         }
-//       ]
-//     };
-//
-//     uploadRGBArray(frameData);
-//   };
-//
-//   const reader = new FileReader();
-//   reader.onload = () => img.src = reader.result;
-//   reader.readAsDataURL(file);
-// }
-
 /*
 This is the Json format that will be used.
 Using this will open up the possibility of using videos or GIF's further in the future.
@@ -165,15 +131,14 @@ async function handleImageFile(file) {
   await img.decode();
 
   // Set canvas size (e.g., 128x128)
-  const size = 22;
-  canvas.width = size;
-  canvas.height = size;
+  canvas.width = imageSize;
+  canvas.height = imageSize;
 
   const ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0, size, size);
+  ctx.drawImage(img, 0, 0, imageSize, imageSize);
 
   // Extract pixel data
-  const imageData = ctx.getImageData(0, 0, size, size);
+  const imageData = ctx.getImageData(0, 0, imageSize, imageSize);
   const { data } = imageData;
   const jsonStructure = { frames: [{ delay: 100, data: [] }] };
 
@@ -193,6 +158,91 @@ async function handleImageFile(file) {
   // Send JSON to ESP32
   await uploadJSON(jsonBlob, 'image.json');
 }
+
+async function handleGIFFile(gifFile) {
+    const gifReader = new GIFDecoder();
+    const frames = [];
+
+    // Read the GIF file
+    const arrayBuffer = await gifFile.arrayBuffer();
+    gifReader.parse(arrayBuffer);
+
+    // Loop through each frame in the GIF
+    for (let i = 0; i < gifReader.frames.length; i++) {
+        const frame = gifReader.frames[i];
+        const delay = frame.delay; // Delay in milliseconds
+
+        // Create a canvas to extract pixel data
+        const canvas = document.createElement('canvas');
+        canvas.width = frame.width;
+        canvas.height = frame.height;
+        const ctx = canvas.getContext('2d');
+
+        // Draw the frame onto the canvas
+        ctx.putImageData(new ImageData(new Uint8ClampedArray(frame.data), frame.width, frame.height), 0, 0);
+
+        // Get pixel data from the canvas
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixelData = Array.from(imageData.data);
+
+        // Push frame data into frames array
+        frames.push({
+            delay: delay,
+            data: pixelData
+        });
+    }
+
+    // Return the final JSON structure
+    return {
+        frames: frames
+    };
+}
+
+// async function handleGIFFile(file) {
+//     const gif = new SuperGif({ gif: document.createElement('img') });
+//
+//     gif.load(URL.createObjectURL(file));
+//
+//     await new Promise((resolve) => gif.load(resolve));
+//
+//     const frameCount = gif.get_length();
+//     const size = 22; // Resize target
+//
+//     const jsonStructure = { frames: [] };
+//
+//     for (let i = 0; i < frameCount; i++) {
+//       gif.move_to(i);
+//       const canvas = gif.get_canvas();
+//       const ctx = canvas.getContext('2d');
+//       const resizedCanvas = document.createElement('canvas');
+//       resizedCanvas.width = size;
+//       resizedCanvas.height = size;
+//       const resizedCtx = resizedCanvas.getContext('2d');
+//       resizedCtx.drawImage(canvas, 0, 0, size, size);
+//
+//       const { data } = resizedCtx.getImageData(0, 0, size, size);
+//       const frameData = { delay: gif.get_delay(i), data: [] };
+//
+//       for (let j = 0; j < data.length; j += 4) {
+//         const r = data[j];
+//         const g = data[j + 1];
+//         const b = data[j + 2];
+//         frameData.data.push(r, g, b);
+//       }
+//
+//       jsonStructure.frames.push(frameData);
+//     }
+//
+//     // Convert JSON object to Blob
+//     const jsonBlob = new Blob([JSON.stringify(jsonStructure)], { type: 'application/json' });
+//
+//     console.log(jsonStructure);
+//     console.log(JSON.stringify(jsonStructure));
+//
+//     // Send JSON to ESP32
+//     await uploadJSON(jsonBlob, 'animation.json');
+//   }
+//
 
 async function uploadJSON(jsonBlob, fileName) {
   const formData = new FormData();
