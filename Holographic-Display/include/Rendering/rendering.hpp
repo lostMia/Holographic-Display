@@ -28,11 +28,14 @@ using namespace std;
 namespace Rendering 
 {
 
+static portMUX_TYPE optionsMUX = portMUX_INITIALIZER_UNLOCKED;
+
 struct Options 
 {
     int16_t red_color_adjust = 0;
     int16_t green_color_adjust = 0;
     int16_t blue_color_adjust = 0;
+    unsigned long _delay_between_degrees_us = 30000;
     bool leds_enabled = true;
 };
 
@@ -44,7 +47,6 @@ private:
     CRGB* _image_data;
     uint16_t _delay_data[MAX_FRAMES];
     TaskHandle_t _display_loop_task = NULL;
-    unsigned long *_delay_between_degrees_us;
     uint8_t _current_frame = 0;
 
     void _clear_image_data();
@@ -58,7 +60,7 @@ public:
     CRGB _leds[LEDS_PER_STRIP * 2];
     Options options;
     
-    void init(unsigned long *pdelay_between_degrees_us);
+    void init();
     void start_renderer();
     void stop_renderer();
     void load_image_from_flash();

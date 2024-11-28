@@ -1,0 +1,96 @@
+* {
+  margin: 0;
+  padding: 0; 
+  box-sizing: border-box;
+  overflow: hidden;
+  font-size: 2vh;
+}
+
+body {
+  font-family: 'Lucida Console', monospace;
+  color: white;
+  line-height: 2;
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #101010;
+  margin: 20px;
+}
+
+button {
+  padding: 10px;
+  display: inline-block;
+  background-color: #00000000;
+  color: #ffffff;
+  border: 2px solid #555555;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.4s ease;
+  text-align: center; 
+}
+
+button:hover {
+  background-color: #ff4060;
+  color: #000000;
+  box-shadow: 0px 0px 50px #ff406040;
+}
+
+.static-bg {
+  z-index: -1;
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  width: 200%;
+  height: 200vh;
+  background: transparent url('/resources/grain.png') repeat 0 0;
+  background-repeat: repeat;
+  animation: bg-animation .2s infinite;
+  opacity: 0.8;
+  visibility: visible;
+}
+
+#highlighted {
+  color: #ff4060;
+  text-shadow: none;
+  font-size: 4vh;
+}
+
+#ca-text,
+#ca-header {
+  font-weight: 300;
+  text-shadow:  -0.5px 0px rgba(0, 255, 255, 1),
+                -1px 0px rgba(0, 0, 255, 1),
+                0.5px 0px rgba(255, 255, 0, 1),
+                1px 0px rgba(255, 0, 0, 1);
+}
+
+#ca-header {
+  text-shadow: none;
+  font-weight: 0;
+  font-size: 4vh;
+}
+
+#ca-text {
+  margin-bottom: 24px;
+  text-align: center;
+  max-width: 600px;
+}
+
+@keyframes bg-animation {
+    0% { transform: translate(0,0) }
+    10% { transform: translate(-5%,-5%) }
+    20% { transform: translate(-10%,5%) }
+    30% { transform: translate(5%,-10%) }
+    40% { transform: translate(-5%,15%) }
+    50% { transform: translate(-10%,5%) }
+    60% { transform: translate(15%,0) }
+    70% { transform: translate(0,10%) }
+    80% { transform: translate(-15%,0) }
+    90% { transform: translate(10%,5%) }
+    100% { transform: translate(5%,0) }
+}

@@ -114,21 +114,23 @@ void Renderer::_display_loop(void *parameter)
   uint16_t current_degrees = 0;
   unsigned long current_microseconds, previous_microseconds;
   
-  *renderer->_delay_between_degrees_us = (unsigned long)30000;
-
   unsigned long start, end;
 
   while (true)
   {
     current_microseconds = micros();
 
-    if (current_microseconds - previous_microseconds >= *(renderer->_delay_between_degrees_us)) 
+    if (current_microseconds - previous_microseconds >= renderer->options._delay_between_degrees_us) 
     {
       current_degrees = (current_degrees == 359 ? 0 : current_degrees + 1);
 
       previous_microseconds = current_microseconds;
       
-      if (renderer->options.leds_enabled)
+      taskENTER_CRITICAL(&optionsMUX);
+      bool leds_enabled = renderer->options.leds_enabled;
+      taskEXIT_CRITICAL(&optionsMUX);
+      
+      if (leds_enabled)
         renderer->_draw_led_strip_colors(current_degrees);
     }
   }
@@ -142,11 +144,9 @@ uint8_t Renderer::_add_colors(uint8_t color, int16_t addition)
   return (uint8_t)clamped_color;
 }
 
-void Renderer::init(unsigned long *pdelay_between_degrees_us)
+void Renderer::init()
 {
   BaseType_t result;
-
-  _delay_between_degrees_us = pdelay_between_degrees_us;
 
   _image_data= (CRGB*)ps_malloc(IMAGE_DATA_SIZE);
 

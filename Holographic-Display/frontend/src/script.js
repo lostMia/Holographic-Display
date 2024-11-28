@@ -1,3 +1,16 @@
+import { parseGIF, decompressFrames } from 'gifuct-js'
+
+
+// - - - - - - - - - - - - Constants - - - - - - - - - - - - //
+
+const maxUploadSize = 1024 * 1024 * 8;
+const imageSize = 22;
+
+
+const canvas = document.createElement('canvas');
+canvas.width = imageSize;
+canvas.height = imageSize;
+
 // - - - - - - - - - - - - Sliders - - - - - - - - - - - - //
  
 document.querySelectorAll('.slider-group').forEach(group => {
@@ -25,8 +38,7 @@ const previewImage = document.getElementById('previewImage');
 const imagePreviewContainer = document.getElementById('imagePreviewContainer');
 const imagePreviewSeparator = document.getElementById('imagePreviewSeparator');
 const fileInput = document.getElementById('fileInput');
-const maxUploadSize = 1024 * 1024;
-const imageSize = 22;
+
 
 fileInput.addEventListener('change', (event) => {
   handleFiles(event.target.files);
@@ -67,43 +79,7 @@ dropZone.addEventListener('drop', (event) => {
   } else {
     alert('Unsupported file type. Please upload a valid image or GIF.');
   }
-
-  // uploadRawImage(files[0]);
 });
-
-function uploadRawImage(file) {
-  const formData = new FormData();
-
-  if (file.size > maxUploadSize) {
-    alert(`File Size too big! Maximum is ${maxUploadSize/1024}kB`)
-  }
-
-  formData.append('file', file);
-
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', '/upload', true);
-
-  xhr.upload.onprogress = (event) => {
-    if (event.lengthComputable) {
-      const percentComplete = (event.loaded / event.total) * 100;
-      progressBar.value = percentComplete;
-    }
-  };
-
-  xhr.onload = () => {
-    if (xhr.status === 200) {
-      previewImage.src = `/datadump/${file.name}`;
-      imagePreviewContainer.style.display = "inline";
-      imagePreviewSeparator.style.display = "inline";
-    } else {
-      alert('Error uploading file.');
-    }
-  };
-
-  xhr.send(formData);
-}
-
-// - - - - - - - - - - - - Experimental Image Conversion - - - - - - - - - - - - //
 
 /*
 This is the Json format that will be used.
@@ -140,7 +116,7 @@ async function handleImageFile(file) {
   // Extract pixel data
   const imageData = ctx.getImageData(0, 0, imageSize, imageSize);
   const { data } = imageData;
-  const jsonStructure = { frames: [{ delay: 100, data: [] }] };
+  const jsonStructure = { frames: [{ delay: 0, data: [] }] };
 
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i];
@@ -159,43 +135,94 @@ async function handleImageFile(file) {
   await uploadJSON(jsonBlob, 'image.json');
 }
 
-async function handleGIFFile(gifFile) {
-    const gifReader = new GIFDecoder();
-    const frames = [];
+async function handleGIFFile(file) {
+  let frames = await getFramesFromGIF(file)
 
-    // Read the GIF file
-    const arrayBuffer = await gifFile.arrayBuffer();
-    gifReader.parse(arrayBuffer);
+  const jsonStructure = { 
+    frames: [] 
+  };
 
-    // Loop through each frame in the GIF
-    for (let i = 0; i < gifReader.frames.length; i++) {
-        const frame = gifReader.frames[i];
-        const delay = frame.delay; // Delay in milliseconds
+  for (const frame of frames) {
+    const processedFrame = await processGIFFrame(frame)
 
-        // Create a canvas to extract pixel data
-        const canvas = document.createElement('canvas');
-        canvas.width = frame.width;
-        canvas.height = frame.height;
-        const ctx = canvas.getContext('2d');
+    jsonStructure.frames.push(processedFrame);
+  }
 
-        // Draw the frame onto the canvas
-        ctx.putImageData(new ImageData(new Uint8ClampedArray(frame.data), frame.width, frame.height), 0, 0);
+  // Convert JSON object to Blob
+  const jsonBlob = new Blob([JSON.stringify(jsonStructure)], { type: 'application/json' });
 
-        // Get pixel data from the canvas
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const pixelData = Array.from(imageData.data);
+  console.log(jsonStructure);
+  console.log(JSON.stringify(jsonStructure))
+  
+  // Send JSON to ESP32
+  await uploadJSON(jsonBlob, 'image.json');
+}
 
-        // Push frame data into frames array
-        frames.push({
-            delay: delay,
-            data: pixelData
-        });
+async function processGIFFrame(frame) {
+  const ctx = canvas.getContext('2d');
+
+  // Resize the canvas to the desired dimensions
+  canvas.width = imageSize;
+  canvas.height = imageSize;
+
+  // Create an off-screen canvas for the frame
+  const offscreenCanvas = document.createElement('canvas');
+  offscreenCanvas.width = frame.dims.width;
+  offscreenCanvas.height = frame.dims.height;
+  const offscreenCtx = offscreenCanvas.getContext('2d');
+
+  // Create an ImageData object to represent the frame
+  const imageData = offscreenCtx.createImageData(frame.dims.width, frame.dims.height);
+
+  // Populate the ImageData with pixel data
+  const colorTable = frame.colorTable;
+  for (let i = 0; i < frame.pixels.length; i++) {
+    const pixelIndex = frame.pixels[i];
+    const baseIndex = i * 4;
+    if (pixelIndex === frame.transparentIndex) {
+      // Transparent pixel
+      imageData.data[baseIndex + 3] = 0;
+    } else {
+      // Map pixel to colorTable
+      const [r, g, b] = colorTable[pixelIndex];
+      imageData.data[baseIndex] = r;
+      imageData.data[baseIndex + 1] = g;
+      imageData.data[baseIndex + 2] = b;
+      imageData.data[baseIndex + 3] = 255; // Fully opaque
     }
+  }
 
-    // Return the final JSON structure
-    return {
-        frames: frames
-    };
+  // Draw the image data onto the off-screen canvas
+  offscreenCtx.putImageData(imageData, 0, 0);
+
+  // Scale the content from the off-screen canvas onto the main canvas
+  ctx.drawImage(offscreenCanvas, 0, 0, imageSize, imageSize);
+
+  // Extract the resized image data
+  const resizedImageData = ctx.getImageData(0, 0, imageSize, imageSize);
+
+  // Extract RGBA data for JSON
+  const { data } = resizedImageData;
+  const frameData = [];
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    frameData.push(r, g, b);
+  }
+
+  return {
+    delay: frame.delay,
+    data: frameData,
+  };
+}
+
+async function getFramesFromGIF(file) {
+  let buffer = await file.arrayBuffer()
+  let gif = parseGIF(buffer)
+  let frames = decompressFrames(gif, true)
+
+  return frames
 }
 
 // async function handleGIFFile(file) {

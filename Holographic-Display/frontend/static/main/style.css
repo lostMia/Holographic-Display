@@ -395,27 +395,60 @@ input[type=file]::file-selector-button:hover {
   position: relative;
   display: inline-block;
   border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
-  transition: 0.2s;
+
 }
 
-.tooltip {
-  opacity: 0%;
-  visibility: visible;
-  max-width: 200px;
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
   background-color: black;
-  color: #ffffff;
+  color: #fff;
   text-align: center;
   padding: 5px 0;
   border-radius: 6px;
-  position: absolute;
-  bottom: -50px;
-  z-index: 1;
+  position: relative;
+  width: 120px;
+  bottom: 100%;
+  left: 50%;
+  padding: 10px;
+  margin-left: -60px; /* Use half of the width (120/2 = 60), to center the tooltip */
 }
 
-.tooltip:hover {
-  opacity: 100%;
+input = "aabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabbaabb"
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  background-color: #222222ff;
   visibility: visible;
 }
+
+
+/* .tooltip { */
+/*   position: relative; */
+/*   display: inline-block; */
+/*   border-bottom: 1px dotted black; /* If you want dots under the hoverable text */ */
+/*   transition: 0.2s; */
+/* } */
+/**/
+/* .tooltip { */
+/*   opacity: 0%; */
+/*   visibility: hidden; */
+/*   max-width: 200px; */
+/*   background-color: black; */
+/*   color: #ffffff; */
+/*   text-align: center; */
+/*   padding: 5px 0; */
+/*   border-radius: 6px; */
+/*   position: absolute; */
+/*   bottom: -10px; */
+/*   z-index: 1; */
+/* } */
+/**/
+/* .tooltip:hover { */
+/*   opacity: 100%; */
+/*   visibility: visible; */
+/* } */
 
 .ca {
   font-weight: 300;

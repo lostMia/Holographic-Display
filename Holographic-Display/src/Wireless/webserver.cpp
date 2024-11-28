@@ -205,7 +205,7 @@ void WebServer::_begin_renderer()
 {
   Serial.print(F("Starting the renderer..."));
 
-  _renderer->init(&_delay_between_degrees_us);
+  _renderer->init();
 
   Serial.print(F("Done"));
 }
@@ -264,28 +264,28 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
         default:
           break;
       }
-      
-      break;
-
-    // Radio-Button
-    case 'r':
       break;
 
     // Motor-Speed response 
     case 'm':
-      _delay_between_last_pass_us = std::stoi(value);
+      unsigned long delay_between_last_pass_us;
+      
+      delay_between_last_pass_us = std::stoi(value);
 
       float delay_between_last_pass_s, delay_between_rotation_s, frequency_hz;
       
-      delay_between_last_pass_s = (float)(_delay_between_last_pass_us) / 1000000.0;
+      delay_between_last_pass_s = (float)(delay_between_last_pass_us) / 1000000.0;
       delay_between_rotation_s = delay_between_last_pass_s * 2.0;
       frequency_hz = 1.0 / delay_between_last_pass_s;
       
+      taskENTER_CRITICAL(&Rendering::optionsMUX);
       // Calculate the time between each degree in μs.
-      _delay_between_degrees_us = (unsigned long)((float)(_delay_between_last_pass_us) / 180.0);
+      _renderer->options._delay_between_degrees_us 
+        = (unsigned long)((float)(delay_between_last_pass_us) / 180.0);
 
       // Calculate the RPM.
       _current_RPM = (unsigned long)(frequency_hz * 60.0);
+      taskEXIT_CRITICAL(&Rendering::optionsMUX);
       break;
 
     // Text-Field
@@ -305,17 +305,25 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
         // LED-Active-Lever
         case 2:
           if (!strncmp(value, "true", 8))
-            _renderer->start_renderer();
+          {
+            taskENTER_CRITICAL(&Rendering::optionsMUX);
+            _renderer->options.leds_enabled = true;
+            taskEXIT_CRITICAL(&Rendering::optionsMUX);
+            // _renderer->start_renderer();
+          }
           else
           {
-            _renderer->stop_renderer();
-            //
-            // for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
-            // {
-            //   _renderer->_leds[led_index] = CRGB::Purple;
-            // }
-            //
-            // FastLED.show();
+            taskENTER_CRITICAL(&Rendering::optionsMUX);
+            _renderer->options.leds_enabled = false;
+
+            // _renderer->stop_renderer();
+             
+            for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
+              _renderer->_leds[led_index] = CRGB::Purple;
+
+            FastLED.show();
+            
+            taskEXIT_CRITICAL(&Rendering::optionsMUX);
             // FastLED.clear();
           }
           break;
