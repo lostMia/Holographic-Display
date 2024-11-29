@@ -141,7 +141,7 @@ async function handleImageFile(file) {
 // - - - - - - - - - - - - GIF Upload - - - - - - - - - - - - //
 
 async function handleGIFFile(file) {
-  let frames = await getFramesFromGIF(file)
+  const frames = await getFramesFromGIF(file)
 
   const jsonStructure = { 
     frames: [] 
@@ -164,20 +164,14 @@ async function handleGIFFile(file) {
 }
 
 async function processGIFFrame(frame) {
+  // Resize the canvas to the desired dimensions
+  canvas.width = frame.dims.width;
+  canvas.height = frame.dims.height;
+
   const ctx = canvas.getContext('2d');
 
-  // Resize the canvas to the desired dimensions
-  canvas.width = imageSize;
-  canvas.height = imageSize;
-
-  // Create an off-screen canvas for the frame
-  const offscreenCanvas = document.createElement('canvas');
-  offscreenCanvas.width = frame.dims.width;
-  offscreenCanvas.height = frame.dims.height;
-  const offscreenCtx = offscreenCanvas.getContext('2d');
-
   // Create an ImageData object to represent the frame
-  const imageData = offscreenCtx.createImageData(frame.dims.width, frame.dims.height);
+  const imageData = ctx.createImageData(frame.dims.width, frame.dims.height);
 
   // Populate the ImageData with pixel data
   const colorTable = frame.colorTable;
@@ -198,10 +192,10 @@ async function processGIFFrame(frame) {
   }
 
   // Draw the image data onto the off-screen canvas
-  offscreenCtx.putImageData(imageData, 0, 0);
+  ctx.putImageData(imageData, 0, 0);
 
   // Scale the content from the off-screen canvas onto the main canvas
-  ctx.drawImage(offscreenCanvas, 0, 0, imageSize, imageSize);
+  ctx.drawImage(canvas, 0, 0, imageSize, imageSize);
 
   // Extract the resized image data
   const resizedImageData = ctx.getImageData(0, 0, imageSize, imageSize);
