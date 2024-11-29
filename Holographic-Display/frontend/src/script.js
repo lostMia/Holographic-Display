@@ -81,6 +81,8 @@ dropZone.addEventListener('drop', (event) => {
   }
 });
 
+// - - - - - - - - - - - - Image Upload - - - - - - - - - - - - //
+
 /*
 This is the Json format that will be used.
 Using this will open up the possibility of using videos or GIF's further in the future.
@@ -134,6 +136,9 @@ async function handleImageFile(file) {
   // Send JSON to ESP32
   await uploadJSON(jsonBlob, 'image.json');
 }
+
+
+// - - - - - - - - - - - - GIF Upload - - - - - - - - - - - - //
 
 async function handleGIFFile(file) {
   let frames = await getFramesFromGIF(file)
@@ -303,13 +308,14 @@ function updateCurrentRPM() {
     .then(response => response.text())
     .then(data => {
       // Update the width of the progress bar based on the value received
-      const rpm = parseInt(data);
-      document.getElementById('currentRPMLabel').innerText = rpm + " RPM";
+      // const rpm = parseInt(data);
+      // document.getElementById('currentRPMLabel').innerText = rpm + " RPM";
+      document.getElementById('currentRPMLabel').innerText = data + " RPM";
     })
     .catch(error => console.error('Error:', error));
 }
 
-// setInterval(updateCurrentRPM, 500);
+setInterval(updateCurrentRPM, 500);
 
 // - - - - - - - - - - - - Data Sending - - - - - - - - - - - - //
 
