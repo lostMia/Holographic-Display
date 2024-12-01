@@ -63,6 +63,84 @@ void Renderer::_print_image_data()
   }
 }
 
+// Loads the .json file from the file system into the imageData Array, so it can be used for displaying.
+void Renderer::_load_image_from_flash()
+{
+  Serial.println("loading image from flash");
+
+  File file = SPIFFS.open(IMAGE_JSON_NAME, "r", false);
+
+  if (!file) 
+  {
+    Serial.println(F("Failed to open file for reading"));
+    return;
+  }
+
+  size_t size = file.size();
+  if (size == 0) 
+  {
+    Serial.println(F("File is empty"));
+    file.close();
+    return;
+  }
+
+  JsonDocument json_doc;
+
+  // Parse the file contents to the JSON document
+  DeserializationError error = deserializeJson(json_doc, file);
+  if (error) 
+  {
+    Serial.print(F("Failed to parse JSON: "));
+    Serial.println(error.c_str());
+    file.close();
+    return;
+  }
+
+  file.close();
+
+  JsonArray frames = json_doc["frames"];
+  uint8_t frame_count = 0;
+  
+  for (JsonObject frame : frames) 
+  {
+    uint16_t delay = frame["delay"];
+    JsonArray data = frame["data"];
+        
+    _delay_data[frame_count] = delay;
+    
+    uint8_t index_count = 0;
+    uint8_t x = 0;
+    uint8_t y = 0;
+    uint32_t index = frame_count * IMAGE_SIZE * IMAGE_SIZE + x * IMAGE_SIZE + y;
+    
+    for (int value : data) 
+    {
+      switch (index_count) 
+      {
+        case 0:
+            _image_data[index].r = value; 
+            break;
+        case 1:
+            _image_data[index].g = value; 
+            break;
+        case 2:
+            _image_data[index].b = value; 
+            _next_pixel(&x, &y);
+
+            index = frame_count * IMAGE_SIZE * IMAGE_SIZE + x * IMAGE_SIZE + y;
+            break;
+        default:
+          break;
+      }
+
+      index_count == 2 ? index_count = 0 : index_count++;
+    }
+    frame_count++;
+  }
+
+  _max_frame = frame_count - 1;
+}
+
 void Renderer::_draw_led_strip_colors()
 {
   uint32_t index;
@@ -180,13 +258,9 @@ void Renderer::init()
   if (result != pdPASS)
     Serial.println(F("Couldn't allocate enough memory!!"));
 
-  stop_renderer();
-   
-  load_image_from_flash();
-  
-  _print_image_data();
+  refresh_image();
 
-  start_renderer();
+  _print_image_data();
 }
 
 void Renderer::start_renderer()
@@ -194,8 +268,6 @@ void Renderer::start_renderer()
   if (eTaskGetState(_display_loop_task) == eRunning)
     return;
   
-  log_d("starting renderer");
-
   vTaskResume(_display_loop_task);
 }
 
@@ -204,87 +276,15 @@ void Renderer::stop_renderer()
   if (eTaskGetState(_display_loop_task) == eSuspended)
     return;
 
-  log_d("stopping renderer");
-
   vTaskSuspend(_display_loop_task);
 }
 
-// Loads the .json file from the file system into the imageData Array, so it can be used for displaying.
-void Renderer::load_image_from_flash()
+void Renderer::refresh_image()
 {
-  Serial.println("loading image from flash");
-
-  File file = SPIFFS.open(IMAGE_JSON_NAME, "r", false);
-
-  if (!file) 
-  {
-    Serial.println(F("Failed to open file for reading"));
-    return;
-  }
-
-  size_t size = file.size();
-  if (size == 0) 
-  {
-    Serial.println(F("File is empty"));
-    file.close();
-    return;
-  }
-
-  JsonDocument json_doc;
-
-  // Parse the file contents to the JSON document
-  DeserializationError error = deserializeJson(json_doc, file);
-  if (error) 
-  {
-    Serial.print(F("Failed to parse JSON: "));
-    Serial.println(error.c_str());
-    file.close();
-    return;
-  }
-
-  file.close();
-
-  JsonArray frames = json_doc["frames"];
-  uint8_t frame_count = 0;
-  
-  for (JsonObject frame : frames) 
-  {
-    uint16_t delay = frame["delay"];
-    JsonArray data = frame["data"];
-        
-    _delay_data[frame_count] = delay;
-    
-    uint8_t index_count = 0;
-    uint8_t x = 0;
-    uint8_t y = 0;
-    uint32_t index = frame_count * IMAGE_SIZE * IMAGE_SIZE + x * IMAGE_SIZE + y;
-    
-    for (int value : data) 
-    {
-      switch (index_count) 
-      {
-        case 0:
-            _image_data[index].r = value; 
-            break;
-        case 1:
-            _image_data[index].g = value; 
-            break;
-        case 2:
-            _image_data[index].b = value; 
-            _next_pixel(&x, &y);
-
-            index = frame_count * IMAGE_SIZE * IMAGE_SIZE + x * IMAGE_SIZE + y;
-            break;
-        default:
-          break;
-      }
-
-      index_count == 2 ? index_count = 0 : index_count++;
-    }
-    frame_count++;
-  }
-
-  _max_frame = frame_count - 1;
+  stop_renderer();
+  _load_image_from_flash();
+  start_renderer();
 }
+
 }
 

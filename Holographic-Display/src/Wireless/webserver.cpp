@@ -169,7 +169,7 @@ void WebServer::_setup_webserver_tree()
         Serial.print(F("Free Heap:"));
         Serial.println(ESP.getFreeHeap());
           
-        _renderer->load_image_from_flash();
+        _renderer->refresh_image();
       } 
       else
       {

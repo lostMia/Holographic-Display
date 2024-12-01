@@ -302,14 +302,13 @@ function updateCurrentRPM() {
     .then(response => response.text())
     .then(data => {
       // Update the width of the progress bar based on the value received
-      // const rpm = parseInt(data);
-      // document.getElementById('currentRPMLabel').innerText = rpm + " RPM";
-      document.getElementById('currentRPMLabel').innerText = data + " RPM";
+      const rpm = parseInt(data);
+      document.getElementById('currentRPMLabel').innerText = rpm + " RPM";
     })
     .catch(error => console.error('Error:', error));
 }
 
-// setInterval(updateCurrentRPM, 500);
+setInterval(updateCurrentRPM, 1000);
 
 // - - - - - - - - - - - - Data Sending - - - - - - - - - - - - //
 

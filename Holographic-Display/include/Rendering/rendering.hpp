@@ -53,6 +53,7 @@ private:
 
     void _clear_image_data();
     void _print_image_data();
+    void _load_image_from_flash();
     void _next_pixel(uint8_t *x, uint8_t *y);
     static void _display_loop(void *parameter);
     void _draw_led_strip_colors();
@@ -65,7 +66,7 @@ public:
     void init();
     void start_renderer();
     void stop_renderer();
-    void load_image_from_flash();
+    void refresh_image();
 };
 
 }

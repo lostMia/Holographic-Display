@@ -14,6 +14,8 @@
 #include <WiFi.h>
 #include "config.hpp"
 
+#include "esp_wifi.h"
+
 namespace Wireless
 {
 
