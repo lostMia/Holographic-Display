@@ -17,6 +17,10 @@ void setup()
   
   delay(1000);
 
+  // Disable Watchdog on core 0, as the renderer must not lag behind or have any disturbances and
+  // the entire core is getting blocked.
+  disableCore0WDT();
+
   psramInit();
 
   // Start the wifi manager

@@ -309,7 +309,7 @@ function updateCurrentRPM() {
     .catch(error => console.error('Error:', error));
 }
 
-setInterval(updateCurrentRPM, 500);
+// setInterval(updateCurrentRPM, 500);
 
 // - - - - - - - - - - - - Data Sending - - - - - - - - - - - - //
 

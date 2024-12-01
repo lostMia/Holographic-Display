@@ -11,7 +11,6 @@
 #include "Rendering/rendering.hpp"
 
 namespace Rendering 
-
 {
 
 // Clears the imageData Array.
@@ -23,8 +22,9 @@ void Renderer::_clear_image_data()
 
 void Renderer::_next_pixel(uint8_t *px, uint8_t *py)
 {
-  int x = *px;
-  int y = *py;
+  uint8_t x = *px;
+  uint8_t y = *py;
+
   // Move onto the next Pixel on the X-Axis.
   x++;
   if (x != IMAGE_SIZE)
@@ -44,24 +44,26 @@ void Renderer::_next_pixel(uint8_t *px, uint8_t *py)
 
 void Renderer::_print_image_data()
 {
-  // for (uint8_t frameIndex = 0; frameIndex < MAX_FRAMES; frameIndex++)
-  for (uint8_t x = 0; x < IMAGE_SIZE; x++)
+  for (uint8_t frame_index = 0; frame_index <= _max_frame; frame_index++)
   {
-    for (uint8_t y = 0; y < IMAGE_SIZE; y++)
+    for (uint8_t x = 0; x < IMAGE_SIZE; x++)
     {
-      uint32_t index = 0 * IMAGE_SIZE * IMAGE_SIZE + y * IMAGE_SIZE + x;
+      for (uint8_t y = 0; y < IMAGE_SIZE; y++)
+      {
+        uint32_t index = frame_index * IMAGE_SIZE * IMAGE_SIZE + y * IMAGE_SIZE + x;
 
-      Serial.print(_image_data[index].r == 255 ? '#' : '.');
-      //   Serial.print(_image_data[index].r);
-      //   Serial.print(_image_data[index].g);
-      //   Serial.print(_image_data[index].b);
+        Serial.print(_image_data[index].r == 255 ? '#' : '.');
+        //   Serial.print(_image_data[index].r);
+        //   Serial.print(_image_data[index].g);
+        //   Serial.print(_image_data[index].b);
+      }
+      
+      Serial.println();
     }
-    
-    Serial.println();
   }
 }
 
-void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
+void Renderer::_draw_led_strip_colors()
 {
   uint32_t index;
   CRGB color;
@@ -70,7 +72,7 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
   {
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
-    auto coordinates = conversion_matrix[current_degrees][LEDS_PER_STRIP - led_index - 1];
+    auto coordinates = conversion_matrix[_current_degrees][LEDS_PER_STRIP - led_index - 1];
     
     index = _current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x;
 
@@ -84,7 +86,7 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
     _leds[led_index] = color;
   }
   
-  uint16_t opposite_degrees = (current_degrees + 180) % 360;
+  uint16_t opposite_degrees = (_current_degrees + 180) % 360;
   
   // Go through all the LEDs and change their current color value.  
   for (uint8_t led_index = LEDS_PER_STRIP; led_index < LEDS_PER_STRIP * 2; led_index++)
@@ -103,7 +105,7 @@ void Renderer::_draw_led_strip_colors(uint16_t current_degrees)
 ;
     _leds[led_index] = color; 
   }
-  
+
   FastLED.show();
 }
 
@@ -111,28 +113,34 @@ void Renderer::_display_loop(void *parameter)
 {
   Renderer *renderer = (Renderer*)parameter;
 
-  uint16_t current_degrees = 0;
-  unsigned long current_microseconds, previous_microseconds;
+  unsigned long current_microseconds, previous_degree_change_us, previous_frame_change_us;
   
-  unsigned long start, end;
-
   while (true)
   {
     current_microseconds = micros();
 
-    if (current_microseconds - previous_microseconds >= renderer->options._delay_between_degrees_us) 
+    // Wait until it's time to render a new degree of the image.
+    if (current_microseconds - previous_degree_change_us >= renderer->options._delay_between_degrees_us) 
     {
-      current_degrees = (current_degrees == 359 ? 0 : current_degrees + 1);
-
-      previous_microseconds = current_microseconds;
+      // Increment current_degrees by one.
+      renderer->_current_degrees = (renderer->_current_degrees == 359 ? 0 : renderer->_current_degrees + 1);
+      previous_degree_change_us = current_microseconds;
+      
+      // Also check if we need to change the current frame.
+      if (current_microseconds - previous_frame_change_us >= (renderer->_delay_data[renderer->_current_frame]) * 1000)
+      {
+        // Increment current_frame by one.
+        renderer->_current_frame = (renderer->_current_frame == renderer->_max_frame ? 0 : renderer->_current_frame + 1);
+        previous_frame_change_us = current_microseconds;
+      }
       
       taskENTER_CRITICAL(&optionsMUX);
       bool leds_enabled = renderer->options.leds_enabled;
       taskEXIT_CRITICAL(&optionsMUX);
       
       if (leds_enabled)
-        renderer->_draw_led_strip_colors(current_degrees);
-    }
+        renderer->_draw_led_strip_colors();
+    };
   }
 }
 
@@ -148,15 +156,12 @@ void Renderer::init()
 {
   BaseType_t result;
 
+  // Allocate all the image data in PSRAM.
   _image_data= (CRGB*)ps_malloc(IMAGE_DATA_SIZE);
 
   for (uint32_t index = 0; index < (IMAGE_DATA_SIZE / sizeof(CRGB)); index++)
     _image_data[index] = CRGB::Black;
-
-  // Disable Watchdog on core 0, as the renderer must not lag behind or have any disturbances and
-  // the entire core is getting blocked.
-  disableCore0WDT();
-  
+ 
   FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(_leds, LEDS_PER_STRIP * 2);
   // FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, RGB>(_leds, LEDS_PER_STRIP * 2);
   FastLED.setBrightness(20);
@@ -167,21 +172,29 @@ void Renderer::init()
     PSTR("Display Loop"),
     100000,
     this,
-    32,
+    configMAX_PRIORITIES,
     &_display_loop_task,
     0
   );
 
   if (result != pdPASS)
     Serial.println(F("Couldn't allocate enough memory!!"));
-  
+
+  stop_renderer();
+   
   load_image_from_flash();
+  
+  _print_image_data();
+
+  start_renderer();
 }
 
 void Renderer::start_renderer()
 {
   if (eTaskGetState(_display_loop_task) == eRunning)
     return;
+  
+  log_d("starting renderer");
 
   vTaskResume(_display_loop_task);
 }
@@ -191,13 +204,16 @@ void Renderer::stop_renderer()
   if (eTaskGetState(_display_loop_task) == eSuspended)
     return;
 
+  log_d("stopping renderer");
+
   vTaskSuspend(_display_loop_task);
 }
 
 // Loads the .json file from the file system into the imageData Array, so it can be used for displaying.
 void Renderer::load_image_from_flash()
 {
-  Serial.println("oh god no");
+  Serial.println("loading image from flash");
+
   File file = SPIFFS.open(IMAGE_JSON_NAME, "r", false);
 
   if (!file) 
@@ -214,10 +230,10 @@ void Renderer::load_image_from_flash()
     return;
   }
 
-  JsonDocument jsonDoc;
+  JsonDocument json_doc;
 
   // Parse the file contents to the JSON document
-  DeserializationError error = deserializeJson(jsonDoc, file);
+  DeserializationError error = deserializeJson(json_doc, file);
   if (error) 
   {
     Serial.print(F("Failed to parse JSON: "));
@@ -228,27 +244,24 @@ void Renderer::load_image_from_flash()
 
   file.close();
 
-  // If the JSON file has nested arrays or objects
-  JsonArray frames = jsonDoc["frames"];
-  uint8_t frameCount = 0;
+  JsonArray frames = json_doc["frames"];
+  uint8_t frame_count = 0;
   
-  stop_renderer();
-
   for (JsonObject frame : frames) 
   {
     uint16_t delay = frame["delay"];
     JsonArray data = frame["data"];
         
-    _image_data[frameCount] = delay;
+    _delay_data[frame_count] = delay;
     
-    uint8_t indexCount = 0;
+    uint8_t index_count = 0;
     uint8_t x = 0;
     uint8_t y = 0;
-    uint32_t index = frameCount * IMAGE_SIZE * IMAGE_SIZE + x * IMAGE_SIZE + y;
+    uint32_t index = frame_count * IMAGE_SIZE * IMAGE_SIZE + x * IMAGE_SIZE + y;
     
     for (int value : data) 
     {
-      switch (indexCount) 
+      switch (index_count) 
       {
         case 0:
             _image_data[index].r = value; 
@@ -260,20 +273,18 @@ void Renderer::load_image_from_flash()
             _image_data[index].b = value; 
             _next_pixel(&x, &y);
 
-            index = frameCount * IMAGE_SIZE * IMAGE_SIZE + x * IMAGE_SIZE + y;
+            index = frame_count * IMAGE_SIZE * IMAGE_SIZE + x * IMAGE_SIZE + y;
             break;
         default:
           break;
       }
 
-      indexCount == 2 ? indexCount = 0 : indexCount++;
+      index_count == 2 ? index_count = 0 : index_count++;
     }
-    frameCount++;
+    frame_count++;
   }
-  
-  _print_image_data();
 
-  start_renderer();
+  _max_frame = frame_count - 1;
 }
 }
 

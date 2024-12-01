@@ -30,7 +30,7 @@
 #define IMAGE_DATA_SIZE (MAX_FRAMES * IMAGE_SIZE * IMAGE_SIZE * sizeof(CRGB))
 
 // Defines the max number of frames that can be loaded.
-#define MAX_FRAMES 1
+#define MAX_FRAMES 5000
 
 // Defines the most current image that has been uploaded from the website.
 #define IMAGE_JSON_NAME "/datadump/image.json"

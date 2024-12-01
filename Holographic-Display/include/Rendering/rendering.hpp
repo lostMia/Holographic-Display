@@ -48,12 +48,14 @@ private:
     uint16_t _delay_data[MAX_FRAMES];
     TaskHandle_t _display_loop_task = NULL;
     uint8_t _current_frame = 0;
+    uint8_t _current_degrees = 0;
+    uint8_t _max_frame = 0;
 
     void _clear_image_data();
     void _print_image_data();
     void _next_pixel(uint8_t *x, uint8_t *y);
     static void _display_loop(void *parameter);
-    void _draw_led_strip_colors(uint16_t current_degrees);
+    void _draw_led_strip_colors();
     uint8_t _add_colors(uint8_t color, int16_t addition);
 
 public:
