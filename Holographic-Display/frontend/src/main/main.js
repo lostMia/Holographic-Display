@@ -315,7 +315,7 @@ const rpmChartElement = document.getElementById('RPMChart').getContext('2d');
 const xLabels = [] 
 const yData  = []
 
-for (let i = -30; i <= 0; i++) {
+for (let i = -20; i <= 0; i++) {
   xLabels.push(i.toString());
   yData.push(0);
 }
@@ -334,7 +334,7 @@ const rpmChart = new Chart(rpmChartElement, {
   },
   options: {
     scales: {
-      x: { title: { display: true, text: 'Time passed' } },
+      x: { title: { display: true, text: 'Time passed (s)' } },
       y: { title: { display: true, text: 'Current RPM' }, beginAtZero: true }
     }
   }
@@ -347,7 +347,6 @@ function addNewRPMValue(value) {
 }
 
 // - - - - - - - - - - - - Parallax effect - - - - - - - - - - - - //
-
 
 document.querySelectorAll('#imagePreviewContainer').forEach(container => {
   const box = container.querySelector('.previewImage');

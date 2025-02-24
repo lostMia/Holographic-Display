@@ -300,7 +300,7 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
         // Motor-Active-Lever
         case 1:
           // _target_power = std::stoi(value);
-          // TODO: add logik to this.
+          // TODO: add logic to this.
           break;
         // LED-Active-Lever
         case 2:
