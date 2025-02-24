@@ -6,7 +6,6 @@ import { parseGIF, decompressFrames } from 'gifuct-js'
 const maxUploadSize = 1024 * 1024 * 8;
 const imageSize = 22;
 
-
 const canvas = document.createElement('canvas');
 canvas.width = imageSize;
 canvas.height = imageSize;
@@ -255,12 +254,17 @@ function updateCurrentRPM() {
     .then(data => {
       // Update the width of the progress bar based on the value received
       const rpm = parseInt(data);
+      addNewRPMValue(rpm)
       document.getElementById('currentRPMLabel').innerText = rpm + " RPM";
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => 
+    {
+      console.error('Error:', error)
+      addNewRPMValue(0)
+    });
 }
 
-setInterval(updateCurrentRPM, 1000);
+// setInterval(updateCurrentRPM, 1000);
 
 // - - - - - - - - - - - - Data Sending - - - - - - - - - - - - //
 
@@ -305,30 +309,68 @@ function toggleSection(header) {
   button.textContent = content.classList.contains('collapsed') ? '+' : '−';
 }
 
+// - - - - - - - - - - - - Power Chart - - - - - - - - - - - - //
+
+const rpmChartElement = document.getElementById('RPMChart').getContext('2d');
+const xLabels = [] 
+const yData  = []
+
+for (let i = -30; i <= 0; i++) {
+  xLabels.push(i.toString());
+  yData.push(0);
+}
+
+const rpmChart = new Chart(rpmChartElement, {
+  type: 'line',
+  data: {
+    labels: xLabels,
+    datasets: [{
+      label: 'RPM',
+      data: yData,
+      borderColor: '#ff4060',
+      borderWidth: 2,
+      fill: false
+    }]
+  },
+  options: {
+    scales: {
+      x: { title: { display: true, text: 'Time passed' } },
+      y: { title: { display: true, text: 'Current RPM' }, beginAtZero: true }
+    }
+  }
+});
+
+function addNewRPMValue(value) {
+  yData.shift();
+  yData.push(value);
+  rpmChart.update()
+}
+
 // - - - - - - - - - - - - Parallax effect - - - - - - - - - - - - //
 
+
 document.querySelectorAll('#imagePreviewContainer').forEach(container => {
-    const box = container.querySelector('.previewImage');
+  const box = container.querySelector('.previewImage');
 
-    box.style.transition = 'transform 0.4s ease-out';
+  box.style.transition = 'transform 0.4s ease-out';
 
-    container.addEventListener('mousemove', function (event) {
-        const boxRect = box.getBoundingClientRect();
-        const centerX = boxRect.left + boxRect.width / 2;
-        const centerY = boxRect.top + boxRect.height / 2;
-        const offsetX = (event.clientX - centerX) / boxRect.width * 2;
-        const offsetY = (event.clientY - centerY) / boxRect.height * 2;
+  container.addEventListener('mousemove', function (event) {
+    const boxRect = box.getBoundingClientRect();
+    const centerX = boxRect.left + boxRect.width / 2;
+    const centerY = boxRect.top + boxRect.height / 2;
+    const offsetX = (event.clientX - centerX) / boxRect.width * 2;
+    const offsetY = (event.clientY - centerY) / boxRect.height * 2;
 
-        const rotateX = offsetY * 15;
-        const rotateY = offsetX * -15;
-        const translateZ = 30; // Adjust the 30 value for more or less pop out
+    const rotateX = offsetY * 15;
+    const rotateY = offsetX * -15;
+    const translateZ = 30; // Adjust the 30 value for more or less pop out
 
-        box.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(${translateZ}px)`;
-    });
+    box.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(${translateZ}px)`;
+  });
 
-    container.addEventListener('mouseleave', function () {
-        setTimeout(() => {
-            box.style.transform = `rotateX(0deg) rotateY(0deg) translateZ(0)`;
-        }, 1000);
-    });
+  container.addEventListener('mouseleave', function () {
+    setTimeout(() => {
+      box.style.transform = `rotateX(0deg) rotateY(0deg) translateZ(0)`;
+    }, 1000);
+  });
 });

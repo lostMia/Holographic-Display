@@ -41,12 +41,15 @@
 
           <!-- Power Target -->
           <div class="option-group" title="The power level to run the motor with.">
-            <label for="slider">Power</label>
+            <label for="slider">Power (%)</label>
             <div class="slider-group">
-              <input type="range" min="0" max="255" value="50" class="slider" name="s1">
-              <input type="number" class="manualSlider" min="0" max="255" value="false" name="s1">
+              <input type="range" min="0" max="100" value="50" class="slider" name="s1">
+              <input type="number" class="manualSlider" min="0" max="100" value="false" name="s1">
             </div>
           </div>
+
+          <div class="separator"></div>
+          <canvas id="RPMChart"></canvas>
         </div>
       </div>
 
@@ -197,6 +200,7 @@
   <div id="footer">
     <p>&copy; 2024 Holographic Display. All rights reserved.</p>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
