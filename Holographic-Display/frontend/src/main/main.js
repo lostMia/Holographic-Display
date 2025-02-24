@@ -107,7 +107,7 @@ Using this will open up the possibility of using videos or GIF's further in the 
 ]
 }
 */
-async function handleImageFile(file) {
+window.handleImageFile = async function handleImageFile(file) {
   const canvas = document.createElement('canvas');
   const img = new Image();
   
@@ -144,7 +144,7 @@ async function handleImageFile(file) {
 
 // - - - - - - - - - - - - GIF Upload - - - - - - - - - - - - //
 
-async function handleGIFFile(file) {
+window.handleGIFFile = async function handleGIFFile(file) {
   const frames = await getFramesFromGIF(file)
 
   const jsonStructure = { 
@@ -167,7 +167,7 @@ async function handleGIFFile(file) {
   await uploadJSON(jsonBlob, 'image.json');
 }
 
-async function processGIFFrame(frame) {
+window.processGIFFrame = async function processGIFFrame(frame) {
   // Resize the canvas to the desired dimensions
   canvas.width = frame.dims.width;
   canvas.height = frame.dims.height;
@@ -220,7 +220,7 @@ async function processGIFFrame(frame) {
   };
 }
 
-async function getFramesFromGIF(file) {
+window.getFramesFromGIF = async function getFramesFromGIF(file) {
   let buffer = await file.arrayBuffer()
   let gif = parseGIF(buffer)
   let frames = decompressFrames(gif, true)
@@ -228,7 +228,7 @@ async function getFramesFromGIF(file) {
   return frames
 }
 
-async function uploadJSON(jsonBlob, fileName) {
+window.uploadJSON = async function uploadJSON(jsonBlob, fileName) {
   const formData = new FormData();
   formData.append('file', jsonBlob, fileName);
 
@@ -254,8 +254,7 @@ async function uploadJSON(jsonBlob, fileName) {
 }
 
 // - - - - - - - - - - - - CurrentRPM - - - - - - - - - - - - //
-
-function updateCurrentRPM() {
+window.updateCurrentRPM = function updateCurrentRPM() {
   fetch('/CurrentRPM')
     .then(response => response.text())
     .then(data => {
@@ -278,7 +277,7 @@ function updateCurrentRPM() {
 let timeout;
 
 // Function to send data to the server
-function sendData(input) {
+window.sendData = function sendData(input) {
   clearTimeout(timeout); // Clear the previous timeout
 
   timeout = setTimeout(() => {
@@ -305,7 +304,7 @@ document.querySelectorAll('#dataForm input, #dataForm select').forEach(function(
 
 // - - - - - - - - - - - - Item-Toggle - - - - - - - - - - - - //
 
-function toggleSection(header) {
+window.toggleSection = function toggleSection(header) {
   const gridItem = header.parentElement;
   const content = header.nextElementSibling;
   const button = header.querySelector('.toggle-btn');
@@ -346,7 +345,7 @@ const rpmChart = new Chart(rpmChartElement, {
   }
 });
 
-function addNewRPMValue(value) {
+window.addNewRPMValue = function addNewRPMValue(value) {
   yData.shift();
   yData.push(value);
   rpmChart.update()
