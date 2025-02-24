@@ -3,7 +3,7 @@ const path = require('path');
 
 module.exports = {
   mode: 'development',
-  entry: './src/main/script.js',
+  entry: './src/main/main.js',
   output: {
     filename: 'main.js',
     path: path.resolve(__dirname, '../data/site/main/')
@@ -12,7 +12,12 @@ module.exports = {
   plugins: [
     new copyPlugin({
       patterns: [
-        { from: 'src/main/', to: '../main/' },
+        { from: 'src/main/',
+          to: '../main/',
+          globOptions: {
+            ignore: ['**/*.js'],
+          },
+        },
         { from: 'src/notfound/', to: '../notfound/' },
         { from: 'src/resources/', to: '../resources/' },
       ],
