@@ -8,3 +8,9 @@
 include/credentials.hpp
 data/public_key.pem
 data/private_key.pem
+
+# data
+data/site
+
+# frontend
+frontend/node_modules

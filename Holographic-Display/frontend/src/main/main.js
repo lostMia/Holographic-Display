@@ -12,7 +12,7 @@ canvas.width = imageSize;
 canvas.height = imageSize;
 
 // - - - - - - - - - - - - Sliders - - - - - - - - - - - - //
- 
+
 document.querySelectorAll('.slider-group').forEach(group => {
   const slider = group.querySelector('.slider');
   const manualInput = group.querySelector('.manualSlider');
@@ -108,7 +108,6 @@ async function handleImageFile(file) {
   img.src = URL.createObjectURL(file);
   await img.decode();
 
-  // Set canvas size (e.g., 128x128)
   canvas.width = imageSize;
   canvas.height = imageSize;
 
@@ -136,7 +135,6 @@ async function handleImageFile(file) {
   // Send JSON to ESP32
   await uploadJSON(jsonBlob, 'image.json');
 }
-
 
 // - - - - - - - - - - - - GIF Upload - - - - - - - - - - - - //
 
@@ -223,52 +221,6 @@ async function getFramesFromGIF(file) {
 
   return frames
 }
-
-// async function handleGIFFile(file) {
-//     const gif = new SuperGif({ gif: document.createElement('img') });
-//
-//     gif.load(URL.createObjectURL(file));
-//
-//     await new Promise((resolve) => gif.load(resolve));
-//
-//     const frameCount = gif.get_length();
-//     const size = 22; // Resize target
-//
-//     const jsonStructure = { frames: [] };
-//
-//     for (let i = 0; i < frameCount; i++) {
-//       gif.move_to(i);
-//       const canvas = gif.get_canvas();
-//       const ctx = canvas.getContext('2d');
-//       const resizedCanvas = document.createElement('canvas');
-//       resizedCanvas.width = size;
-//       resizedCanvas.height = size;
-//       const resizedCtx = resizedCanvas.getContext('2d');
-//       resizedCtx.drawImage(canvas, 0, 0, size, size);
-//
-//       const { data } = resizedCtx.getImageData(0, 0, size, size);
-//       const frameData = { delay: gif.get_delay(i), data: [] };
-//
-//       for (let j = 0; j < data.length; j += 4) {
-//         const r = data[j];
-//         const g = data[j + 1];
-//         const b = data[j + 2];
-//         frameData.data.push(r, g, b);
-//       }
-//
-//       jsonStructure.frames.push(frameData);
-//     }
-//
-//     // Convert JSON object to Blob
-//     const jsonBlob = new Blob([JSON.stringify(jsonStructure)], { type: 'application/json' });
-//
-//     console.log(jsonStructure);
-//     console.log(JSON.stringify(jsonStructure));
-//
-//     // Send JSON to ESP32
-//     await uploadJSON(jsonBlob, 'animation.json');
-//   }
-//
 
 async function uploadJSON(jsonBlob, fileName) {
   const formData = new FormData();
