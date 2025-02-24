@@ -1,4 +1,4 @@
-fl<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -15,23 +15,23 @@ fl<!DOCTYPE html>
     <div class="grid-container">
       <!-- Motor Control -->
       <div class="item">
-        <div class="item-header" onclick="toggleSection(this)">
+        <div class="item-header" onclick="toggleSection(this)" title="The control-box for the motor.">
           <h2>Motor Control</h2>
           <button class="toggle-btn">−</button>
         </div>
         <div class="item-content" >
           <div class="horizontal">
             <!-- Motor active -->
-            <!-- <div class="option-group-small"> -->
-            <!--   <label>Active</label> -->
-            <!--   <div class="horizontal"> -->
-            <!--     <input type="checkbox" id="l1" name="l1" value="0"> -->
-            <!--     <label class="checkbox-label" for="l1"/> -->
-            <!--   </div> -->
-            <!-- </div> -->
+            <div class="option-group-small" title="Enables or disables the motor.">
+              <label>Active</label>
+              <div class="horizontal">
+                <input type="checkbox" id="l1" name="l1" value="0">
+                <label class="checkbox-label" for="l1"/>
+              </div>
+            </div>
 
             <!-- RPM Feedback -->
-            <div class="option-group">
+            <div class="option-group" title="Shows the current RPM of the motor.">
               <label>Current RPM </label>
               <div class="horizontal">
                 <label class="highlighted" id="currentRPMLabel">NONE</label>
@@ -40,11 +40,7 @@ fl<!DOCTYPE html>
           </div>
 
           <!-- Power Target -->
-          <div class="option-group">
-            <div class="tooltip">
-              <span class="tooltiptext">Tooltip text</span>
-            </div>
-
+          <div class="option-group" title="The power level to run the motor with.">
             <label for="slider">Power</label>
             <div class="slider-group">
               <input type="range" min="0" max="255" value="50" class="slider" name="s1">
@@ -56,7 +52,7 @@ fl<!DOCTYPE html>
 
       <!-- Text Input Item -->
       <div class="item">
-        <div class="item-header" onclick="toggleSection(this)">
+        <div class="item-header" onclick="toggleSection(this)" title="The text control box for displaying text.">
           <h2>Text Input</h2>
           <button class="toggle-btn">−</button>
         </div>
@@ -93,15 +89,15 @@ fl<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- Image Input Item -->
+      <!-- File Input Item -->
       <div class="item">
-        <div class="item-header" onclick="toggleSection(this)">
-          <h2>Image Input</h2>
+        <div class="item-header" onclick="toggleSection(this)" title="The file input box for uploading images and GIFs to the display.">
+          <h2>Image / GIF Input</h2>
           <button class="toggle-btn">−</button>
         </div>
         <div class="item-content" >
           <!-- Image Upload -->
-          <div class="option-group">
+          <div class="option-group" title="Drop box for the file upload.">
             <label>Drag-and-Drop Box</label>
             <div class="vertical">
               <button id="dropZone" onclick="document.getElementById('fileInput').click(); return false;">
@@ -127,7 +123,7 @@ fl<!DOCTYPE html>
           <div id="imagePreviewSeparator" class="separator"></div>
 
           <!-- Position Offset Vertical -->
-          <div class="option-group">
+          <div class="option-group" title="Position offset slider for adjusting the rotation.">
             <label for="offset-text">Offset</label>
             <div class="slider-group">
               <input type="range" min="0" max="359" value="0" class="slider" name="s3">
@@ -139,7 +135,7 @@ fl<!DOCTYPE html>
 
       <!-- LED Control -->
       <div class="item">
-        <div class="item-header" onclick="toggleSection(this)">
+        <div class="item-header" onclick="toggleSection(this)" title="The LED control box for adjusting the LEDs.">
           <h2>LED Control</h2>
           <button class="toggle-btn">−</button>
         </div>
@@ -147,7 +143,7 @@ fl<!DOCTYPE html>
           <div class="vertical">
             <div class="horizontal">
               <!-- LED active -->
-              <div class="option-group-small">
+              <div class="option-group-small" title="Enables or disables the LEDs.">
                 <label>Active</label>
                 <div class="horizontal">
                   <input type="checkbox" id="l2" name="l2" value="true">
@@ -156,7 +152,7 @@ fl<!DOCTYPE html>
               </div>
 
               <!-- Brightness Slider -->
-              <div class="option-group">
+              <div class="option-group" title="Adjusts the brightness of the LEDs.">
                 <label>Brightness</label>
                 <div class="slider-group">
                   <input type="range" min="0" max="255" value="50" class="slider" name="s2">
@@ -168,7 +164,7 @@ fl<!DOCTYPE html>
             <div class="separator"></div>
           
             <!-- Red Channel Adjust -->
-            <div class="option-group">
+            <div class="option-group" title="Adds or removes to the red color channel of the display.">
               <label>Red Color Adjust</label>
               <div class="slider-group">
                 <input type="range" min="-255" max="255" value="0" class="slider" name="s3">
@@ -177,7 +173,7 @@ fl<!DOCTYPE html>
             </div>
 
             <!-- Green Channel Adjust -->
-            <div class="option-group">
+            <div class="option-group" title="Adds or removes to the green color channel of the display.">
               <label>Green Color Adjust</label>
               <div class="slider-group">
                 <input type="range" min="-255" max="255" value="0" class="slider" name="s4">
@@ -186,7 +182,7 @@ fl<!DOCTYPE html>
             </div>
 
             <!-- Blue Channel Adjust -->
-            <div class="option-group">
+            <div class="option-group" title="Adds or removes to the blue color channel of the display.">
               <label>Blue Color Adjust</label>
               <div class="slider-group">
                 <input type="range" min="-255" max="255" value="0" class="slider" name="s5">
@@ -201,9 +197,6 @@ fl<!DOCTYPE html>
   <div id="footer">
     <p>&copy; 2024 Holographic Display. All rights reserved.</p>
   </div>
-  <!-- <script src="gif.js"></script> -->
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script> -->
-  <script src="script.js"></script>
-  <!-- <script type="module" src="gif-handler.js"></script> -->
+  <script src="main.js"></script>
 </body>
 </html>
