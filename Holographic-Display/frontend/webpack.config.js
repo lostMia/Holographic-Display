@@ -12,7 +12,8 @@ module.exports = {
   plugins: [
     new copyPlugin({
       patterns: [
-        { from: 'src/main/',
+        { 
+          from: 'src/main/',
           to: '../main/',
           globOptions: {
             ignore: ['**/*.js'],

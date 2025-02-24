@@ -77,6 +77,7 @@ input[type="range"] {
 }
 
 input[type="range"]::-moz-range-progress {
+  accent-color : red;
   background-color: #ff4060; 
 }
 

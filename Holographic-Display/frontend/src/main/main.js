@@ -1,5 +1,12 @@
 import { parseGIF, decompressFrames } from 'gifuct-js'
 
+document.onreadystatechange = function () {
+  if (document.readyState !== "complete") {
+    document.body.style.visibility = "hidden";
+  } else {
+    document.body.style.visibility = "visible";
+  }
+};
 
 // - - - - - - - - - - - - Constants - - - - - - - - - - - - //
 
@@ -295,7 +302,6 @@ document.querySelectorAll('#dataForm input, #dataForm select').forEach(function(
     sendData(event.target);
   });
 });
-
 
 // - - - - - - - - - - - - Item-Toggle - - - - - - - - - - - - //
 
