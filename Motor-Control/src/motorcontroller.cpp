@@ -124,35 +124,6 @@ void MotorController::init()
   ledcAttachPin(MOTOR_PWM_SEND_PIN, MOTOR_PWM_CHANNEL);
 
   ledcWrite(MOTOR_PWM_CHANNEL, 0);
-  
-  while (true)
-  {
-    for (uint i = 100; i < 200; i++)
-    {
-      Serial.print("Full rotation time ms ->");
-      Serial.println(this->_time_full_rotation_us);
-      Serial.print("Pulse count -> ");
-      Serial.println(this->_pulse_count);
-      Serial.print("Loop Iteration ->");
-      Serial.println(i);
-      Serial.println("\n\n");
-      ledcWrite(MOTOR_PWM_CHANNEL, i);
-      delay(200);
-    }
-
-    for (uint i = 200; i > 100; i--)
-    {
-      Serial.print("Full rotation time ms ->");
-      Serial.println(this->_time_full_rotation_us);
-      Serial.print("Pulse count -> ");
-      Serial.println(this->_pulse_count);
-      Serial.print("Loop Iteration ->");
-      Serial.println(i);
-      Serial.println("\n\n");
-      ledcWrite(MOTOR_PWM_CHANNEL, i);
-      delay(200);
-    }
-  }
 
   // Task for receiving the target power.
   xTaskCreate(
@@ -177,22 +148,12 @@ void MotorController::init()
 
 void MotorController::handle_pulse()
 {
-  // Set the time of the first pulse if it's not been set already.
-  if (this->_pulse_count == 0)
-    this->_time_first_pulse_us = micros();
-  
-  if (this->_pulse_count == MOTOR_PULSE_COUNT_FULL_ROTATION)
-  {
-    this->_pulse_count = 0;
+  unsigned long current_time = micros();
 
-    unsigned long current_time = micros();
-    unsigned long time_difference = current_time - this->_time_first_pulse_us;
+  // 9 Pulses for each rotation before the gearbox with a ration of 1 to 10 -> 90 pulses per rotation.
+  this->_time_full_rotation_us = (current_time - this->_time_last_pulse_us) * 90;
 
-    // Even though the other core might be using this value, we don't really care since this action is atomic.
-    this->_time_full_rotation_us = time_difference; 
-  }
-  else
-    this->_pulse_count++;
+  this->_time_last_pulse_us = current_time;
 }
 
 }

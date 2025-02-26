@@ -253,6 +253,7 @@ window.uploadJSON = async function uploadJSON(jsonBlob, fileName) {
 }
 
 // - - - - - - - - - - - - CurrentRPM - - - - - - - - - - - - //
+
 window.updateCurrentRPM = function updateCurrentRPM() {
   fetch('/CurrentRPM')
     .then(response => response.text())
@@ -269,7 +270,7 @@ window.updateCurrentRPM = function updateCurrentRPM() {
     });
 }
 
-// setInterval(updateCurrentRPM, 1000);
+setInterval(updateCurrentRPM, 1000);
 
 // - - - - - - - - - - - - Data Sending - - - - - - - - - - - - //
 

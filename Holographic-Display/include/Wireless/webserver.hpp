@@ -40,6 +40,7 @@ private:
     Rendering::Renderer* _renderer;
     
     uint16_t _target_power = 0;
+    bool _motor_enabled = true;
     uint8_t _led_brightness = 50;
     uint16_t _current_RPM = 0;
 

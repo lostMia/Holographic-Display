@@ -42,7 +42,7 @@
 // #define OTA_FIRMWARE
 
 // Define to enable mDNS with the specified hostname. 
-// #define MDNS_HOSTNAME "holo"
+#define MDNS_HOSTNAME "holo"
 // #define CONFIG_FREERTOS_UNICORE
 
 // Define the Baudrate the Serial interface will use.

@@ -11,9 +11,9 @@
 
 #pragma once
 
-// #define SERVER_DNS_NAME "http://holo.local"
+#define SERVER_DNS_NAME "http://holo.local"
 
-#define SERVER_DNS_NAME "http://192.168.241.38"
+// #define SERVER_DNS_NAME "http://192.168.241.38"
 #define SERVER_POST_SUFFIX "/post"
 #define SERVER_GET_SUFFIX "/TargetPower"
 
@@ -26,7 +26,6 @@
 #define MOTOR_PWM_FREQUENCY 30000 // 20 to 30kHz
 #define MOTOR_PWM_CHANNEL 0
 #define MOTOR_PWM_RESOLUTION 8
-#define MOTOR_PULSE_COUNT_FULL_ROTATION 9 * 10 // 9 Pulses before the gearbox with a ration of 1 to 10.
 
 #define GET_RPM_DELAY 480
 #define SEND_RPM_DELAY 250

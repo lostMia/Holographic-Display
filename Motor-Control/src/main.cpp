@@ -25,7 +25,7 @@ void setup()
   motorcontroller.init();
 
   // Delete the loop task from the scheduler as we don't need it.
-  // vTaskDelete(NULL);
+  vTaskDelete(NULL);
 }
 
 void loop() 

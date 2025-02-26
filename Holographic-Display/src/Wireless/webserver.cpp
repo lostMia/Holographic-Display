@@ -242,7 +242,15 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
       {
         // Motor-Power-Slider
         case 1:
-          _target_power = std::stoi(value);
+          if (!_motor_enabled)
+            break;
+
+          float raw_power;
+          
+          raw_power = (float)std::stoi(value);
+          raw_power *= 2.55;                    // Convert from 0-100 to 0-255
+
+          _target_power = (uint16_t)raw_power;
           break;
         // LED-Slider
         case 2:
@@ -299,8 +307,15 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
       {
         // Motor-Active-Lever
         case 1:
-          // _target_power = std::stoi(value);
-          // TODO: add logic to this.
+          if (!strncmp(value, "true", 8))
+          {
+            _motor_enabled = true;
+          }
+          else
+          { 
+            _motor_enabled = false;
+            _target_power = 0;
+          }
           break;
         // LED-Active-Lever
         case 2:
@@ -354,7 +369,7 @@ void WebServer::begin()
  
   _setup_webserver_tree();
 
-  _begin_renderer();
+  // _begin_renderer();
 }
 
 } // Namespace Webserver 
