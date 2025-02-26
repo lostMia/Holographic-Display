@@ -17,14 +17,13 @@ namespace Wifi
 void WifiManager::init()
 {
   // Task for making sure we're connected to the WiFi.
-  xTaskCreatePinnedToCore(
+  xTaskCreate(
     connect,
     "Connect to Wifi",
-    1024,
+    32768,
     this,
     1,
-    &_connect_to_wifi_task,
-    1
+    &_connect_to_wifi_task
   );
 }
 

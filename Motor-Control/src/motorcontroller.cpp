@@ -160,24 +160,24 @@ void MotorController::init()
   }
 
   // Task for receiving the target power.
-  // xTaskCreate(
-  //   get_target_power,
-  //   "Get Motor Power", 
-  //   4096,
-  //   this,
-  //   1,
-  //   &_get_target_power_task
-  // );
-  // 
-  // // Task for sending the current speed.
-  // xTaskCreate(
-  //   send_current_speed,
-  //   "Send Motor Speed",
-  //   4096,
-  //   this,
-  //   1,
-  //   &_send_current_speed_task
-  // );
+  xTaskCreate(
+    get_target_power,
+    "Get Motor Power", 
+    4096,
+    this,
+    1,
+    &_get_target_power_task
+  );
+
+  // Task for sending the current speed.
+  xTaskCreate(
+    send_current_speed,
+    "Send Motor Speed",
+    4096,
+    this,
+    1,
+    &_send_current_speed_task
+  );
 }
 
 void MotorController::handle_pulse()
