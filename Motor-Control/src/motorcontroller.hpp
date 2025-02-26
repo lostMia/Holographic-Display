@@ -31,7 +31,7 @@ private:
     HTTPClient _http_send;
 
     uint16_t _target_power = 0;
-    unsigned long _time_full_rotation_us = 0;
+    unsigned long _current_delay_per_pulse_us = 0;
     unsigned long _time_last_pulse_us = 0;
 
     TaskHandle_t _get_target_power_task = NULL;

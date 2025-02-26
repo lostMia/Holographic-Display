@@ -79,17 +79,21 @@ void MotorController::send_current_speed(void *parameter)
       vTaskDelay(DEFAULT_DELAY / portTICK_PERIOD_MS);  
       continue;
     }
-
+    
     if (!motorcontroller->_http_send.begin(String(SERVER_DNS_NAME) + String(SERVER_POST_SUFFIX)))
     {
       Serial.println("Couldn't establish http connection for sending the motor value!");
       vTaskDelay(DEFAULT_DELAY / portTICK_PERIOD_MS);  
       continue;
     }
+    
+    // If we didn't get a pulse in the maximum allowed time then consider the motor stopped.
+    if ((micros() - motorcontroller->_time_last_pulse_us) > LAST_PULSE_MAX_DELAY_US)
+      motorcontroller->_current_delay_per_pulse_us = LONG_MAX;
 
     motorcontroller->_http_send.addHeader("Content-Type", "application/x-www-form-urlencoded");
     
-    unsigned long time_full_rotation_us = motorcontroller->_time_full_rotation_us;
+    unsigned long time_full_rotation_us = motorcontroller->_current_delay_per_pulse_us;
     
     String post_data = "m1=" + String(time_full_rotation_us);
 
@@ -149,10 +153,9 @@ void MotorController::init()
 void MotorController::handle_pulse()
 {
   unsigned long current_time = micros();
-
-  // 9 Pulses for each rotation before the gearbox with a ration of 1 to 10 -> 90 pulses per rotation.
-  this->_time_full_rotation_us = (current_time - this->_time_last_pulse_us) * 90;
-
+  
+  this->_current_delay_per_pulse_us = current_time - this->_time_last_pulse_us;
+  
   this->_time_last_pulse_us = current_time;
 }
 

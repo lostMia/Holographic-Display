@@ -27,6 +27,10 @@
 #define MOTOR_PWM_CHANNEL 0
 #define MOTOR_PWM_RESOLUTION 8
 
+// The maximum allowed time between each pulse to still be considered rotating
+// Comes out to about a fitfh rotation every second.
+#define LAST_PULSE_MAX_DELAY_US 200000
+
 #define GET_RPM_DELAY 480
 #define SEND_RPM_DELAY 250
 #define DEFAULT_DELAY 500

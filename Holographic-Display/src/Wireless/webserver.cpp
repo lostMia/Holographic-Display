@@ -248,7 +248,8 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
           float raw_power;
           
           raw_power = (float)std::stoi(value);
-          raw_power *= 2.55;                    // Convert from 0-100 to 0-255
+          // raw_power *= 2.55;                    // Convert from 0-100 to 96-255
+          raw_power = raw_power * (255.0 - 96.0) / 100.0 + 96.0;
 
           _target_power = (uint16_t)raw_power;
           break;
@@ -276,28 +277,42 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
 
     // Motor-Speed response 
     case 'm':
-      unsigned long delay_between_last_pass_us;
-      
-      delay_between_last_pass_us = std::stoi(value);
+      unsigned long delay_per_pulse_us;
+      float delay_per_pulse_s, delay_per_rotation_s, frequency_hz;
 
-      float delay_between_last_pass_s, delay_between_rotation_s, frequency_hz;
+      delay_per_pulse_us = std::stoi(value);
       
-      delay_between_last_pass_s = (float)(delay_between_last_pass_us) / 1000000.0;
-      delay_between_rotation_s = delay_between_last_pass_s * 2.0;
-      frequency_hz = 1.0 / delay_between_last_pass_s;
-      
-      taskENTER_CRITICAL(&Rendering::optionsMUX);
-      // Calculate the time between each degree in μs.
-      _renderer->options._delay_between_degrees_us 
-        = (unsigned long)((float)(delay_between_last_pass_us) / 180.0);
+      // If the motor is standing still.
+      if (delay_per_pulse_us == LONG_MAX)
+      {
+        taskENTER_CRITICAL(&Rendering::optionsMUX);
+        // Calculate the time between each degree in μs.
+        _renderer->options._delay_between_degrees_us = LONG_MAX; // We don't really care since the motor is stuck anyway.
 
-      // Calculate the RPM.
-      _current_RPM = (unsigned long)(frequency_hz * 60.0);
-      taskEXIT_CRITICAL(&Rendering::optionsMUX);
+        // Calculate the RPM.
+        _current_RPM = 0;
+        taskEXIT_CRITICAL(&Rendering::optionsMUX);
+      }
+      else
+      {
+        delay_per_pulse_s = (float)(delay_per_pulse_us) / 1000000.0;
+        // 9 Pulses for each rotation before the gearbox with a ration of 1 to 10 -> 90 pulses per rotation.
+        delay_per_rotation_s = delay_per_pulse_s * 90;
+        frequency_hz = 1.0 / delay_per_rotation_s; 
+
+        taskENTER_CRITICAL(&Rendering::optionsMUX);
+        // Calculate the time between each degree in μs.
+        _renderer->options._delay_between_degrees_us 
+          = (unsigned long)((float)(delay_per_pulse_us) * 90 / 360);
+
+        // Calculate the RPM.
+        _current_RPM = (unsigned long)(frequency_hz * 60.0);
+        taskEXIT_CRITICAL(&Rendering::optionsMUX);
+      }
       break;
 
     // Text-Field
-    case 't':
+    case 't_MAX_MAX':
       break;
       
      // Lever-Field
