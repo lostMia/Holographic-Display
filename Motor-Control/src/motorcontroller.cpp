@@ -121,12 +121,7 @@ void MotorController::init()
   attachInterruptArg(digitalPinToInterrupt(MOTOR_PULSE_FEEDBACK_PIN), _motor_pulse_ISR, this, RISING);
   
   ledcSetup(MOTOR_PWM_CHANNEL, MOTOR_PWM_FREQUENCY, MOTOR_PWM_RESOLUTION);
-    
-  // Attach the channel to the LED pin
   ledcAttachPin(MOTOR_PWM_SEND_PIN, MOTOR_PWM_CHANNEL);
-
-  // Disable Watchdog because we want core 1 to be blocking all the time!
-  // disableCore0WDT();
 
   ledcWrite(MOTOR_PWM_CHANNEL, 0);
   
@@ -138,11 +133,11 @@ void MotorController::init()
       Serial.println(this->_time_full_rotation_us);
       Serial.print("Pulse count -> ");
       Serial.println(this->_pulse_count);
-      Serial.print("Loop Iteration");
+      Serial.print("Loop Iteration ->");
       Serial.println(i);
       Serial.println("\n\n");
       ledcWrite(MOTOR_PWM_CHANNEL, i);
-      delay(100);
+      delay(200);
     }
 
     for (uint i = 200; i > 100; i--)
@@ -151,11 +146,11 @@ void MotorController::init()
       Serial.println(this->_time_full_rotation_us);
       Serial.print("Pulse count -> ");
       Serial.println(this->_pulse_count);
-      Serial.print("Loop Iteration");
+      Serial.print("Loop Iteration ->");
       Serial.println(i);
       Serial.println("\n\n");
       ledcWrite(MOTOR_PWM_CHANNEL, i);
-      delay(100);
+      delay(200);
     }
   }
 
@@ -182,15 +177,17 @@ void MotorController::init()
 
 void MotorController::handle_pulse()
 {
+  // Set the time of the first pulse if it's not been set already.
   if (this->_pulse_count == 0)
     this->_time_first_pulse_us = micros();
-  else if (this->_pulse_count == MOTOR_PULSE_COUNT_FULL_ROTATION)
+  
+  if (this->_pulse_count == MOTOR_PULSE_COUNT_FULL_ROTATION)
   {
     this->_pulse_count = 0;
-  
+
     unsigned long current_time = micros();
     unsigned long time_difference = current_time - this->_time_first_pulse_us;
-  
+
     // Even though the other core might be using this value, we don't really care since this action is atomic.
     this->_time_full_rotation_us = time_difference; 
   }

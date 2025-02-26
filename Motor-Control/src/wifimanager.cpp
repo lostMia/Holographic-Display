@@ -50,7 +50,6 @@ void WifiManager::connect(void *parameter)
       vTaskDelay(DEFAULT_DELAY / portTICK_PERIOD_MS);
     }
     Serial.println("Connected!");
-
   }
 }
 

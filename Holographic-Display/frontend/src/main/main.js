@@ -179,19 +179,18 @@ window.processGIFFrame = async function processGIFFrame(frame) {
 
   // Populate the ImageData with pixel data
   const colorTable = frame.colorTable;
-  for (let i = 0; i < frame.pixels.length; i++) {
+  for (let i = 0; i < frame.pixels.length; i+=4) {
     const pixelIndex = frame.pixels[i];
-    const baseIndex = i * 4;
     if (pixelIndex === frame.transparentIndex) {
       // Transparent pixel
-      imageData.data[baseIndex + 3] = 0;
+      imageData.data[i + 3] = 0;
     } else {
       // Map pixel to colorTable
       const [r, g, b] = colorTable[pixelIndex];
-      imageData.data[baseIndex] = r;
-      imageData.data[baseIndex + 1] = g;
-      imageData.data[baseIndex + 2] = b;
-      imageData.data[baseIndex + 3] = 255; // Fully opaque
+      imageData.data[i] = r;
+      imageData.data[i + 1] = g;
+      imageData.data[i + 2] = b;
+      imageData.data[i + 3] = 255; // Fully opaque
     }
   }
 

@@ -17,15 +17,15 @@ Wifi::WifiManager wifimanager;
 void setup() 
 {
   Serial.begin(SERIAL_BAUDRATE);
-
-  // Delete the loop task from the scheduler, as we don't need it.
-  vTaskDelete(NULL);
   
   // Start the wifi manager
   wifimanager.init();
 
   // Start the motor controller.
   motorcontroller.init();
+
+  // Delete the loop task from the scheduler as we don't need it.
+  // vTaskDelete(NULL);
 }
 
 void loop() 
