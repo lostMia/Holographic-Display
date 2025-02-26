@@ -19,7 +19,6 @@
 #include <iomanip>
 #include <string>
 #include <iostream>
-#include <string>
 #include <sstream>
 #include "config.hpp"
 #include "Rendering/rendering.hpp"

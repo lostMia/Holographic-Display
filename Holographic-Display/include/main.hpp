@@ -11,6 +11,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <driver/spi_master.h>
 #include "credentials.hpp"
 #include "config.hpp"
 #include "Wireless/webserver.hpp"

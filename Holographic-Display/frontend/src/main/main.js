@@ -1,12 +1,12 @@
 import { parseGIF, decompressFrames } from 'gifuct-js'
 
-document.onreadystatechange = function () {
-  if (document.readyState !== "complete") {
-    document.body.style.visibility = "hidden";
-  } else {
-    document.body.style.visibility = "visible";
-  }
-};
+// document.onreadystatechange = function () {
+//   if (document.readyState !== "complete") {
+//     document.body.style.visibility = "hidden";
+//   } else {
+//     document.body.style.visibility = "visible";
+//   }
+// };
 
 // - - - - - - - - - - - - Constants - - - - - - - - - - - - //
 

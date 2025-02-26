@@ -22,6 +22,8 @@
 namespace Motor 
 {
 
+void IRAM_ATTR _motor_pulse_ISR();
+
 class MotorController 
 {
 private:
@@ -29,20 +31,19 @@ private:
     HTTPClient _http_send;
 
     uint16_t _target_power = 0;
-    unsigned long _delay_between_last_pass_us = 0;
+    unsigned long _time_full_rotation_us = 0;
+
+    uint16_t _pulse_count = 0;
+    unsigned long _time_first_pulse_us = 0;
 
     TaskHandle_t _get_target_power_task = NULL;
     TaskHandle_t _send_current_speed_task = NULL;
-    TaskHandle_t _get_last_pass_delay_task = NULL;
 
-    Servo _motor;
-    
     static void get_target_power(void *parameter);
     static void send_current_speed(void *parameter);
-    static void get_last_pass_delay(void *parameter);
-    void calculate_new_delay(unsigned long* plast_pass);
 public:
     void init();
+    void handle_pulse();
 };
 
 }

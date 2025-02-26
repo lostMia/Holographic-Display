@@ -19,10 +19,10 @@ void setup()
   Serial.begin(SERIAL_BAUDRATE);
 
   // Delete the loop task from the scheduler, as we don't need it.
-  vTaskDelete(NULL);
+  // vTaskDelete(NULL);
   
   // Start the wifi manager
-  wifimanager.init();
+  // wifimanager.init();
 
   // Start the motor controller.
   motorcontroller.init();
@@ -30,5 +30,4 @@ void setup()
 
 void loop() 
 {
-  Serial.println("You shouldn't be able to see this because i'm in side of loop!!!!!!!p");
 }

@@ -143,6 +143,9 @@ void Renderer::_load_image_from_flash()
 
 void Renderer::_draw_led_strip_colors()
 {
+  unsigned long current_us, previous_us;
+
+  previous_us = micros();
   uint32_t index;
   CRGB color;
 
@@ -184,7 +187,22 @@ void Renderer::_draw_led_strip_colors()
     _leds[led_index] = color; 
   }
 
+  current_us = micros();
+
+  Serial.println("first:");
+  Serial.println(current_us - previous_us);
+
+  previous_us = micros();
+
   FastLED.show();
+
+  current_us = micros();
+
+  Serial.println("second:");
+  Serial.println(current_us - previous_us);
+
+  Serial.println("\n\n");
+  delay(500);
 }
 
 void Renderer::_display_loop(void *parameter)
@@ -235,15 +253,21 @@ void Renderer::init()
   BaseType_t result;
 
   // Allocate all the image data in PSRAM.
-  _image_data= (CRGB*)ps_malloc(IMAGE_DATA_SIZE);
+  _image_data = (CRGB*)ps_malloc(IMAGE_DATA_SIZE);
 
   for (uint32_t index = 0; index < (IMAGE_DATA_SIZE / sizeof(CRGB)); index++)
     _image_data[index] = CRGB::Black;
  
-  FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(_leds, LEDS_PER_STRIP * 2);
+  Serial.print("Adding LEDs..");
+  // FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(_leds, LEDS_PER_STRIP * 2);
   // FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, RGB>(_leds, LEDS_PER_STRIP * 2);
+  FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, RGB, DATA_RATE_MHZ(30)>(_leds, LEDS_PER_STRIP * 2);
+
+  Serial.print("Creating task..");
   FastLED.setBrightness(20);
   FastLED.setMaxRefreshRate(0);
+
+  Serial.print("Creating task..");
 
   result = xTaskCreatePinnedToCore(
     _display_loop,
@@ -252,15 +276,24 @@ void Renderer::init()
     this,
     configMAX_PRIORITIES,
     &_display_loop_task,
-    0
+    RENDERER_CORE
   );
+
+  // result = xTaskCreate(
+  //   _display_loop,
+  //   PSTR("Display Loop"),
+  //   100000,
+  //   this,
+  //   configMAX_PRIORITIES,
+  //   &_display_loop_task
+  // );
 
   if (result != pdPASS)
     Serial.println(F("Couldn't allocate enough memory!!"));
-
-  refresh_image();
-
-  _print_image_data();
+  //
+  // refresh_image();
+  //
+  // _print_image_data();
 }
 
 void Renderer::start_renderer()

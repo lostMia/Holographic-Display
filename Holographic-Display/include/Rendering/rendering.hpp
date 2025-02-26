@@ -21,6 +21,11 @@
 #include <sstream>
 #include "config.hpp"
 #include "conversion_matrix.hpp"
+
+// #define FASTLED_ESP32_SPI_BULK_TRANSFER 1
+// #define FASTLED_ALL_PINS_HARDWARE_SPI
+// #define FASTLED_ESP32_SPI_BULK_TRANSFER_SIZE 100000
+
 #include "FastLED.h"
 
 using namespace std;

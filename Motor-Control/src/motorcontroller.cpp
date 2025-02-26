@@ -17,7 +17,7 @@ namespace Motor
 void MotorController::get_target_power(void *parameter)
 {
   MotorController *motorcontroller = (MotorController*)parameter;
-  int httpCode;
+  int http_code;
 
   while (true)
   {
@@ -36,9 +36,9 @@ void MotorController::get_target_power(void *parameter)
     }
 
     // Fetch desired motor power from ESP32 server
-    httpCode = motorcontroller->_http_receive.GET();
+    http_code = motorcontroller->_http_receive.GET();
 
-    if (httpCode != HTTP_CODE_OK) 
+    if (http_code != HTTP_CODE_OK) 
     {
       Serial.println("Error fetching motor power");
       motorcontroller->_http_receive.end();
@@ -59,8 +59,7 @@ void MotorController::get_target_power(void *parameter)
     motorcontroller->_target_power = target_power_temp;
     Serial.println("New target speed: " + String(motorcontroller->_target_power));
     
-    // motor.writeMicroseconds(target_power);
-    // motor.write(target_power);
+    ledcWrite(MOTOR_PWM_CHANNEL, motorcontroller->_target_power);
     motorcontroller->_http_receive.end();
 
     vTaskDelay(GET_RPM_DELAY / portTICK_PERIOD_MS);  
@@ -70,7 +69,7 @@ void MotorController::get_target_power(void *parameter)
 void MotorController::send_current_speed(void *parameter)
 {
   MotorController *motorcontroller = (MotorController*)parameter;
-  int httpCode;
+  int http_code;
 
   while (true)
   {
@@ -89,14 +88,16 @@ void MotorController::send_current_speed(void *parameter)
     }
 
     motorcontroller->_http_send.addHeader("Content-Type", "application/x-www-form-urlencoded");
-
-    String postData = "m1=" + String(motorcontroller->_delay_between_last_pass_us);
-
-    httpCode = motorcontroller->_http_send.POST(postData);
     
-    Serial.println(postData);
+    unsigned long time_full_rotation_us = motorcontroller->_time_full_rotation_us;
     
-    if (httpCode != HTTP_CODE_OK)
+    String post_data = "m1=" + String(time_full_rotation_us);
+
+    http_code = motorcontroller->_http_send.POST(post_data);
+    
+    Serial.println(post_data);
+    
+    if (http_code != HTTP_CODE_OK)
       Serial.println("Couldn't post the current motor speed!");
 
     motorcontroller->_http_send.end();
@@ -105,87 +106,96 @@ void MotorController::send_current_speed(void *parameter)
   }
 }
 
-void MotorController::get_last_pass_delay(void *parameter)
+void IRAM_ATTR _motor_pulse_ISR(void* parameter) 
 {
   MotorController *motorcontroller = (MotorController*)parameter;
-  unsigned long last_pass = micros();
-
-  while (true) 
-  {
-    // wait for the motor to pass the first sensor.
-    while (analogRead(HAL_SENSOR1_PIN) == 4095);
-    
-    motorcontroller->calculate_new_delay(&last_pass);
-
-    // Wait for the motor to pass the second sensor.
-    // while (analogRead(HAL_SENSOR1_PIN) != 4095);
-    while (analogRead(HAL_SENSOR2_PIN) == 4095); // replace top with this when having 2 sensors connected.
-    
-    motorcontroller->calculate_new_delay(&last_pass);
-  }
-}
-
-void MotorController::calculate_new_delay(unsigned long* plast_pass)
-{
-  unsigned long current_time;
-
-  current_time = micros();
-  _delay_between_last_pass_us = current_time - *plast_pass;
-  *plast_pass = current_time;
   
-  Serial.println(_delay_between_last_pass_us);
+  motorcontroller->handle_pulse();
 }
-
 
 void MotorController::init()
 {
-  _motor.setPeriodHertz(MOTOR_PWM_FREQUENCY);
-  _motor.attach(MOTOR_PIN, MOTOR_MIN, MOTOR_MAX);
-  
-  // Disable Watchdog because we want core 1 to be blocking all the time!
-  disableCore0WDT();
+  pinMode(MOTOR_PULSE_FEEDBACK_PIN, INPUT_PULLUP);
+  pinMode(MOTOR_PWM_SEND_PIN, OUTPUT);
 
-  pinMode(HAL_SENSOR1_PIN, INPUT);
-  pinMode(HAL_SENSOR2_PIN, INPUT);
+  attachInterruptArg(digitalPinToInterrupt(MOTOR_PULSE_FEEDBACK_PIN), _motor_pulse_ISR, this, RISING);
+  
+  ledcSetup(MOTOR_PWM_CHANNEL, MOTOR_PWM_FREQUENCY, MOTOR_PWM_RESOLUTION);
+    
+  // Attach the channel to the LED pin
+  ledcAttachPin(MOTOR_PWM_SEND_PIN, MOTOR_PWM_CHANNEL);
+
+  // Disable Watchdog because we want core 1 to be blocking all the time!
+  // disableCore0WDT();
+
+  ledcWrite(MOTOR_PWM_CHANNEL, 0);
+  
+  while (true)
+  {
+    for (uint i = 100; i < 200; i++)
+    {
+      Serial.print("Full rotation time ms ->");
+      Serial.println(this->_time_full_rotation_us);
+      Serial.print("Pulse count -> ");
+      Serial.println(this->_pulse_count);
+      Serial.print("Loop Iteration");
+      Serial.println(i);
+      Serial.println("\n\n");
+      ledcWrite(MOTOR_PWM_CHANNEL, i);
+      delay(100);
+    }
+
+    for (uint i = 200; i > 100; i--)
+    {
+      Serial.print("Full rotation time ms ->");
+      Serial.println(this->_time_full_rotation_us);
+      Serial.print("Pulse count -> ");
+      Serial.println(this->_pulse_count);
+      Serial.print("Loop Iteration");
+      Serial.println(i);
+      Serial.println("\n\n");
+      ledcWrite(MOTOR_PWM_CHANNEL, i);
+      delay(100);
+    }
+  }
 
   // Task for receiving the target power.
-  // This task will be pinned to the first (0) core.
-  xTaskCreatePinnedToCore(
-    get_target_power,
-    "Get Motor Power",
-    4096,
-    this,
-    1,
-    &_get_target_power_task,
-    1
-  );
-  
-  // Task for sending the current speed.
-  // This task will be pinned to the first (0) core.
-  xTaskCreatePinnedToCore(
-    send_current_speed,
-    "Send Motor Speed",
-    4096,
-    this,
-    1,
-    &_send_current_speed_task,
-    1
-  );
-  
-  delay(100);
+  // xTaskCreate(
+  //   get_target_power,
+  //   "Get Motor Power", 
+  //   4096,
+  //   this,
+  //   1,
+  //   &_get_target_power_task
+  // );
+  // 
+  // // Task for sending the current speed.
+  // xTaskCreate(
+  //   send_current_speed,
+  //   "Send Motor Speed",
+  //   4096,
+  //   this,
+  //   1,
+  //   &_send_current_speed_task
+  // );
+}
 
-  // Task for sending the current speed.
-  // This task will be pinned to the second (1) core.
-  // Getting an accurate time here will require us to use the whole core doing constant polling.
-  xTaskCreatePinnedToCore(
-    get_last_pass_delay,
-    "HAL Sensor Tracker",
-    4096,
-    this,
-    1,
-    &_get_last_pass_delay_task,
-    0
-  ); 
+void MotorController::handle_pulse()
+{
+  if (this->_pulse_count == 0)
+    this->_time_first_pulse_us = micros();
+  else if (this->_pulse_count == MOTOR_PULSE_COUNT_FULL_ROTATION)
+  {
+    this->_pulse_count = 0;
+  
+    unsigned long current_time = micros();
+    unsigned long time_difference = current_time - this->_time_first_pulse_us;
+  
+    // Even though the other core might be using this value, we don't really care since this action is atomic.
+    this->_time_full_rotation_us = time_difference; 
+  }
+  else
+    this->_pulse_count++;
 }
 
 }

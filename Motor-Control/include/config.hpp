@@ -17,13 +17,16 @@
 #define SERVER_POST_SUFFIX "/post"
 #define SERVER_GET_SUFFIX "/TargetPower"
 
-#define MOTOR_PIN 33
-#define MOTOR_PWM_FREQUENCY 50
-#define MOTOR_MIN 1000
-#define MOTOR_MAX 2000
 
-#define HAL_SENSOR1_PIN 34
-#define HAL_SENSOR2_PIN 35
+#define MOTOR_PWM_SEND_PIN 11
+#define MOTOR_PULSE_FEEDBACK_PIN 12
+// Do NOT modify while the motor is running!! Should alway be on high!
+#define MOTOR_DIRECTION_WRITE_PIN 10
+
+#define MOTOR_PWM_FREQUENCY 30000 // 20 to 30kHz
+#define MOTOR_PWM_CHANNEL 0
+#define MOTOR_PWM_RESOLUTION 8
+#define MOTOR_PULSE_COUNT_FULL_ROTATION 9 * 10 // 9 Pulses before the gearbox with a ration of 1 to 10.
 
 #define GET_RPM_DELAY 480
 #define SEND_RPM_DELAY 250
