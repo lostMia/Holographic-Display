@@ -13,6 +13,8 @@
 namespace Rendering 
 {
 
+Renderer *g_renderer;
+
 // Clears the imageData Array.
 void Renderer::_clear_image_data()
 {
@@ -44,6 +46,9 @@ void Renderer::_next_pixel(uint8_t *px, uint8_t *py)
 
 void Renderer::_print_image_data()
 {
+  char buffer[IMAGE_SIZE + 1];
+  buffer[IMAGE_SIZE] = '\0';
+
   for (uint8_t frame_index = 0; frame_index <= _max_frame; frame_index++)
   {
     for (uint8_t x = 0; x < IMAGE_SIZE; x++)
@@ -51,14 +56,11 @@ void Renderer::_print_image_data()
       for (uint8_t y = 0; y < IMAGE_SIZE; y++)
       {
         uint32_t index = frame_index * IMAGE_SIZE * IMAGE_SIZE + y * IMAGE_SIZE + x;
-
-        Serial.print(_image_data[index].r == 255 ? '#' : '.');
-        //   Serial.print(_image_data[index].r);
-        //   Serial.print(_image_data[index].g);
-        //   Serial.print(_image_data[index].b);
+        
+        buffer[y] = _image_data[index].r == 255 ? '#' : '.';
       }
       
-      Serial.println();
+      ESP_LOGI(TAG, "%s", buffer);
     }
   }
 }
@@ -151,9 +153,9 @@ void Renderer::_draw_led_strip_colors()
   // Go through all the LEDs and change their current color value.  
   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
   {
-    // Get the cartesian coordinates the LED should be showing inside of the image at that time.
+    // // Get the cartesian coordinates the LED should be showing inside of the image at that time.
     auto coordinates = conversion_matrix[_current_degrees][LEDS_PER_STRIP - led_index - 1];
-    
+
     index = _current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x;
 
     // Get the color value from the image at those coordinates.
@@ -163,7 +165,7 @@ void Renderer::_draw_led_strip_colors()
     color.g = _add_colors(color.g, options.green_color_adjust);
     color.b = _add_colors(color.b, options.blue_color_adjust);
 
-    _leds[led_index] = color;
+    _leds[led_index] = CRGB::Red; 
   }
   
   uint16_t opposite_degrees = (_current_degrees + 180) % 360;
@@ -178,67 +180,38 @@ void Renderer::_draw_led_strip_colors()
 
     // Get the color value from the image at those coordinates.
     color = _image_data[index];
-
+    
     color.r = _add_colors(color.r, options.red_color_adjust);
     color.g = _add_colors(color.g, options.green_color_adjust);
     color.b = _add_colors(color.b, options.blue_color_adjust);
-
+    
     _leds[led_index] = color; 
   }
 
   // current_us = micros();
   //
-  // Serial.println("first:");
-  // Serial.println(current_us - previous_us);
+  // ESP_LOGI(TAG, "first: %d", current_us - previous_us);
   //
   // previous_us = micros();
-  //
-  // FastLED.show();
-  //
+
+  FastLED.show();
+
   // current_us = micros();
   //
-  // Serial.println("second:");
-  // Serial.println(current_us - previous_us);
+  // ESP_LOGI(TAG, "second: %d", current_us - previous_us);
   //
-  // Serial.println("\n\n");
   // delay(500);
-  
-  FastLED.show();
 }
 
-void Renderer::_display_loop(void *parameter)
+void IRAM_ATTR _update_led()
 {
-  Renderer *renderer = (Renderer*)parameter;
+  // Update the timer delay and restart the timer.
+  timerAlarmWrite(g_renderer->_render_loop_timer, g_renderer->options._delay_between_degrees_us, true);
 
-  unsigned long current_microseconds, previous_degree_change_us, previous_frame_change_us;
+  BaseType_t hptw;
+  vTaskNotifyGiveFromISR(g_renderer->_display_loop_task, &hptw);
   
-  while (true)
-  {
-    current_microseconds = micros();
-
-    // Wait until it's time to render a new degree of the image.
-    if (current_microseconds - previous_degree_change_us >= renderer->options._delay_between_degrees_us) 
-    {
-      // Increment current_degrees by one.
-      renderer->_current_degrees = (renderer->_current_degrees == 359 ? 0 : renderer->_current_degrees + 1);
-      previous_degree_change_us = current_microseconds;
-      
-      // Also check if we need to change the current frame.
-      if (current_microseconds - previous_frame_change_us >= (renderer->_delay_data[renderer->_current_frame]) * 1000)
-      {
-        // Increment current_frame by one.
-        renderer->_current_frame = (renderer->_current_frame == renderer->_max_frame ? 0 : renderer->_current_frame + 1);
-        previous_frame_change_us = current_microseconds;
-      }
-      
-      taskENTER_CRITICAL(&optionsMUX);
-      bool leds_enabled = renderer->options.leds_enabled;
-      taskEXIT_CRITICAL(&optionsMUX);
-      
-      if (leds_enabled)
-        renderer->_draw_led_strip_colors();
-    };
-  }
+  portYIELD_FROM_ISR(hptw);
 }
 
 uint8_t Renderer::_add_colors(uint8_t color, int16_t addition)
@@ -251,6 +224,8 @@ uint8_t Renderer::_add_colors(uint8_t color, int16_t addition)
 
 void Renderer::init()
 {
+  g_renderer = this;
+  
   BaseType_t result;
 
   // Allocate all the image data in PSRAM.
@@ -260,47 +235,80 @@ void Renderer::init()
     _image_data[index] = CRGB::Black;
  
   ESP_LOGI(TAG, "Adding LEDs..");
-  // FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(_leds, LEDS_PER_STRIP * 2);
+  // FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, BGR, DATA_RATE_MHZ(1)>(_leds, LEDS_PER_STRIP * 2);
   FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, BGR>(_leds, LEDS_PER_STRIP * 2);
-  // FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, RGB, DATA_RATE_MHZ(30)>(_leds, LEDS_PER_STRIP * 2);
-
-  ESP_LOGI(TAG, "Creating task..");
   FastLED.setBrightness(15);
   FastLED.setMaxRefreshRate(0);
-
-  ESP_LOGI(TAG, "Creating task..");
   
+  // Set everything to black.
   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
-    _leds[led_index] = CRGB(led_index * 2, (255 - led_index * 2), 0);
+    _leds[led_index] = CRGB::Black;
   
   FastLED.show();
-
-  // result = xTaskCreatePinnedToCore(
-  //   _display_loop,
-  //   PSTR("Display Loop"),
-  //   100000,
-  //   this,
-  //   configMAX_PRIORITIES,
-  //   &_display_loop_task,
-  //   RENDERER_CORE
-  // );
-
-  // result = xTaskCreate(
-  //   _display_loop,
-  //   PSTR("Display Loop"),
-  //   100000,
-  //   this,
-  //   configMAX_PRIORITIES,
-  //   &_display_loop_task
-  // );
-
-  // if (result != pdPASS)
-  //   ESP_LOGE(TAG, "Couldn't allocate enough memory!!");
   
-  // refresh_image();
-  //
-  // _print_image_data();
+  // _load_image_from_flash();
+
+  _render_loop_timer = timerBegin(
+    0,
+    80,
+    true
+  );
+
+  timerAttachInterrupt(_render_loop_timer, _update_led, false);
+  timerAlarmWrite(_render_loop_timer, options._delay_between_degrees_us, false);
+  timerAlarmEnable(_render_loop_timer);
+  
+  result = xTaskCreate(
+    _display_loop,
+    PSTR("Display Loop"),
+    100000,
+    this,
+    configMAX_PRIORITIES,
+    &_display_loop_task
+  );
+
+  if (result != pdPASS)
+    ESP_LOGE(TAG, "Couldn't allocate enough memory!");
 }
+
+void Renderer::_display_loop(void *parameter)
+{
+  Renderer *renderer = (Renderer*)parameter;
+  
+  while (true)
+  {
+    ulTaskNotifyTake(true, portMAX_DELAY);
+   
+    ESP_LOGI(TAG, "%d", renderer->_current_degrees);
+
+    renderer->_current_degrees = (g_renderer->_current_degrees == 359 ? 0 : g_renderer->_current_degrees + 1);
+
+    taskENTER_CRITICAL(&optionsMUX);
+    bool leds_enabled = renderer->options.leds_enabled;
+    taskEXIT_CRITICAL(&optionsMUX);
+    
+    if (leds_enabled)
+      renderer->_draw_led_strip_colors();
+  };
+}
+
+// void Renderer::start_renderer()
+// {
+//   if (xTimerStart(_render_loop_timer, pdMS_TO_TICKS(1000)) == pdFAIL)
+//   {
+//     ESP_LOGI(TAG, "Couldn't start timer!");
+//     return;
+//   }
+// }
+//
+// void Renderer::stop_renderer()
+// {
+//   if (xTimerStop(_render_loop_timer, pdMS_TO_TICKS(1000)) == pdFAIL)
+//   {
+//     ESP_LOGI(TAG, "Couldn't stop timer!");
+//     return;
+//   }
+// }
 
 void Renderer::start_renderer()
 {

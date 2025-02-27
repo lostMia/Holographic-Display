@@ -11,7 +11,7 @@ using namespace std;
 //  - - - - - - - - - - Constants - - - - - - - - - -
 
 const int ANGLES_PER_ROTATION = 360;
-const int LEDS_PER_STRIP = 11;
+const int LEDS_PER_STRIP = 64;
 
 //  - - - - - - - - - - Function Declarations - - - - - - - - - -
 

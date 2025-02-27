@@ -31,19 +31,24 @@
 
 using namespace std;
 
+
 namespace Rendering 
 {
 
 static portMUX_TYPE optionsMUX = portMUX_INITIALIZER_UNLOCKED;
+
 
 struct Options 
 {
     int16_t red_color_adjust = 0;
     int16_t green_color_adjust = 0;
     int16_t blue_color_adjust = 0;
-    unsigned long _delay_between_degrees_us = 30000;
+    unsigned long _delay_between_degrees_us = 5000;
     bool leds_enabled = true;
 };
+
+
+void IRAM_ATTR _update_led();
 
 // Class managing the displaying of images using the led strips.
 class Renderer
@@ -53,6 +58,7 @@ private:
     CRGB* _image_data;
     uint16_t _delay_data[MAX_FRAMES];
     TaskHandle_t _display_loop_task = NULL;
+    hw_timer_t* _render_loop_timer;
     uint8_t _current_frame = 0;
     uint8_t _current_degrees = 0;
     uint8_t _max_frame = 0;
@@ -61,8 +67,9 @@ private:
     void _print_image_data();
     void _load_image_from_flash();
     void _next_pixel(uint8_t *x, uint8_t *y);
-    static void _display_loop(void *parameter);
     void _draw_led_strip_colors();
+    static void _display_loop(void *parameter);
+    friend void IRAM_ATTR _update_led();
     uint8_t _add_colors(uint8_t color, int16_t addition);
 
 public:
@@ -74,5 +81,7 @@ public:
     void stop_renderer();
     void refresh_image();
 };
+
+extern Renderer *g_renderer;
 
 }

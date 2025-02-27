@@ -105,7 +105,7 @@ void WebServer::_setup_webserver_tree()
 
   _server.on(PSTR("/"), HTTP_GET, [](AsyncWebServerRequest *request)
   {
-    ESP_LOGI(TAG, "Serving to IP: %s", request->client()->remoteIP().toString());
+    ESP_LOGI(TAG, "Serving to IP: %s", request->client()->remoteIP().toString().c_str());
     request->send(SPIFFS, F("/site/main/index.html"), F("text/html"));
   });
   
@@ -129,7 +129,7 @@ void WebServer::_setup_webserver_tree()
   
   _server.onNotFound([](AsyncWebServerRequest *request)
   {
-    ESP_LOGI(TAG, "Unable to find http://%s%s\n", request->host().c_str(), request->client()->remoteIP().toString());
+    ESP_LOGI(TAG, "Unable to find http://%s | request from %s\n", request->host().c_str(), request->client()->remoteIP().toString().c_str());
 
     request->send(SPIFFS, F("/site/notfound/index.html"), F("text/html"));
   });
