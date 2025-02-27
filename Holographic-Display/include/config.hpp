@@ -12,6 +12,8 @@
 
 #include "credentials.hpp"
 
+#define TAG ""
+
 // The amount of angles the image will be cut into.
 #define ANGLES_PER_ROTATION 360
 
@@ -55,7 +57,7 @@
 // Which of the cores on the ESP the specific tasks are supposed to run on.
 #define RENDERER_CORE 1
 #define CONFIG_ESP32_WIFI_TASK_PINNED_TO_CORE_1 0
-#define CONFIG_MDNS_TASK_AFFINITY 0
+// #define CONFIG_MDNS_TASK_AFFINITY 0
 
 // #define configTICK_RATE_HZ 100
 // #define configUSE_PREEMPTION 1

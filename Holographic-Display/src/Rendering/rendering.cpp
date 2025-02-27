@@ -16,7 +16,7 @@ namespace Rendering
 // Clears the imageData Array.
 void Renderer::_clear_image_data()
 {
-  Serial.println("Clear Image Data");
+  ESP_LOGW(TAG, "Clearing image data...");
   memset(&_image_data, 0, IMAGE_DATA_SIZE);
 }
 
@@ -66,20 +66,20 @@ void Renderer::_print_image_data()
 // Loads the .json file from the file system into the imageData Array, so it can be used for displaying.
 void Renderer::_load_image_from_flash()
 {
-  Serial.println("loading image from flash");
+  ESP_LOGW(TAG, "loading image from flash");
 
   File file = SPIFFS.open(IMAGE_JSON_NAME, "r", false);
 
   if (!file) 
   {
-    Serial.println(F("Failed to open file for reading"));
+    ESP_LOGE(TAG, "Failed to open file for reading");
     return;
   }
 
   size_t size = file.size();
   if (size == 0) 
   {
-    Serial.println(F("File is empty"));
+    ESP_LOGE(TAG, "File is empty");
     file.close();
     return;
   }
@@ -90,8 +90,7 @@ void Renderer::_load_image_from_flash()
   DeserializationError error = deserializeJson(json_doc, file);
   if (error) 
   {
-    Serial.print(F("Failed to parse JSON: "));
-    Serial.println(error.c_str());
+    ESP_LOGE(TAG, "Failed to parse JSON: \n%s", error.c_str());
     file.close();
     return;
   }
@@ -143,9 +142,9 @@ void Renderer::_load_image_from_flash()
 
 void Renderer::_draw_led_strip_colors()
 {
-  unsigned long current_us, previous_us;
-
-  previous_us = micros();
+  // unsigned long current_us, previous_us;
+  //
+  // previous_us = micros();
   uint32_t index;
   CRGB color;
 
@@ -183,26 +182,28 @@ void Renderer::_draw_led_strip_colors()
     color.r = _add_colors(color.r, options.red_color_adjust);
     color.g = _add_colors(color.g, options.green_color_adjust);
     color.b = _add_colors(color.b, options.blue_color_adjust);
-;
+
     _leds[led_index] = color; 
   }
 
-  current_us = micros();
-
-  Serial.println("first:");
-  Serial.println(current_us - previous_us);
-
-  previous_us = micros();
-
+  // current_us = micros();
+  //
+  // Serial.println("first:");
+  // Serial.println(current_us - previous_us);
+  //
+  // previous_us = micros();
+  //
+  // FastLED.show();
+  //
+  // current_us = micros();
+  //
+  // Serial.println("second:");
+  // Serial.println(current_us - previous_us);
+  //
+  // Serial.println("\n\n");
+  // delay(500);
+  
   FastLED.show();
-
-  current_us = micros();
-
-  Serial.println("second:");
-  Serial.println(current_us - previous_us);
-
-  Serial.println("\n\n");
-  delay(500);
 }
 
 void Renderer::_display_loop(void *parameter)
@@ -258,26 +259,31 @@ void Renderer::init()
   for (uint32_t index = 0; index < (IMAGE_DATA_SIZE / sizeof(CRGB)); index++)
     _image_data[index] = CRGB::Black;
  
-  Serial.print("Adding LEDs..");
+  ESP_LOGI(TAG, "Adding LEDs..");
   // FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(_leds, LEDS_PER_STRIP * 2);
-  // FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, RGB>(_leds, LEDS_PER_STRIP * 2);
-  FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, RGB, DATA_RATE_MHZ(30)>(_leds, LEDS_PER_STRIP * 2);
+  FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, RGB>(_leds, LEDS_PER_STRIP * 2);
+  // FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, RGB, DATA_RATE_MHZ(30)>(_leds, LEDS_PER_STRIP * 2);
 
-  Serial.print("Creating task..");
-  FastLED.setBrightness(20);
+  ESP_LOGI(TAG, "Creating task..");
+  FastLED.setBrightness(15);
   FastLED.setMaxRefreshRate(0);
 
-  Serial.print("Creating task..");
+  ESP_LOGI(TAG, "Creating task..");
+  
+  for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
+    _leds[led_index] = CRGB::Red;
+  
+  FastLED.show();
 
-  result = xTaskCreatePinnedToCore(
-    _display_loop,
-    PSTR("Display Loop"),
-    100000,
-    this,
-    configMAX_PRIORITIES,
-    &_display_loop_task,
-    RENDERER_CORE
-  );
+  // result = xTaskCreatePinnedToCore(
+  //   _display_loop,
+  //   PSTR("Display Loop"),
+  //   100000,
+  //   this,
+  //   configMAX_PRIORITIES,
+  //   &_display_loop_task,
+  //   RENDERER_CORE
+  // );
 
   // result = xTaskCreate(
   //   _display_loop,
@@ -288,9 +294,9 @@ void Renderer::init()
   //   &_display_loop_task
   // );
 
-  if (result != pdPASS)
-    Serial.println(F("Couldn't allocate enough memory!!"));
-  //
+  // if (result != pdPASS)
+  //   ESP_LOGE(TAG, "Couldn't allocate enough memory!!");
+  
   // refresh_image();
   //
   // _print_image_data();

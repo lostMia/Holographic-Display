@@ -15,44 +15,31 @@ namespace Wireless
 
 void WifiManager::_begin_AP()
 {
-  Serial.print(F("Setting up AP with SSID "));
-  Serial.print(AP_SSID);
-  Serial.print(F("..."));
+  ESP_LOGI(TAG, "Setting up AP with SSID %s...", AP_SSID);
 
   while (!WiFi.softAP(AP_SSID, AP_PASSWORD))
   {
-    Serial.println(F("Failed to set up AP"));
-    delay(500);
+    ESP_LOGE(TAG, "Failed to set up AP! retrying...");
+    delay(1000);
   }
-
-  Serial.println(F("Done"));
   
   _IP = WiFi.softAPIP();
 
-  Serial.print(F("AP IP:"));
-  Serial.println(_IP);
+  ESP_LOGI(TAG, "AP IP: %s", _IP.toString().c_str());
 }
 
 void WifiManager::_connect_AP()
 {
-  Serial.print(F("Connecting to "));
-  Serial.println(WIFI_SSID);
-  Serial.print(F("..."));
+  ESP_LOGI(TAG, "Connecting to %s...", WIFI_SSID);
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   while (WiFi.status() != WL_CONNECTED) 
-  {
       delay(500);
-      Serial.print(F("."));
-  }
 
-  Serial.println(F("Done"));
-  
   _IP = WiFi.localIP();
   
-  Serial.print(F("Local IP:"));
-  Serial.println(_IP);
+  ESP_LOGI(TAG, "Local IP: %s", _IP.toString().c_str());
 }
 
 void WifiManager::begin()

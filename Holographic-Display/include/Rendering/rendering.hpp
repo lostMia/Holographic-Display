@@ -21,6 +21,7 @@
 #include <sstream>
 #include "config.hpp"
 #include "conversion_matrix.hpp"
+#include "esp_log.h"
 
 // #define FASTLED_ESP32_SPI_BULK_TRANSFER 1
 // #define FASTLED_ALL_PINS_HARDWARE_SPI

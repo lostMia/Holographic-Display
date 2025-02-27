@@ -17,6 +17,7 @@
 #include "Wireless/webserver.hpp"
 #include "Wireless/wifimanager.hpp"
 #include "Rendering/rendering.hpp"
+#include "esp_log.h"
 
 
 Rendering::Renderer renderer;

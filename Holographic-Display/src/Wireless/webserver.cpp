@@ -61,7 +61,7 @@ bool WebServer::_begin_SPIFFS()
 #ifdef OTA_FIRMWARE
 void WebServer::_begin_OTA()
 {
-  Serial.print(F("Setting up ElegantOTA...")); 
+  ESP_LOGI(TAG, F("Setting up ElegantOTA..."));
 
   ElegantOTA.begin(&_server);
   ElegantOTA.setAutoReboot(true);
@@ -71,31 +71,29 @@ void WebServer::_begin_OTA()
   ElegantOTA.setAuth(OTA_USERNAME, OTA_PASSWORD);
 #endif
 #endif
-  Serial.println(F("Done")); 
+
+  ESP_LOGI(TAG, F("Done"));
 }
 #endif
 
 #ifdef MDNS_HOSTNAME
 bool WebServer::_begin_mDNS()
 {
-  Serial.print(F("Setting up mDNS hostname...")); 
+  ESP_LOGI(TAG, "Setting up mDNS hostname...");
 
   if (!MDNS.begin(MDNS_HOSTNAME))
   {
-    Serial.println(F("An Error has occurred while setting up mDNS responder!"));
+    ESP_LOGE(TAG, "An Error has occurred while setting up mDNS responder!");
     return false;
   }
 
-  Serial.println(F("Done")); 
-  Serial.print(F("Setting up mDNS Service...")); 
+  ESP_LOGI(TAG, "Setting up mDNS Service...");
 
   if (!MDNS.addService("http", "tcp", 80))
   {
-    Serial.println(F("An Error has occurred while setting up mDNS Service!"));
+    ESP_LOGE(TAG, "An Error has occurred while setting up mDNS service!");
     return false;
   }
-
-  Serial.println(F("Done")); 
 
   return true;
 }
@@ -103,12 +101,11 @@ bool WebServer::_begin_mDNS()
 
 void WebServer::_setup_webserver_tree()
 {
-  Serial.print(F("Setting up server tree...")); 
+  ESP_LOGI(TAG, "Setting up server tree...");
 
   _server.on(PSTR("/"), HTTP_GET, [](AsyncWebServerRequest *request)
   {
-    Serial.print(F("Serving to IP: "));
-    Serial.println(request->client()->remoteIP().toString());
+    ESP_LOGI(TAG, "Serving to IP: %s", request->client()->remoteIP().toString());
     request->send(SPIFFS, F("/site/main/index.html"), F("text/html"));
   });
   
@@ -132,7 +129,8 @@ void WebServer::_setup_webserver_tree()
   
   _server.onNotFound([](AsyncWebServerRequest *request)
   {
-    Serial.printf(PSTR("Unable to find http://%s%s\n"), request->host().c_str(), request->url().c_str());
+    ESP_LOGI(TAG, "Unable to find http://%s%s\n", request->host().c_str(), request->client()->remoteIP().toString());
+
     request->send(SPIFFS, F("/site/notfound/index.html"), F("text/html"));
   });
 
@@ -140,13 +138,12 @@ void WebServer::_setup_webserver_tree()
   {
     if (!index) 
     {
-      Serial.printf(PSTR("UploadStart: %s\n"), filename.c_str());
+      ESP_LOGI(TAG, "UploadStart: %s\n", filename.c_str());
       request->_tempFile = SPIFFS.open(IMAGE_JSON_NAME, "w");
     }
 
     size_t free_bytes = SPIFFS.totalBytes() - SPIFFS.usedBytes();
-    Serial.print(F("SPIFFS Free: ")); 
-    Serial.println(_format_bytes(free_bytes));
+    ESP_LOGI(TAG, "SPIFFS Free: %s", _format_bytes(free_bytes).c_str());
       
     if (request->_tempFile)
     {
@@ -164,17 +161,13 @@ void WebServer::_setup_webserver_tree()
       if (request->_tempFile)
       {
         request->_tempFile.close();
-        Serial.printf(PSTR("UploadEnd: %s, %u\n"), filename.c_str(), _format_bytes(index + len));
+        ESP_LOGI(TAG, "UploadEnd: %s, %u\n", filename.c_str(), _format_bytes(index + len));
+        ESP_LOGI(TAG, "Free Heap: %d", ESP.getFreeHeap());
 
-        Serial.print(F("Free Heap:"));
-        Serial.println(ESP.getFreeHeap());
-          
         _renderer->refresh_image();
       } 
       else
-      {
-        Serial.printf(PSTR("Upload failed: %s exceeds maximum size of %u bytes\n"), filename.c_str(), free_bytes);
-      }
+        ESP_LOGI(TAG, "Upload failed: %s exceeds maximum size of %u bytes\n", filename.c_str(), free_bytes);
     }
   });
 
@@ -197,17 +190,13 @@ void WebServer::_setup_webserver_tree()
   _server.serveStatic(PSTR("/datadump/"), SPIFFS, PSTR("/datadump/"));
   _server.serveStatic(PSTR("/"), SPIFFS, PSTR("/site/main/")).setDefaultFile(PSTR("index.html"));
   _server.begin();
-
-  Serial.println(F("Done")); 
 }
 
 void WebServer::_begin_renderer()
 {
-  Serial.print(F("Starting the renderer..."));
+  ESP_LOGI(TAG, "Starting the renderer...");
 
   _renderer->init();
-
-  Serial.print(F("Done"));
 }
 
 // This handles any responses we get from the User-Interface.
@@ -228,7 +217,7 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
   }
   catch (...)
   {
-    Serial.println(F("Failed to parse input!"));
+    ESP_LOGE(TAG, "Failed to parse input!\n");
     return;
   }
   
@@ -248,7 +237,6 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
           float raw_power;
           
           raw_power = (float)std::stoi(value);
-          // raw_power *= 2.55;                    // Convert from 0-100 to 96-255
           raw_power = raw_power * (255.0 - 96.0) / 100.0 + 96.0;
 
           _target_power = (uint16_t)raw_power;
@@ -282,8 +270,8 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
 
       delay_per_pulse_us = std::stoi(value);
       
-      // If the motor is standing still.
-      if (delay_per_pulse_us == LONG_MAX)
+      // If the motor is standing still or the delay is impossibly small.
+      if (delay_per_pulse_us == LONG_MAX || delay_per_pulse_us < 1000)
       {
         taskENTER_CRITICAL(&Rendering::optionsMUX);
         // Calculate the time between each degree in μs.
@@ -312,7 +300,7 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
       break;
 
     // Text-Field
-    case 't_MAX_MAX':
+    case 't':
       break;
       
      // Lever-Field
@@ -364,7 +352,7 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
     case 'c':
       std::string color_string = parameter->value().substring(2).c_str();
 
-      Serial.println(color_string.c_str());
+      ESP_LOGI(TAG, "Color: %s", parameter->value().substring(2).c_str());
       break;
   }
 }
@@ -383,8 +371,8 @@ void WebServer::begin()
   #endif
  
   _setup_webserver_tree();
-
-  // _begin_renderer();
+  
+  _begin_renderer();
 }
 
 } // Namespace Webserver 

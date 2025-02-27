@@ -21,6 +21,7 @@
 #include <iostream>
 #include <sstream>
 #include "config.hpp"
+#include "esp_log.h"
 #include "Rendering/rendering.hpp"
 
 #ifdef OTA_FIRMWARE

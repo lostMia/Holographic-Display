@@ -15,6 +15,8 @@
 #include "config.hpp"
 
 #include "esp_wifi.h"
+#include "esp_log.h"
+
 
 namespace Wireless
 {
