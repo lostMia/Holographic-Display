@@ -21,8 +21,8 @@
 #define LEDS_PER_STRIP 64
 
 // The data pin the LEDs are connected to
-#define LED_DATA_PIN 40
-#define LED_CLOCK_PIN 41
+#define LED_DATA_PIN 7
+#define LED_CLOCK_PIN 4
 
 // Defines the width/height of the image to create.
 // This is equal to the number of LED's per strip times 2.

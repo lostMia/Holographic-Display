@@ -261,7 +261,7 @@ void Renderer::init()
  
   ESP_LOGI(TAG, "Adding LEDs..");
   // FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(_leds, LEDS_PER_STRIP * 2);
-  FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, RGB>(_leds, LEDS_PER_STRIP * 2);
+  FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, BGR>(_leds, LEDS_PER_STRIP * 2);
   // FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, RGB, DATA_RATE_MHZ(30)>(_leds, LEDS_PER_STRIP * 2);
 
   ESP_LOGI(TAG, "Creating task..");
@@ -270,8 +270,8 @@ void Renderer::init()
 
   ESP_LOGI(TAG, "Creating task..");
   
-  for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
-    _leds[led_index] = CRGB::Red;
+  for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
+    _leds[led_index] = CRGB(led_index * 2, (255 - led_index * 2), 0);
   
   FastLED.show();
 
