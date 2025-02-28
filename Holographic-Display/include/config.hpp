@@ -41,7 +41,7 @@
 // - - - - - - WARNING - - - - - - 
 // If you disable this, then all OTA Updates will be non-functional.
 // Manual reupload with this variable defined is needed to enable OTA again!
-// #define OTA_FIRMWARE
+#define OTA_FIRMWARE
 
 // Define to enable mDNS with the specified hostname. 
 #define MDNS_HOSTNAME "holo"
