@@ -30,6 +30,7 @@
 // The maximum allowed time between each pulse to still be considered rotating
 // Comes out to about a fitfh rotation every second.
 #define LAST_PULSE_MAX_DELAY_US 200000
+#define LAST_PULSES_TO_AVERAGE 5 
 
 #define GET_RPM_DELAY 480
 #define SEND_RPM_DELAY 250

@@ -93,7 +93,7 @@ void MotorController::send_current_speed(void *parameter)
 
     motorcontroller->_http_send.addHeader("Content-Type", "application/x-www-form-urlencoded");
     
-    unsigned long time_full_rotation_us = motorcontroller->_current_delay_per_pulse_us;
+    unsigned long time_full_rotation_us = motorcontroller->_get_average_pulse();
     
     String post_data = "m1=" + String(time_full_rotation_us);
 
@@ -108,6 +108,20 @@ void MotorController::send_current_speed(void *parameter)
     
     vTaskDelay(SEND_RPM_DELAY / portTICK_PERIOD_MS);  
   }
+
+}
+
+unsigned long MotorController::_get_average_pulse()
+{
+  if (_last_delays_us.empty()) 
+    return 0;
+
+  unsigned long sum = 0;
+
+  for (unsigned long delay : _last_delays_us)
+    sum += delay;
+    
+  return sum / _last_delays_us.size();
 }
 
 void IRAM_ATTR _motor_pulse_ISR(void* parameter) 
@@ -152,9 +166,15 @@ void MotorController::init()
 
 void MotorController::handle_pulse()
 {
+  unsigned long current_delay_per_pulse_us = 0; 
   unsigned long current_time = micros();
   
   this->_current_delay_per_pulse_us = current_time - this->_time_last_pulse_us;
+  
+  if (_last_delays_us.size() == LAST_PULSES_TO_AVERAGE)
+    _last_delays_us.erase(_last_delays_us.begin());
+
+  _last_delays_us.push_back(this->_current_delay_per_pulse_us);
   
   this->_time_last_pulse_us = current_time;
 }
