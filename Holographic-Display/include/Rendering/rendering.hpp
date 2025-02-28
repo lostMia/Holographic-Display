@@ -39,7 +39,7 @@ struct Options
     int16_t red_color_adjust = 0;
     int16_t green_color_adjust = 0;
     int16_t blue_color_adjust = 0;
-    unsigned long _delay_between_degrees_us = 5000;
+    unsigned long _delay_between_degrees_us = 200000;
     bool leds_enabled = true;
 };
 
@@ -59,7 +59,7 @@ private:
     
     spi_device_handle_t _spi;
 
-    const spi_bus_config_t _buscfg = {
+    spi_bus_config_t _buscfg = {
         .mosi_io_num = LED_DATA_PIN,
         .miso_io_num = -1,
         .sclk_io_num = LED_CLOCK_PIN,
@@ -68,13 +68,20 @@ private:
         .max_transfer_sz = (LEDS_PER_STRIP * 2 * 4) + 8,
     };
 
-    const spi_device_interface_config_t _devcfg = {
+    spi_device_interface_config_t _devcfg = {
         .mode = 0,                          // SPI mode 0 (CPOL=0, CPHA=0)
-        .clock_speed_hz = 24 * 1000 * 1000,
-        .spics_io_num = -1,                 // No CS pin
-        .flags = SPI_DEVICE_HALFDUPLEX,      // Half-duplex for LED strips
-        .queue_size = 1,                     // Only 1 transaction at a time
+        .clock_speed_hz = SPI_FREQUENCY * 1000 * 1000,
+        .spics_io_num = -1,
+        .flags = SPI_DEVICE_HALFDUPLEX,
+        .queue_size = 1,
     };
+    
+    spi_transaction_t _current_transaction = {
+        .length = ((LEDS_PER_STRIP * 2 * 4) + 8) * 8,  // Bits!
+        .user = NULL,
+        .tx_buffer = _led_buffer
+    };
+    
 
     uint8_t _brightness = 0;
     uint8_t _current_frame = 0;

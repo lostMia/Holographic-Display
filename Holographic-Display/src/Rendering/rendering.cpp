@@ -68,56 +68,46 @@ void Renderer::_print_image_data()
 void Renderer::_show()
 {
     esp_err_t ret;
-
-    spi_transaction_t trans = {
-        .length = ((LEDS_PER_STRIP * 2 * 4) + 8) * 8,  // Bits!
-        .user = NULL,
-        .tx_buffer = _led_buffer
-    };
+    // spi_transaction_t* result = &_current_transaction;
     
+    // ret = spi_device_get_trans_result(_spi, &result, portMAX_DELAY);
+
+    // If the last transaction isn't completed yet, just skip the current transaction.
+    if (ret != ESP_OK)
+      return;
+  
+    _current_transaction.length = ((LEDS_PER_STRIP * 2 * 4) + 8) * 8;
+    _current_transaction.user = NULL;
+    _current_transaction.tx_buffer = _led_buffer;
+  
+    for (uint8_t index = 0; index < 20; index++)
+    {
+      ESP_LOGI("fucking work please", "Buffer: %d %d  %x", index, _led_buffer[index], _led_buffer[index]);
+    }
+   
     unsigned long first, second;
+
     first = micros();
 
-    // ToDo: change this to be using the non blocking thingy
-    spi_device_polling_transmit(_spi, &trans);
+    // Blocking transfer. 
+    spi_device_polling_transmit(_spi, &_current_transaction);
 
-    // second = micros();
-    //
-    // // Non blocking transfer.
-    // ret = spi_device_queue_trans(spi, &t, portMAX_DELAY);
-    //
-    // third = micros();
-    //
-    // if (ret == ESP_OK)
-    //     Serial.println("No Error");
-    // else
-    //     Serial.println("Error!!");
-    //
-    // auto result = &t;
-    //
-    // do {
-    //     ret = spi_device_get_trans_result(spi, &result, portMAX_DELAY);
-    // } while (ret != ESP_OK);  // Keep checking until a transaction completes
-    //
-    // fourth = micros();
-    //
-    // spi_device_transmit(spi, &t);
-    //
-    // fifth = micros();
-    //
-    // printf("First: %d, Second: %d, Third: %d, Fourth: %d, Fifth: %d\n", first, second, third, fourth, fifth);
-  
-    ESP_LOGI(TAG, "Diff 1: %d\n\n", second - first);
+    // Non blocking transfer.
+    // spi_device_queue_trans(_spi, &_current_transaction, portMAX_DELAY);
+
+    second = micros();
+
+    ESP_LOGI(TAG, "Transaction: %d\n\n", second - first);
 }
 
 void Renderer::_change_led(uint8_t index, RGB color)
 {
-  uint8_t offset = 4 + (index * 4);
+  uint16_t offset = 4 + (index * 4);
 
-  _led_buffer[offset] = _brightness;
-  _led_buffer[offset + 1] = color.r;
+  _led_buffer[offset] = 0xE0 | 1;
+  _led_buffer[offset + 1] = color.b;
   _led_buffer[offset + 2] = color.g;
-  _led_buffer[offset + 3] = color.b;
+  _led_buffer[offset + 3] = color.r;
 }
 
 // Loads the .json file from the file system into the imageData Array, so it can be used for displaying.
@@ -201,17 +191,17 @@ void Renderer::_update_led_colors()
 {
   uint8_t index;
   RGB color;
-  
-  taskENTER_CRITICAL(&optionsMUX);
-  bool leds_enabled = options.leds_enabled;
-  taskEXIT_CRITICAL(&optionsMUX);
-  
-  if (!leds_enabled)
-  {
-    for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
-      _change_led(led_index, RGB::Black);
-    return;
-  }
+
+  // taskENTER_CRITICAL(&optionsMUX);
+  // bool leds_enabled = options.leds_enabled;
+  // taskEXIT_CRITICAL(&optionsMUX);
+  //
+  // if (!leds_enabled)
+  // {
+  //   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
+  //     _change_led(led_index, RGB::Black);
+  //   return;
+  // }
 
   // Go through all the LEDs and change their current color value.  
   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
@@ -248,7 +238,7 @@ void Renderer::_update_led_colors()
     color.g = _add_colors(color.g, options.green_color_adjust);
     color.b = _add_colors(color.b, options.blue_color_adjust);
     
-    _change_led(led_index, RGB::Blue);
+    _change_led(led_index, color);
   }
 }
 
@@ -293,21 +283,20 @@ void Renderer::init()
   _led_buffer = (uint8_t*)heap_caps_malloc((LEDS_PER_STRIP * 2 * 4) + 8, MALLOC_CAP_DMA);
 
   // Write start and end sections.
-  memset(_led_buffer, 0, 4);
-  memset(_led_buffer + 4 + (LEDS_PER_STRIP * 2 * 4), 255, 4);
+  memset(_led_buffer, 0x00, 4);
+  memset(_led_buffer + 4 + (LEDS_PER_STRIP * 2 * 4), 0xFF, 4);
 
+  
   while (true)
   {
-    ESP_LOGI(TAG, "Setting");
-
     for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
-      _change_led(led_index, RGB(255, 255, 0));
-    
+      _change_led(led_index, RGB::Red);
+
     _show();
     
-    vTaskDelay(pdMS_TO_TICKS(500));
-  };
-  
+    vTaskDelay(200);
+  }
+
   _load_image_from_flash();
 
   _render_loop_timer = timerBegin(
@@ -323,7 +312,7 @@ void Renderer::init()
   result = xTaskCreate(
     _display_loop,
     PSTR("Display Loop"),
-    100000,
+    4096,
     this,
     configMAX_PRIORITIES,
     &_display_loop_task
@@ -341,7 +330,7 @@ void Renderer::_display_loop(void *parameter)
   {
     ulTaskNotifyTake(true, portMAX_DELAY);
    
-    // ESP_LOGI(TAG, "%d", renderer->_current_degrees);
+    ESP_LOGI(TAG, "%d", renderer->_current_degrees);
 
     renderer->_current_degrees = (g_renderer->_current_degrees == 359 ? 0 : g_renderer->_current_degrees + 1);
 

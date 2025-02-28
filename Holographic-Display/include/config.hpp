@@ -56,6 +56,9 @@
 
 // The SPI host to run the LEDs on.
 #define SPI_HOST SPI3_HOST
+// The frequency of the SPI channel that is used to talk to the 
+// LED strip. (in MHz!)
+#define SPI_FREQUENCY 1
 
 // Which of the cores on the ESP the specific tasks are supposed to run on.
 // #define RENDERER_CORE 1
