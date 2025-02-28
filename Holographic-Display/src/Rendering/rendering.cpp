@@ -65,6 +65,61 @@ void Renderer::_print_image_data()
   }
 }
 
+void Renderer::_show()
+{
+    esp_err_t ret;
+
+    spi_transaction_t trans = {
+        .length = ((LEDS_PER_STRIP * 2 * 4) + 8) * 8,  // Bits!
+        .user = NULL,
+        .tx_buffer = _led_buffer
+    };
+    
+    unsigned long first, second;
+    first = micros();
+
+    // ToDo: change this to be using the non blocking thingy
+    spi_device_polling_transmit(_spi, &trans);
+
+    // second = micros();
+    //
+    // // Non blocking transfer.
+    // ret = spi_device_queue_trans(spi, &t, portMAX_DELAY);
+    //
+    // third = micros();
+    //
+    // if (ret == ESP_OK)
+    //     Serial.println("No Error");
+    // else
+    //     Serial.println("Error!!");
+    //
+    // auto result = &t;
+    //
+    // do {
+    //     ret = spi_device_get_trans_result(spi, &result, portMAX_DELAY);
+    // } while (ret != ESP_OK);  // Keep checking until a transaction completes
+    //
+    // fourth = micros();
+    //
+    // spi_device_transmit(spi, &t);
+    //
+    // fifth = micros();
+    //
+    // printf("First: %d, Second: %d, Third: %d, Fourth: %d, Fifth: %d\n", first, second, third, fourth, fifth);
+  
+    ESP_LOGI(TAG, "Diff 1: %d\n\n", second - first);
+}
+
+void Renderer::_change_led(uint8_t index, RGB color)
+{
+  uint8_t offset = 4 + (index * 4);
+
+  _led_buffer[offset] = _brightness;
+  _led_buffer[offset + 1] = color.r;
+  _led_buffer[offset + 2] = color.g;
+  _led_buffer[offset + 3] = color.b;
+}
+
 // Loads the .json file from the file system into the imageData Array, so it can be used for displaying.
 void Renderer::_load_image_from_flash()
 {
@@ -142,18 +197,26 @@ void Renderer::_load_image_from_flash()
   _max_frame = frame_count - 1;
 }
 
-void Renderer::_draw_led_strip_colors()
+void Renderer::_update_led_colors()
 {
-  // unsigned long current_us, previous_us;
-  //
-  // previous_us = micros();
-  uint32_t index;
-  CRGB color;
+  uint8_t index;
+  RGB color;
+  
+  taskENTER_CRITICAL(&optionsMUX);
+  bool leds_enabled = options.leds_enabled;
+  taskEXIT_CRITICAL(&optionsMUX);
+  
+  if (!leds_enabled)
+  {
+    for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
+      _change_led(led_index, RGB::Black);
+    return;
+  }
 
   // Go through all the LEDs and change their current color value.  
   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
   {
-    // // Get the cartesian coordinates the LED should be showing inside of the image at that time.
+    // Get the cartesian coordinates the LED should be showing inside of the image at that time.
     auto coordinates = conversion_matrix[_current_degrees][LEDS_PER_STRIP - led_index - 1];
 
     index = _current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x;
@@ -165,7 +228,7 @@ void Renderer::_draw_led_strip_colors()
     color.g = _add_colors(color.g, options.green_color_adjust);
     color.b = _add_colors(color.b, options.blue_color_adjust);
 
-    _leds[led_index] = CRGB::Red; 
+    _change_led(led_index, RGB::Red);
   }
   
   uint16_t opposite_degrees = (_current_degrees + 180) % 360;
@@ -180,30 +243,16 @@ void Renderer::_draw_led_strip_colors()
 
     // Get the color value from the image at those coordinates.
     color = _image_data[index];
-    
+
     color.r = _add_colors(color.r, options.red_color_adjust);
     color.g = _add_colors(color.g, options.green_color_adjust);
     color.b = _add_colors(color.b, options.blue_color_adjust);
     
-    _leds[led_index] = color; 
+    _change_led(led_index, RGB::Blue);
   }
-
-  // current_us = micros();
-  //
-  // ESP_LOGI(TAG, "first: %d", current_us - previous_us);
-  //
-  // previous_us = micros();
-
-  FastLED.show();
-
-  // current_us = micros();
-  //
-  // ESP_LOGI(TAG, "second: %d", current_us - previous_us);
-  //
-  // delay(500);
 }
 
-void IRAM_ATTR _update_led()
+void IRAM_ATTR _update_timer_ISR()
 {
   // Update the timer delay and restart the timer.
   timerAlarmWrite(g_renderer->_render_loop_timer, g_renderer->options._delay_between_degrees_us, true);
@@ -229,24 +278,37 @@ void Renderer::init()
   BaseType_t result;
 
   // Allocate all the image data in PSRAM.
-  _image_data = (CRGB*)ps_malloc(IMAGE_DATA_SIZE);
+  _image_data = (RGB*)ps_malloc(IMAGE_DATA_SIZE);
+  
+  for (uint32_t index = 0; index < (IMAGE_DATA_SIZE / sizeof(RGB)); index++)
+    _image_data[index] = RGB::Black;
+  
+  // Initialize the SPI bus.
+  spi_bus_initialize(SPI_HOST, &_buscfg, SPI_DMA_CH_AUTO);
+  
+  // Attach the SPI device.
+  spi_bus_add_device(SPI_HOST, &_devcfg, &_spi);
 
-  for (uint32_t index = 0; index < (IMAGE_DATA_SIZE / sizeof(CRGB)); index++)
-    _image_data[index] = CRGB::Black;
- 
-  ESP_LOGI(TAG, "Adding LEDs..");
-  // FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, BGR, DATA_RATE_MHZ(1)>(_leds, LEDS_PER_STRIP * 2);
-  FastLED.addLeds<SK9822, LED_DATA_PIN, LED_CLOCK_PIN, BGR>(_leds, LEDS_PER_STRIP * 2);
-  FastLED.setBrightness(15);
-  FastLED.setMaxRefreshRate(0);
+  // Allocate DMA buffer.
+  _led_buffer = (uint8_t*)heap_caps_malloc((LEDS_PER_STRIP * 2 * 4) + 8, MALLOC_CAP_DMA);
+
+  // Write start and end sections.
+  memset(_led_buffer, 0, 4);
+  memset(_led_buffer + 4 + (LEDS_PER_STRIP * 2 * 4), 255, 4);
+
+  while (true)
+  {
+    ESP_LOGI(TAG, "Setting");
+
+    for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
+      _change_led(led_index, RGB(255, 255, 0));
+    
+    _show();
+    
+    vTaskDelay(pdMS_TO_TICKS(500));
+  };
   
-  // Set everything to black.
-  for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
-    _leds[led_index] = CRGB::Black;
-  
-  FastLED.show();
-  
-  // _load_image_from_flash();
+  _load_image_from_flash();
 
   _render_loop_timer = timerBegin(
     0,
@@ -254,10 +316,10 @@ void Renderer::init()
     true
   );
 
-  timerAttachInterrupt(_render_loop_timer, _update_led, false);
+  timerAttachInterrupt(_render_loop_timer, _update_timer_ISR, false);
   timerAlarmWrite(_render_loop_timer, options._delay_between_degrees_us, false);
   timerAlarmEnable(_render_loop_timer);
-  
+
   result = xTaskCreate(
     _display_loop,
     PSTR("Display Loop"),
@@ -279,58 +341,45 @@ void Renderer::_display_loop(void *parameter)
   {
     ulTaskNotifyTake(true, portMAX_DELAY);
    
-    ESP_LOGI(TAG, "%d", renderer->_current_degrees);
+    // ESP_LOGI(TAG, "%d", renderer->_current_degrees);
 
     renderer->_current_degrees = (g_renderer->_current_degrees == 359 ? 0 : g_renderer->_current_degrees + 1);
 
-    taskENTER_CRITICAL(&optionsMUX);
-    bool leds_enabled = renderer->options.leds_enabled;
-    taskEXIT_CRITICAL(&optionsMUX);
-    
-    if (leds_enabled)
-      renderer->_draw_led_strip_colors();
+    renderer->_update_led_colors();
+    renderer->_show();
   };
 }
 
-// void Renderer::start_renderer()
-// {
-//   if (xTimerStart(_render_loop_timer, pdMS_TO_TICKS(1000)) == pdFAIL)
-//   {
-//     ESP_LOGI(TAG, "Couldn't start timer!");
-//     return;
-//   }
-// }
-//
-// void Renderer::stop_renderer()
-// {
-//   if (xTimerStop(_render_loop_timer, pdMS_TO_TICKS(1000)) == pdFAIL)
-//   {
-//     ESP_LOGI(TAG, "Couldn't stop timer!");
-//     return;
-//   }
-// }
+void Renderer::set_brightness(uint8_t brightness) { _brightness = brightness; }
 
-void Renderer::start_renderer()
+void Renderer::set_renderer_state(bool enabled)
 {
-  if (eTaskGetState(_display_loop_task) == eRunning)
-    return;
+  taskENTER_CRITICAL(&optionsMUX);
+  options.leds_enabled = enabled;
+  taskEXIT_CRITICAL(&optionsMUX);
   
-  vTaskResume(_display_loop_task);
-}
+  if (!enabled)
+  {
+    if (eTaskGetState(_display_loop_task) == eSuspended)
+      return;
 
-void Renderer::stop_renderer()
-{
-  if (eTaskGetState(_display_loop_task) == eSuspended)
-    return;
-
-  vTaskSuspend(_display_loop_task);
+    vTaskSuspend(_display_loop_task);
+    
+    _update_led_colors();
+    _show();
+  }
+  else
+  {
+    if (eTaskGetState(_display_loop_task) == eRunning)
+      return;
+  
+    vTaskResume(_display_loop_task);
+  }
 }
 
 void Renderer::refresh_image()
 {
-  stop_renderer();
   _load_image_from_flash();
-  start_renderer();
 }
 
 }

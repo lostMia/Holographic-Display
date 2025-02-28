@@ -39,6 +39,5 @@ void loop()
 {
 #ifdef OTA_FIRMWARE
   ElegantOTA.loop();
-  vTaskDelay(100);
 #endif
 }

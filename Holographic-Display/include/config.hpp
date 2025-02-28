@@ -33,7 +33,7 @@
 // #define MAX_FRAMES (int)(800000 / (IMAGE_SIZE * IMAGE_SIZE * sizeof(CRGB))) - 10
 #define MAX_FRAMES 10
 
-#define IMAGE_DATA_SIZE (MAX_FRAMES * IMAGE_SIZE * IMAGE_SIZE * sizeof(CRGB))
+#define IMAGE_DATA_SIZE (MAX_FRAMES * IMAGE_SIZE * IMAGE_SIZE * sizeof(RGB))
 // Defines the most current image that has been uploaded from the website.
 #define IMAGE_JSON_NAME "/datadump/image.json"
 
@@ -54,9 +54,12 @@
 // Only 80 is currently supported! 
 #define WEBSERVER_PORT 80
 
+// The SPI host to run the LEDs on.
+#define SPI_HOST SPI3_HOST
+
 // Which of the cores on the ESP the specific tasks are supposed to run on.
-#define RENDERER_CORE 1
-#define CONFIG_ESP32_WIFI_TASK_PINNED_TO_CORE_1 0
+// #define RENDERER_CORE 1
+// #define CONFIG_ESP32_WIFI_TASK_PINNED_TO_CORE_1 0
 // #define CONFIG_MDNS_TASK_AFFINITY 0
 
 // #define configTICK_RATE_HZ 100

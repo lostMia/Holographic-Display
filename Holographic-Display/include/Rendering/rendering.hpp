@@ -14,20 +14,17 @@
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
 #include <iomanip>
-#include <string>
 #include <stdio.h>
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <cstring>
 #include "config.hpp"
 #include "conversion_matrix.hpp"
+#include "rgb.hpp"
 #include "esp_log.h"
+#include "driver/spi_master.h"
 
-// #define FASTLED_ESP32_SPI_BULK_TRANSFER 1
-// #define FASTLED_ALL_PINS_HARDWARE_SPI
-// #define FASTLED_ESP32_SPI_BULK_TRANSFER_SIZE 100000
-
-#include "FastLED.h"
 
 using namespace std;
 
@@ -36,7 +33,6 @@ namespace Rendering
 {
 
 static portMUX_TYPE optionsMUX = portMUX_INITIALIZER_UNLOCKED;
-
 
 struct Options 
 {
@@ -48,17 +44,39 @@ struct Options
 };
 
 
-void IRAM_ATTR _update_led();
+void IRAM_ATTR _update_timer_ISR();
 
 // Class managing the displaying of images using the led strips.
 class Renderer
 {
 private:
     // Allocate the image inside of PSRAM
-    CRGB* _image_data;
+    RGB* _image_data;
     uint16_t _delay_data[MAX_FRAMES];
+
     TaskHandle_t _display_loop_task = NULL;
     hw_timer_t* _render_loop_timer;
+    
+    spi_device_handle_t _spi;
+
+    const spi_bus_config_t _buscfg = {
+        .mosi_io_num = LED_DATA_PIN,
+        .miso_io_num = -1,
+        .sclk_io_num = LED_CLOCK_PIN,
+        .quadwp_io_num = -1,
+        .quadhd_io_num = -1,
+        .max_transfer_sz = (LEDS_PER_STRIP * 2 * 4) + 8,
+    };
+
+    const spi_device_interface_config_t _devcfg = {
+        .mode = 0,                          // SPI mode 0 (CPOL=0, CPHA=0)
+        .clock_speed_hz = 24 * 1000 * 1000,
+        .spics_io_num = -1,                 // No CS pin
+        .flags = SPI_DEVICE_HALFDUPLEX,      // Half-duplex for LED strips
+        .queue_size = 1,                     // Only 1 transaction at a time
+    };
+
+    uint8_t _brightness = 0;
     uint8_t _current_frame = 0;
     uint8_t _current_degrees = 0;
     uint8_t _max_frame = 0;
@@ -67,18 +85,20 @@ private:
     void _print_image_data();
     void _load_image_from_flash();
     void _next_pixel(uint8_t *x, uint8_t *y);
-    void _draw_led_strip_colors();
+    void _update_led_colors();
+    void _show();
+    void _change_led(uint8_t index, RGB color);
     static void _display_loop(void *parameter);
-    friend void IRAM_ATTR _update_led();
+    friend void IRAM_ATTR _update_timer_ISR();
     uint8_t _add_colors(uint8_t color, int16_t addition);
 
 public:
-    CRGB _leds[LEDS_PER_STRIP * 2];
+    uint8_t* _led_buffer = NULL;
     Options options;
     
     void init();
-    void start_renderer();
-    void stop_renderer();
+    void set_brightness(uint8_t brightness);
+    void set_renderer_state(bool enabled);
     void refresh_image();
 };
 

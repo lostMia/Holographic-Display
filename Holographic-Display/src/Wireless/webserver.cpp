@@ -61,7 +61,7 @@ bool WebServer::_begin_SPIFFS()
 #ifdef OTA_FIRMWARE
 void WebServer::_begin_OTA()
 {
-  ESP_LOGI(TAG, F("Setting up ElegantOTA..."));
+  ESP_LOGI(TAG, "Setting up ElegantOTA...");
 
   ElegantOTA.begin(&_server);
   ElegantOTA.setAutoReboot(true);
@@ -72,7 +72,7 @@ void WebServer::_begin_OTA()
 #endif
 #endif
 
-  ESP_LOGI(TAG, F("Done"));
+  ESP_LOGI(TAG, "Done");
 }
 #endif
 
@@ -244,7 +244,7 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
         // LED-Slider
         case 2:
           _led_brightness = std::stoi(value);
-          FastLED.setBrightness(_led_brightness);
+          _renderer->set_brightness(_led_brightness);
           break;
         // Red-Color-Slider
         case 3:
@@ -323,27 +323,9 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
         // LED-Active-Lever
         case 2:
           if (!strncmp(value, "true", 8))
-          {
-            taskENTER_CRITICAL(&Rendering::optionsMUX);
-            _renderer->options.leds_enabled = true;
-            taskEXIT_CRITICAL(&Rendering::optionsMUX);
-            // _renderer->start_renderer();
-          }
+            _renderer->set_renderer_state(true);
           else
-          {
-            taskENTER_CRITICAL(&Rendering::optionsMUX);
-            _renderer->options.leds_enabled = false;
-
-            // _renderer->stop_renderer();
-             
-            for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
-              _renderer->_leds[led_index] = CRGB::Purple;
-
-            FastLED.show();
-            
-            taskEXIT_CRITICAL(&Rendering::optionsMUX);
-            // FastLED.clear();
-          }
+            _renderer->set_renderer_state(false);
           break;
       }
       break;

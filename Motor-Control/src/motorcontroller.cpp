@@ -93,9 +93,9 @@ void MotorController::send_current_speed(void *parameter)
 
     motorcontroller->_http_send.addHeader("Content-Type", "application/x-www-form-urlencoded");
     
-    unsigned long time_full_rotation_us = motorcontroller->_get_average_pulse();
+    unsigned long time_between_pulses_us = motorcontroller->_get_average_pulse();
     
-    String post_data = "m1=" + String(time_full_rotation_us);
+    String post_data = "m1=" + String(time_between_pulses_us);
 
     http_code = motorcontroller->_http_send.POST(post_data);
     
