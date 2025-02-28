@@ -26,7 +26,7 @@
 
 // Defines the width/height of the image to create.
 // This is equal to the number of LED's per strip times 2.
-#define IMAGE_SIZE LEDS_PER_STRIP * 2
+#define IMAGE_SIZE (LEDS_PER_STRIP * 2)
 
 // Defines the approx. max number of frames that can be loaded. 
 // 8388608 is the number of bytes we have available (2^23)
@@ -58,7 +58,7 @@
 #define SPI_HOST SPI3_HOST
 // The frequency of the SPI channel that is used to talk to the 
 // LED strip. (in MHz!)
-#define SPI_FREQUENCY 1
+#define SPI_FREQUENCY 45
 
 // Which of the cores on the ESP the specific tasks are supposed to run on.
 // #define RENDERER_CORE 1

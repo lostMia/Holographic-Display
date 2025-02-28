@@ -29,8 +29,8 @@ int main()
   auto conversion_matrix = create_conversion_matrix(center_x, center_y);
 
   // print_conversion_matrix_pretty(&conversion_matrix);
-  // print_conversion_matrix_array(&conversion_matrix);
-  print_shown_coordinates(&conversion_matrix);
+  print_conversion_matrix_array(&conversion_matrix);
+  // print_shown_coordinates(&conversion_matrix);
 
   return 0;
 }
@@ -121,21 +121,14 @@ vector<vector<pair<int, int>>> create_conversion_matrix(int center_x, int center
   for (int angle = 0; angle < ANGLES_PER_ROTATION; angle++) 
   {
     double theta = angle * M_PI / 180.0;
+    int x, y;
 
     for (int led_index = 0; led_index < LEDS_PER_STRIP; led_index++) 
     {
-      int x = static_cast<int>(round(center_x + led_index * cos(theta)));
-      int y = static_cast<int>(round(center_y + led_index * sin(theta)));
-    }
-      
-      if (x >= 0 && x < 128 && y >= 0 && y < 128)
-      {
-        conversion_matrix[angle][led_index] = make_pair(x, y);
-      } 
-      else
-      {
-        conversion_matrix[angle][led_index] = make_pair(-1, -1);
-      }
+      x = static_cast<int>(round(center_x + led_index * cos(theta)));
+      y = static_cast<int>(round(center_y + led_index * sin(theta)));
+
+      conversion_matrix[angle][led_index] = make_pair(x, y);
     }
   }
   

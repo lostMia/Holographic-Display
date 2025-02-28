@@ -39,7 +39,7 @@ struct Options
     int16_t red_color_adjust = 0;
     int16_t green_color_adjust = 0;
     int16_t blue_color_adjust = 0;
-    unsigned long _delay_between_degrees_us = 200000;
+    unsigned long _delay_between_degrees_us = 277;
     bool leds_enabled = true;
 };
 
@@ -84,9 +84,9 @@ private:
     
 
     uint8_t _brightness = 0;
-    uint8_t _current_frame = 0;
-    uint8_t _current_degrees = 0;
-    uint8_t _max_frame = 0;
+    uint16_t _current_frame = 0;
+    uint16_t _current_degrees = 0;
+    uint16_t _max_frame = 0;
 
     void _clear_image_data();
     void _print_image_data();

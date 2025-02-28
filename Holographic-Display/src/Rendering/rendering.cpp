@@ -49,7 +49,7 @@ void Renderer::_print_image_data()
   char buffer[IMAGE_SIZE + 1];
   buffer[IMAGE_SIZE] = '\0';
 
-  for (uint8_t frame_index = 0; frame_index <= _max_frame; frame_index++)
+  for (uint16_t frame_index = 0; frame_index <= _max_frame; frame_index++)
   {
     for (uint8_t x = 0; x < IMAGE_SIZE; x++)
     {
@@ -69,7 +69,7 @@ void Renderer::_show()
 {
     esp_err_t ret;
     // spi_transaction_t* result = &_current_transaction;
-    
+    // 
     // ret = spi_device_get_trans_result(_spi, &result, portMAX_DELAY);
 
     // If the last transaction isn't completed yet, just skip the current transaction.
@@ -79,25 +79,20 @@ void Renderer::_show()
     _current_transaction.length = ((LEDS_PER_STRIP * 2 * 4) + 8) * 8;
     _current_transaction.user = NULL;
     _current_transaction.tx_buffer = _led_buffer;
-  
-    for (uint8_t index = 0; index < 20; index++)
-    {
-      ESP_LOGI("fucking work please", "Buffer: %d %d  %x", index, _led_buffer[index], _led_buffer[index]);
-    }
    
-    unsigned long first, second;
+    // unsigned long first, second;
 
-    first = micros();
+    // first = micros();
 
     // Blocking transfer. 
-    spi_device_polling_transmit(_spi, &_current_transaction);
+    // spi_device_polling_transmit(_spi, &_current_transaction);
 
     // Non blocking transfer.
-    // spi_device_queue_trans(_spi, &_current_transaction, portMAX_DELAY);
+    spi_device_queue_trans(_spi, &_current_transaction, portMAX_DELAY);
 
-    second = micros();
+    // second = micros();
 
-    ESP_LOGI(TAG, "Transaction: %d\n\n", second - first);
+    // ESP_LOGI(TAG, "Transaction: %d\n\n", second - first);
 }
 
 void Renderer::_change_led(uint8_t index, RGB color)
@@ -145,7 +140,7 @@ void Renderer::_load_image_from_flash()
   file.close();
 
   JsonArray frames = json_doc["frames"];
-  uint8_t frame_count = 0;
+  uint16_t frame_count = 0;
   
   for (JsonObject frame : frames) 
   {
@@ -189,26 +184,26 @@ void Renderer::_load_image_from_flash()
 
 void Renderer::_update_led_colors()
 {
-  uint8_t index;
+  uint16_t index;
   RGB color;
 
-  // taskENTER_CRITICAL(&optionsMUX);
-  // bool leds_enabled = options.leds_enabled;
-  // taskEXIT_CRITICAL(&optionsMUX);
-  //
-  // if (!leds_enabled)
-  // {
-  //   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
-  //     _change_led(led_index, RGB::Black);
-  //   return;
-  // }
+  taskENTER_CRITICAL(&optionsMUX);
+  bool leds_enabled = options.leds_enabled;
+  taskEXIT_CRITICAL(&optionsMUX);
+
+  if (!leds_enabled)
+  {
+    for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
+      _change_led(led_index, RGB::Black);
+    return;
+  }
 
   // Go through all the LEDs and change their current color value.  
   for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
   {
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
     auto coordinates = conversion_matrix[_current_degrees][LEDS_PER_STRIP - led_index - 1];
-
+    
     index = _current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x;
 
     // Get the color value from the image at those coordinates.
@@ -218,7 +213,7 @@ void Renderer::_update_led_colors()
     color.g = _add_colors(color.g, options.green_color_adjust);
     color.b = _add_colors(color.b, options.blue_color_adjust);
 
-    _change_led(led_index, RGB::Red);
+    _change_led(led_index, color);
   }
   
   uint16_t opposite_degrees = (_current_degrees + 180) % 360;
@@ -237,7 +232,7 @@ void Renderer::_update_led_colors()
     color.r = _add_colors(color.r, options.red_color_adjust);
     color.g = _add_colors(color.g, options.green_color_adjust);
     color.b = _add_colors(color.b, options.blue_color_adjust);
-    
+
     _change_led(led_index, color);
   }
 }
@@ -273,6 +268,8 @@ void Renderer::init()
   for (uint32_t index = 0; index < (IMAGE_DATA_SIZE / sizeof(RGB)); index++)
     _image_data[index] = RGB::Black;
   
+  pinMode(6, OUTPUT);
+  
   // Initialize the SPI bus.
   spi_bus_initialize(SPI_HOST, &_buscfg, SPI_DMA_CH_AUTO);
   
@@ -286,28 +283,19 @@ void Renderer::init()
   memset(_led_buffer, 0x00, 4);
   memset(_led_buffer + 4 + (LEDS_PER_STRIP * 2 * 4), 0xFF, 4);
 
-  
-  while (true)
-  {
-    for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
-      _change_led(led_index, RGB::Red);
+  for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
+    _change_led(led_index, RGB::Black);
 
-    _show();
-    
-    vTaskDelay(200);
-  }
+  _show();
 
   _load_image_from_flash();
+  // _print_image_data();
 
   _render_loop_timer = timerBegin(
     0,
     80,
     true
   );
-
-  timerAttachInterrupt(_render_loop_timer, _update_timer_ISR, false);
-  timerAlarmWrite(_render_loop_timer, options._delay_between_degrees_us, false);
-  timerAlarmEnable(_render_loop_timer);
 
   result = xTaskCreate(
     _display_loop,
@@ -320,6 +308,10 @@ void Renderer::init()
 
   if (result != pdPASS)
     ESP_LOGE(TAG, "Couldn't allocate enough memory!");
+
+  timerAttachInterrupt(_render_loop_timer, _update_timer_ISR, false);
+  timerAlarmWrite(_render_loop_timer, options._delay_between_degrees_us, false);
+  timerAlarmEnable(_render_loop_timer);
 }
 
 void Renderer::_display_loop(void *parameter)
@@ -330,9 +322,15 @@ void Renderer::_display_loop(void *parameter)
   {
     ulTaskNotifyTake(true, portMAX_DELAY);
    
-    ESP_LOGI(TAG, "%d", renderer->_current_degrees);
+    // ESP_LOGI(TAG, "%d", renderer->_current_degrees);
 
     renderer->_current_degrees = (g_renderer->_current_degrees == 359 ? 0 : g_renderer->_current_degrees + 1);
+    
+
+    if (renderer->_current_degrees == 0)
+      digitalWrite(6, HIGH);
+    else if (renderer->_current_degrees == 180)
+      digitalWrite(6, LOW);
 
     renderer->_update_led_colors();
     renderer->_show();
