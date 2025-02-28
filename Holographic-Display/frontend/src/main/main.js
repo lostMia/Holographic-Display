@@ -66,8 +66,11 @@ dropZone.addEventListener('drop', (event) => {
   event.preventDefault();
   event.stopPropagation();
   dropZone.style.borderColor = '#555557';
-  const files = event.dataTransfer.files;
 
+  handleFiles(event.dataTransfer.files)
+});
+
+window.handleFiles = function handleFiles(files) {
   if (files.length === 0) {
     alert('Please select a file to upload.');
     return;
@@ -85,7 +88,7 @@ dropZone.addEventListener('drop', (event) => {
   } else {
     alert('Unsupported file type. Please upload a valid image or GIF.');
   }
-});
+}
 
 // - - - - - - - - - - - - Image Upload - - - - - - - - - - - - //
 
