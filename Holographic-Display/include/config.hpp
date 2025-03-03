@@ -37,7 +37,7 @@
 
 // Defines the max number of frames that can be loaded. 
 // 128 * 128 * 3 * 165 = 8110080 Bytes...
-#define MAX_FRAMES 165
+#define MAX_FRAMES 166
 
 #define IMAGE_DATA_SIZE (MAX_FRAMES * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS * sizeof(RGB))
 // Defines the most current image that has been uploaded from the website.
@@ -70,7 +70,7 @@
 
 // Which of the cores on the ESP the specific tasks are supposed to run on.
 #define RENDERER_CORE 0
-// #define CONFIG_ESP32_WIFI_TASK_PINNED_TO_CORE_1 1
+// #define CONFIG_ESP32_WIFI_TASK_PINNED_TO_CORE_1 0
 // #define CONFIG_MDNS_TASK_AFFINITY 1
 
 // #define configTICK_RATE_HZ 100

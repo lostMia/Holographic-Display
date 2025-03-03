@@ -136,6 +136,7 @@ void WebServer::_setup_webserver_tree()
 
   _server.onFileUpload([this](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) 
   {
+    // New Upload.
     if (!index) 
     {
       ESP_LOGI(TAG, "UploadStart: %s\n", filename.c_str());

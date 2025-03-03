@@ -222,6 +222,8 @@ window.uploadBinary = async function uploadBinary(binaryBlob, fileName) {
   };
 
   xhr.onload = () => {
+    progressBar.value = 0;
+
     if (xhr.status === 200) {
       alert('Finished uploading the image! :)');
     } else {

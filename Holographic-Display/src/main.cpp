@@ -16,10 +16,12 @@ void setup()
 {
   Serial.begin(SERIAL_BAUDRATE);
 
-  // Disable Watchdog on core 0, as the renderer must not lag behind or have any disturbances and
-  // the entire core is getting blocked.
+  // Disable Watchdog on Core 1, because.. fuck it, that's why.
   disableCore0WDT();
-  disableCore1WDT();
+
+  // Disable Task watchdog.
+  esp_task_wdt_delete(xTaskGetCurrentTaskHandle());
+  esp_task_wdt_deinit();
 
   psramInit();
 
@@ -39,5 +41,6 @@ void loop()
 {
 #ifdef OTA_FIRMWARE
   ElegantOTA.loop();
+  vTaskDelay(100);
 #endif
 }

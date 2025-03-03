@@ -22,28 +22,6 @@ void Renderer::_clear_image_data()
   memset(&_image_data, 0, IMAGE_DATA_SIZE);
 }
 
-void Renderer::_next_pixel(uint8_t *px, uint8_t *py)
-{
-  uint8_t x = *px;
-  uint8_t y = *py;
-
-  // Move onto the next Pixel on the X-Axis.
-  x++;
-  if (x != IMAGE_LENGTH_PIXELS)
-  {
-    *px = x;
-    return;
-  };
-
-  // Move onto the next Pixel on the Y-Axis and reset X-Axis, if already at the end on the X-Axis.
-  x = 0;
-  
-  y = (y == IMAGE_LENGTH_PIXELS) ? 0 : y + 1;
-  
-  *px = x;
-  *py = y;
-}
-
 void Renderer::_print_image_data()
 {
   char buffer[IMAGE_LENGTH_PIXELS + 1];
@@ -156,7 +134,7 @@ void Renderer::_load_image_from_flash()
 
   file.close();
 
-  ESP_LOGI(TAG, "Frame Count: %d", frame_index);
+  ESP_LOGI(TAG, "Frames loaded: %d", frame_index);
 }
 
 void Renderer::_update_led_colors()
@@ -273,14 +251,13 @@ void Renderer::init()
     true
   );
 
-  result = xTaskCreatePinnedToCore(
+  result = xTaskCreate(
     _display_loop,
     PSTR("Display Loop"),
     4096,
     this,
     configMAX_PRIORITIES,
-    &_display_loop_task,
-    RENDERER_CORE
+    &_display_loop_task
   );
 
   if (result != pdPASS)

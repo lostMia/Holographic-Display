@@ -85,7 +85,7 @@ private:
     
 
     uint8_t* _led_buffer = NULL;
-    uint8_t _current_brightness = 3;
+    uint8_t _current_brightness = 1; // change back
     uint8_t _saved_brightness = 3;
     uint16_t _current_frame = 0;
     uint16_t _current_degrees = 0;
@@ -94,7 +94,6 @@ private:
     void _clear_image_data();
     void _print_image_data();
     void _load_image_from_flash();
-    void _next_pixel(uint8_t *x, uint8_t *y);
     void _update_led_colors();
     void _show();
     void _change_led(uint8_t index, RGB color);
