@@ -139,7 +139,7 @@ void WebServer::_setup_webserver_tree()
     if (!index) 
     {
       ESP_LOGI(TAG, "UploadStart: %s\n", filename.c_str());
-      request->_tempFile = SPIFFS.open(IMAGE_JSON_NAME, "w");
+      request->_tempFile = SPIFFS.open(IMAGE_DATA_NAME, "w");
     }
 
     size_t free_bytes = SPIFFS.totalBytes() - SPIFFS.usedBytes();
@@ -204,14 +204,14 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
 {
   const char* name;
   const char* value;
-  uint8_t number = 0;
+  uint8_t index = 0;
 
   try
   {
     // The name will be something like s5 -> Slider 5.
     name = parameter->name().c_str();
     value = parameter->value().c_str();
-    number = std::stoi(parameter->name()
+    index = std::stoi(parameter->name()
                                       .substring(1)
                                       .c_str());
   }
@@ -227,7 +227,7 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
     // Slider
     case 's':
       // Figure out what slider was used.
-      switch (number)
+      switch (index)
       {
         // Motor-Power-Slider
         case 1:
@@ -241,7 +241,7 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
 
           _target_power = (uint16_t)raw_power;
           break;
-        // LED-Slider
+        // LED Brightness Slider
         case 2:
           _led_brightness = std::stoi(value);
           _renderer->set_brightness(_led_brightness);
@@ -299,14 +299,10 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
       }
       break;
 
-    // Text-Field
-    case 't':
-      break;
-      
      // Lever-Field
     case 'l':
       // Figure out what lever was used.
-      switch (number)
+      switch (index)
       {
         // Motor-Active-Lever
         case 1:

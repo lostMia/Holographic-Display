@@ -1,5 +1,6 @@
 import { parseGIF, decompressFrames } from 'gifuct-js'
 
+
 // document.onreadystatechange = function () {
 //   if (document.readyState !== "complete") {
 //     document.body.style.visibility = "hidden";
@@ -92,24 +93,6 @@ window.handleFiles = function handleFiles(files) {
 
 // - - - - - - - - - - - - Image Upload - - - - - - - - - - - - //
 
-/*
-This is the Json format that will be used.
-Using this will open up the possibility of using videos or GIF's further in the future.
-
-{
-"frames":            // collection of frames
-[
-  {
-    "delay":"",      // delay in miliseconds between this frame and the one before it.
-    "data": [
-      123, 255, 244, // first pixel
-      0, 255, 255,   // second pixel
-      ...,
-    ]
-  }
-]
-}
-*/
 window.handleImageFile = async function handleImageFile(file) {
   const canvas = document.createElement('canvas');
   const img = new Image();
@@ -126,113 +109,107 @@ window.handleImageFile = async function handleImageFile(file) {
   // Extract pixel data
   const imageData = ctx.getImageData(0, 0, imageSize, imageSize);
   const { data } = imageData;
-  const jsonStructure = { frames: [{ delay: 0, data: [] }] };
+  
+  // Allocate binary buffer (RGB only, no alpha)
+  const binaryData = new Uint8Array(((imageSize * imageSize) * 3) + 2);
+  let index = 0;
 
+  // Set the delay to zero
+  binaryData[index++] = 0x00;
+  binaryData[index++] = 0x00;
+  
   for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    jsonStructure.frames[0].data.push(r, g, b);
+    binaryData[index++] = data[i];     // Red
+    binaryData[index++] = data[i + 1]; // Green
+    binaryData[index++] = data[i + 2]; // Blue
   }
 
-  // Convert JSON object to Blob
-  const jsonBlob = new Blob([JSON.stringify(jsonStructure)], { type: 'application/json' });
+  // Convert binary data to Blob
+  const binaryBlob = new Blob([binaryData], { type: 'application/octet-stream' });
 
-  console.log(jsonStructure);
-  console.log(JSON.stringify(jsonStructure))
+  console.log(binaryData);
   
-  // Send JSON to ESP32
-  await uploadJSON(jsonBlob, 'image.json');
+  // Send binary data to ESP32
+  await uploadBinary(binaryBlob, 'data.bin');
 }
 
 // - - - - - - - - - - - - GIF Upload - - - - - - - - - - - - //
 
 window.handleGIFFile = async function handleGIFFile(file) {
-  const frames = await getFramesFromGIF(file)
+  const frames = await extractFramesFromGIF(file);
+  const frameCount = frames.length;
 
-  const jsonStructure = { 
-    frames: [] 
-  };
+  // Allocate binary buffer (RGB data + delay per frame)
+  const binaryData = new Uint8Array((imageSize * imageSize * 3 * frameCount) + (frameCount * 2));
+  let index = 0;
 
   for (const frame of frames) {
-    const processedFrame = await processGIFFrame(frame)
+    const processedFrame = await processGIFFrame(frame);
+    binaryData[index++] = processedFrame.delay & 0xff;
+    binaryData[index++] = (processedFrame.delay >> 8) & 0xff;
 
-    jsonStructure.frames.push(processedFrame);
-  }
-
-  // Convert JSON object to Blob
-  const jsonBlob = new Blob([JSON.stringify(jsonStructure)], { type: 'application/json' });
-
-  console.log(jsonStructure);
-  console.log(JSON.stringify(jsonStructure))
-  
-  // Send JSON to ESP32
-  await uploadJSON(jsonBlob, 'image.json');
-}
-
-window.processGIFFrame = async function processGIFFrame(frame) {
-  // Resize the canvas to the desired dimensions
-  canvas.width = frame.dims.width;
-  canvas.height = frame.dims.height;
-
-  const ctx = canvas.getContext('2d');
-
-  // Create an ImageData object to represent the frame
-  const imageData = ctx.createImageData(frame.dims.width, frame.dims.height);
-
-  // Populate the ImageData with pixel data
-  const colorTable = frame.colorTable;
-  for (let i = 0; i < frame.pixels.length; i+=4) {
-    const pixelIndex = frame.pixels[i];
-    if (pixelIndex === frame.transparentIndex) {
-      // Transparent pixel
-      imageData.data[i + 3] = 0;
-    } else {
-      // Map pixel to colorTable
-      const [r, g, b] = colorTable[pixelIndex];
-      imageData.data[i] = r;
-      imageData.data[i + 1] = g;
-      imageData.data[i + 2] = b;
-      imageData.data[i + 3] = 255; // Fully opaque
+    for (const pixel of processedFrame.data) {
+      binaryData[index++] = pixel;
     }
   }
 
-  // Draw the image data onto the off-screen canvas
-  ctx.putImageData(imageData, 0, 0);
+  // Convert binary data to Blob
+  const binaryBlob = new Blob([binaryData], { type: 'application/octet-stream' });
+  
+  console.log(binaryData);
+  
+  // Send binary data to ESP32
+  await uploadBinary(binaryBlob, 'data.bin');
+}
 
-  // Scale the content from the off-screen canvas onto the main canvas
-  ctx.drawImage(canvas, 0, 0, imageSize, imageSize);
 
-  // Extract the resized image data
-  const resizedImageData = ctx.getImageData(0, 0, imageSize, imageSize);
+window.processGIFFrame = async function processGIFFrame(frame) {
+  const canvas = document.createElement('canvas');
+  canvas.width = frame.dims.width;
+  canvas.height = frame.dims.height;
+  const ctx = canvas.getContext('2d');
 
-  // Extract RGBA data for JSON
-  const { data } = resizedImageData;
-  const frameData = [];
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    frameData.push(r, g, b);
+  const imageData = ctx.createImageData(frame.dims.width, frame.dims.height);
+  const colorTable = frame.colorTable;
+
+  for (let i = 0; i < frame.pixels.length; i++) {
+    const pixelIndex = frame.pixels[i];
+    if (pixelIndex !== frame.transparentIndex) {
+      const [r, g, b] = colorTable[pixelIndex];
+      imageData.data[i * 4] = r;
+      imageData.data[i * 4 + 1] = g;
+      imageData.data[i * 4 + 2] = b;
+      imageData.data[i * 4 + 3] = 255;
+    }
   }
 
-  return {
-    delay: frame.delay,
-    data: frameData,
-  };
+  ctx.putImageData(imageData, 0, 0);
+  ctx.drawImage(canvas, 0, 0, imageSize, imageSize);
+
+  const resizedImageData = ctx.getImageData(0, 0, imageSize, imageSize);
+  const { data } = resizedImageData;
+  const frameData = new Uint8Array(imageSize * imageSize * 3);
+  let index = 0;
+
+  for (let i = 0; i < data.length; i += 4) {
+    frameData[index++] = data[i];     // Red
+    frameData[index++] = data[i + 1]; // Green
+    frameData[index++] = data[i + 2]; // Blue
+  }
+
+  return { delay: frame.delay, data: frameData };
 }
 
-window.getFramesFromGIF = async function getFramesFromGIF(file) {
-  let buffer = await file.arrayBuffer()
-  let gif = parseGIF(buffer)
-  let frames = decompressFrames(gif, true)
+window.extractFramesFromGIF = async function extractFramesFromGIF(file) {
+  const buffer = await file.arrayBuffer();
+  const gif = parseGIF(buffer);
+  return decompressFrames(gif, true);
+} 
 
-  return frames
-}
 
-window.uploadJSON = async function uploadJSON(jsonBlob, fileName) {
+window.uploadBinary = async function uploadBinary(binaryBlob, fileName) {
   const formData = new FormData();
-  formData.append('file', jsonBlob, fileName);
+  formData.append('file', binaryBlob, fileName);
 
   const xhr = new XMLHttpRequest();
   xhr.open('POST', '/upload', true);
@@ -253,7 +230,7 @@ window.uploadJSON = async function uploadJSON(jsonBlob, fileName) {
   };
 
   xhr.send(formData);
-}
+} 
 
 // - - - - - - - - - - - - CurrentRPM - - - - - - - - - - - - //
 
@@ -286,6 +263,7 @@ window.sendData = function sendData(input) {
   timeout = setTimeout(() => {
     var formData = new FormData();
     formData.append(input.name, input.type === 'checkbox' ? input.checked : input.value);
+    console.log(formData)
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "/post", true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");

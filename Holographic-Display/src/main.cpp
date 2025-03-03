@@ -18,8 +18,8 @@ void setup()
 
   // Disable Watchdog on core 0, as the renderer must not lag behind or have any disturbances and
   // the entire core is getting blocked.
-  // disableCore0WDT();
-  // disableCore1WDT();
+  disableCore0WDT();
+  disableCore1WDT();
 
   psramInit();
 

@@ -18,30 +18,38 @@
 #define ANGLES_PER_ROTATION 360
 
 // The amount of LEDs on each strip.
-#define LEDS_PER_STRIP 64
+#define LEDS_PER_SIDE 64
 
 // The data pin the LEDs are connected to
 #define LED_DATA_PIN 7
 #define LED_CLOCK_PIN 4
 
+// The data pin the HAL sensor is connected to
+#define HAL_PIN 10
+
 // Defines the width/height of the image to create.
 // This is equal to the number of LED's per strip times 2.
-#define IMAGE_SIZE (LEDS_PER_STRIP * 2)
+#define IMAGE_LENGTH_PIXELS (LEDS_PER_SIDE * 2)
+// The image size in bytes.
+#define IMAGE_SIZE_BYTES (IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS * sizeof(RGB))
+// The image size in pixels.
+#define IMAGE_SIZE_PIXELS (IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS)
 
-// Defines the approx. max number of frames that can be loaded. 
-// 8388608 is the number of bytes we have available (2^23)
-// #define MAX_FRAMES (int)(800000 / (IMAGE_SIZE * IMAGE_SIZE * sizeof(CRGB))) - 10
-#define MAX_FRAMES 10
+// Defines the max number of frames that can be loaded. 
+// 128 * 128 * 3 * 165 = 8110080 Bytes...
+#define MAX_FRAMES 165
 
-#define IMAGE_DATA_SIZE (MAX_FRAMES * IMAGE_SIZE * IMAGE_SIZE * sizeof(RGB))
+#define IMAGE_DATA_SIZE (MAX_FRAMES * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS * sizeof(RGB))
 // Defines the most current image that has been uploaded from the website.
-#define IMAGE_JSON_NAME "/datadump/image.json"
+#define IMAGE_DATA_NAME "/datadump/data.bin"
 
 // Define this for Over-The-Air sketch/firmware updates.
 // - - - - - - WARNING - - - - - - 
 // If you disable this, then all OTA Updates will be non-functional.
 // Manual reupload with this variable defined is needed to enable OTA again!
 #define OTA_FIRMWARE
+// Make sure to add this this in the ElegantOTA.h file!!
+// #define ELEGANTOTA_USE_ASYNC_WEBSERVER 1
 
 // Define to enable mDNS with the specified hostname. 
 #define MDNS_HOSTNAME "holo"
@@ -61,9 +69,9 @@
 #define SPI_FREQUENCY 45
 
 // Which of the cores on the ESP the specific tasks are supposed to run on.
-// #define RENDERER_CORE 1
-// #define CONFIG_ESP32_WIFI_TASK_PINNED_TO_CORE_1 0
-// #define CONFIG_MDNS_TASK_AFFINITY 0
+#define RENDERER_CORE 0
+// #define CONFIG_ESP32_WIFI_TASK_PINNED_TO_CORE_1 1
+// #define CONFIG_MDNS_TASK_AFFINITY 1
 
 // #define configTICK_RATE_HZ 100
 // #define configUSE_PREEMPTION 1

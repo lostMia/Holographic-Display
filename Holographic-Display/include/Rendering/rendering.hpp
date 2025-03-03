@@ -39,12 +39,13 @@ struct Options
     int16_t red_color_adjust = 0;
     int16_t green_color_adjust = 0;
     int16_t blue_color_adjust = 0;
-    unsigned long _delay_between_degrees_us = 277;
-    bool leds_enabled = true;
+    // unsigned long _delay_between_degrees_us = 277;
+    unsigned long _delay_between_degrees_us = 5000;
 };
 
 
 void IRAM_ATTR _update_timer_ISR();
+void IRAM_ATTR _update_rotation_ISR(void* parameter);
 
 // Class managing the displaying of images using the led strips.
 class Renderer
@@ -65,7 +66,7 @@ private:
         .sclk_io_num = LED_CLOCK_PIN,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = (LEDS_PER_STRIP * 2 * 4) + 8,
+        .max_transfer_sz = (LEDS_PER_SIDE * 2 * 4) + 8,
     };
 
     spi_device_interface_config_t _devcfg = {
@@ -77,13 +78,15 @@ private:
     };
     
     spi_transaction_t _current_transaction = {
-        .length = ((LEDS_PER_STRIP * 2 * 4) + 8) * 8,  // Bits!
+        .length = ((LEDS_PER_SIDE * 2 * 4) + 8) * 8,  // Bits!
         .user = NULL,
         .tx_buffer = _led_buffer
     };
     
 
-    uint8_t _brightness = 0;
+    uint8_t* _led_buffer = NULL;
+    uint8_t _current_brightness = 3;
+    uint8_t _saved_brightness = 3;
     uint16_t _current_frame = 0;
     uint16_t _current_degrees = 0;
     uint16_t _max_frame = 0;
@@ -96,11 +99,14 @@ private:
     void _show();
     void _change_led(uint8_t index, RGB color);
     static void _display_loop(void *parameter);
+
+    // Add the ISR function as friends.
     friend void IRAM_ATTR _update_timer_ISR();
+    friend void IRAM_ATTR _update_rotation_ISR(void* parameter);
+
     uint8_t _add_colors(uint8_t color, int16_t addition);
 
 public:
-    uint8_t* _led_buffer = NULL;
     Options options;
     
     void init();

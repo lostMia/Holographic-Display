@@ -29,7 +29,7 @@ void Renderer::_next_pixel(uint8_t *px, uint8_t *py)
 
   // Move onto the next Pixel on the X-Axis.
   x++;
-  if (x != IMAGE_SIZE)
+  if (x != IMAGE_LENGTH_PIXELS)
   {
     *px = x;
     return;
@@ -38,7 +38,7 @@ void Renderer::_next_pixel(uint8_t *px, uint8_t *py)
   // Move onto the next Pixel on the Y-Axis and reset X-Axis, if already at the end on the X-Axis.
   x = 0;
   
-  y = (y == IMAGE_SIZE) ? 0 : y + 1;
+  y = (y == IMAGE_LENGTH_PIXELS) ? 0 : y + 1;
   
   *px = x;
   *py = y;
@@ -46,16 +46,16 @@ void Renderer::_next_pixel(uint8_t *px, uint8_t *py)
 
 void Renderer::_print_image_data()
 {
-  char buffer[IMAGE_SIZE + 1];
-  buffer[IMAGE_SIZE] = '\0';
+  char buffer[IMAGE_LENGTH_PIXELS + 1];
+  buffer[IMAGE_LENGTH_PIXELS] = '\0';
 
   for (uint16_t frame_index = 0; frame_index <= _max_frame; frame_index++)
   {
-    for (uint8_t x = 0; x < IMAGE_SIZE; x++)
+    for (uint8_t x = 0; x < IMAGE_LENGTH_PIXELS; x++)
     {
-      for (uint8_t y = 0; y < IMAGE_SIZE; y++)
+      for (uint8_t y = 0; y < IMAGE_LENGTH_PIXELS; y++)
       {
-        uint32_t index = frame_index * IMAGE_SIZE * IMAGE_SIZE + y * IMAGE_SIZE + x;
+        uint32_t index = frame_index * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS + y * IMAGE_LENGTH_PIXELS + x;
         
         buffer[y] = _image_data[index].r == 255 ? '#' : '.';
       }
@@ -67,16 +67,7 @@ void Renderer::_print_image_data()
 
 void Renderer::_show()
 {
-    esp_err_t ret;
-    // spi_transaction_t* result = &_current_transaction;
-    // 
-    // ret = spi_device_get_trans_result(_spi, &result, portMAX_DELAY);
-
-    // If the last transaction isn't completed yet, just skip the current transaction.
-    if (ret != ESP_OK)
-      return;
-  
-    _current_transaction.length = ((LEDS_PER_STRIP * 2 * 4) + 8) * 8;
+    _current_transaction.length = ((LEDS_PER_SIDE * 2 * 4) + 8) * 8;
     _current_transaction.user = NULL;
     _current_transaction.tx_buffer = _led_buffer;
    
@@ -99,18 +90,17 @@ void Renderer::_change_led(uint8_t index, RGB color)
 {
   uint16_t offset = 4 + (index * 4);
 
-  _led_buffer[offset] = 0xE0 | 1;
+  _led_buffer[offset] = 0xE0 | _current_brightness;
   _led_buffer[offset + 1] = color.b;
   _led_buffer[offset + 2] = color.g;
   _led_buffer[offset + 3] = color.r;
 }
 
-// Loads the .json file from the file system into the imageData Array, so it can be used for displaying.
+// Loads the .bin file from the file system into the _image_data Array,
+// so it can be used for displaying.
 void Renderer::_load_image_from_flash()
 {
-  ESP_LOGW(TAG, "loading image from flash");
-
-  File file = SPIFFS.open(IMAGE_JSON_NAME, "r", false);
+  File file = SPIFFS.open(IMAGE_DATA_NAME, "r", false);
 
   if (!file) 
   {
@@ -126,60 +116,47 @@ void Renderer::_load_image_from_flash()
     return;
   }
 
-  JsonDocument json_doc;
+  // Reset all the delay data.
+  memset(_delay_data, 0, MAX_FRAMES * sizeof(uint16_t));
+  
+  const uint16_t chunk_size = 128;
+  uint16_t frame_index = 0;
+  char chunk_buffer[chunk_size * sizeof(RGB)];
 
-  // Parse the file contents to the JSON document
-  DeserializationError error = deserializeJson(json_doc, file);
-  if (error) 
+   while (file.available()) 
   {
-    ESP_LOGE(TAG, "Failed to parse JSON: \n%s", error.c_str());
-    file.close();
-    return;
+    if (frame_index >= MAX_FRAMES) 
+    {
+      ESP_LOGE(TAG, "Too many frames, buffer overflow!!!");
+      break;
+    }
+
+    // Read delay and save it inside of the delay buffer.
+    uint16_t delay;
+    file.readBytes((char*)&delay, 2);
+
+    _delay_data[frame_index] = delay;
+
+    for (uint8_t i = 0; i < IMAGE_SIZE_BYTES / (chunk_size * sizeof(RGB)); i++)
+    {
+      file.readBytes(
+        chunk_buffer,
+        chunk_size * sizeof(RGB)
+      );
+      
+      // Pointer Magic :trademark:
+      memcpy((void*)&_image_data[chunk_size * i],
+        chunk_buffer,
+        chunk_size * sizeof(RGB)
+      );
+    }
+
+    frame_index++;
   }
 
   file.close();
 
-  JsonArray frames = json_doc["frames"];
-  uint16_t frame_count = 0;
-  
-  for (JsonObject frame : frames) 
-  {
-    uint16_t delay = frame["delay"];
-    JsonArray data = frame["data"];
-        
-    _delay_data[frame_count] = delay;
-    
-    uint8_t index_count = 0;
-    uint8_t x = 0;
-    uint8_t y = 0;
-    uint32_t index = frame_count * IMAGE_SIZE * IMAGE_SIZE + x * IMAGE_SIZE + y;
-    
-    for (int value : data) 
-    {
-      switch (index_count) 
-      {
-        case 0:
-            _image_data[index].r = value; 
-            break;
-        case 1:
-            _image_data[index].g = value; 
-            break;
-        case 2:
-            _image_data[index].b = value; 
-            _next_pixel(&x, &y);
-
-            index = frame_count * IMAGE_SIZE * IMAGE_SIZE + x * IMAGE_SIZE + y;
-            break;
-        default:
-          break;
-      }
-
-      index_count == 2 ? index_count = 0 : index_count++;
-    }
-    frame_count++;
-  }
-
-  _max_frame = frame_count - 1;
+  ESP_LOGI(TAG, "Frame Count: %d", frame_index);
 }
 
 void Renderer::_update_led_colors()
@@ -187,24 +164,13 @@ void Renderer::_update_led_colors()
   uint16_t index;
   RGB color;
 
-  taskENTER_CRITICAL(&optionsMUX);
-  bool leds_enabled = options.leds_enabled;
-  taskEXIT_CRITICAL(&optionsMUX);
-
-  if (!leds_enabled)
-  {
-    for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
-      _change_led(led_index, RGB::Black);
-    return;
-  }
-
   // Go through all the LEDs and change their current color value.  
-  for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP; led_index++)
+  for (uint8_t led_index = 0; led_index < LEDS_PER_SIDE; led_index++)
   {
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
-    auto coordinates = conversion_matrix[_current_degrees][LEDS_PER_STRIP - led_index - 1];
+    auto coordinates = conversion_matrix[_current_degrees][LEDS_PER_SIDE - led_index - 1];
     
-    index = _current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x;
+    index = _current_frame * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS + coordinates.y * IMAGE_LENGTH_PIXELS + coordinates.x;
 
     // Get the color value from the image at those coordinates.
     color = _image_data[index];
@@ -219,12 +185,12 @@ void Renderer::_update_led_colors()
   uint16_t opposite_degrees = (_current_degrees + 180) % 360;
   
   // Go through all the LEDs and change their current color value.  
-  for (uint8_t led_index = LEDS_PER_STRIP; led_index < LEDS_PER_STRIP * 2; led_index++)
+  for (uint8_t led_index = LEDS_PER_SIDE; led_index < LEDS_PER_SIDE * 2; led_index++)
   {
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
-    auto coordinates = conversion_matrix[opposite_degrees][led_index - LEDS_PER_STRIP];
+    auto coordinates = conversion_matrix[opposite_degrees][led_index - LEDS_PER_SIDE];
 
-    index = _current_frame * IMAGE_SIZE * IMAGE_SIZE + coordinates.y * IMAGE_SIZE + coordinates.x;
+    index = _current_frame * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS + coordinates.y * IMAGE_LENGTH_PIXELS + coordinates.x;
 
     // Get the color value from the image at those coordinates.
     color = _image_data[index];
@@ -248,6 +214,15 @@ void IRAM_ATTR _update_timer_ISR()
   portYIELD_FROM_ISR(hptw);
 }
 
+void IRAM_ATTR _update_rotation_ISR(void* parameter)
+{
+  ESP_LOGI("you should never appear", "THIS SHOULD NEVER APPEAR");
+
+  Renderer *renderer = (Renderer*)parameter;
+  
+  renderer->_current_degrees = 0;
+}
+
 uint8_t Renderer::_add_colors(uint8_t color, int16_t addition)
 {
   int16_t temp_color = (int16_t)color;
@@ -268,8 +243,6 @@ void Renderer::init()
   for (uint32_t index = 0; index < (IMAGE_DATA_SIZE / sizeof(RGB)); index++)
     _image_data[index] = RGB::Black;
   
-  pinMode(6, OUTPUT);
-  
   // Initialize the SPI bus.
   spi_bus_initialize(SPI_HOST, &_buscfg, SPI_DMA_CH_AUTO);
   
@@ -277,13 +250,16 @@ void Renderer::init()
   spi_bus_add_device(SPI_HOST, &_devcfg, &_spi);
 
   // Allocate DMA buffer.
-  _led_buffer = (uint8_t*)heap_caps_malloc((LEDS_PER_STRIP * 2 * 4) + 8, MALLOC_CAP_DMA);
+  _led_buffer = (uint8_t*)heap_caps_malloc(
+    (LEDS_PER_SIDE * 2 * 4) + 8,
+     MALLOC_CAP_DMA
+  );
 
   // Write start and end sections.
   memset(_led_buffer, 0x00, 4);
-  memset(_led_buffer + 4 + (LEDS_PER_STRIP * 2 * 4), 0xFF, 4);
+  memset(_led_buffer + 4 + (LEDS_PER_SIDE * 2 * 4), 0xFF, 4);
 
-  for (uint8_t led_index = 0; led_index < LEDS_PER_STRIP * 2; led_index++)
+  for (uint8_t led_index = 0; led_index < LEDS_PER_SIDE * 2; led_index++)
     _change_led(led_index, RGB::Black);
 
   _show();
@@ -297,13 +273,14 @@ void Renderer::init()
     true
   );
 
-  result = xTaskCreate(
+  result = xTaskCreatePinnedToCore(
     _display_loop,
     PSTR("Display Loop"),
     4096,
     this,
     configMAX_PRIORITIES,
-    &_display_loop_task
+    &_display_loop_task,
+    RENDERER_CORE
   );
 
   if (result != pdPASS)
@@ -312,6 +289,8 @@ void Renderer::init()
   timerAttachInterrupt(_render_loop_timer, _update_timer_ISR, false);
   timerAlarmWrite(_render_loop_timer, options._delay_between_degrees_us, false);
   timerAlarmEnable(_render_loop_timer);
+  
+  // attachInterruptArg(digitalPinToInterrupt(HAL_PIN), _update_rotation_ISR, this, RISING);
 }
 
 void Renderer::_display_loop(void *parameter)
@@ -334,34 +313,24 @@ void Renderer::_display_loop(void *parameter)
 
     renderer->_update_led_colors();
     renderer->_show();
-  };
+  }
 }
 
-void Renderer::set_brightness(uint8_t brightness) { _brightness = brightness; }
+void Renderer::set_brightness(uint8_t brightness) 
+{ 
+  // Only change the current brightness if the leds aren't disabled.
+  if (_current_brightness != 0)
+    _current_brightness = brightness;
+
+  _saved_brightness = brightness;
+}
 
 void Renderer::set_renderer_state(bool enabled)
 {
-  taskENTER_CRITICAL(&optionsMUX);
-  options.leds_enabled = enabled;
-  taskEXIT_CRITICAL(&optionsMUX);
-  
-  if (!enabled)
-  {
-    if (eTaskGetState(_display_loop_task) == eSuspended)
-      return;
-
-    vTaskSuspend(_display_loop_task);
-    
-    _update_led_colors();
-    _show();
-  }
-  else
-  {
-    if (eTaskGetState(_display_loop_task) == eRunning)
-      return;
-  
-    vTaskResume(_display_loop_task);
-  }
+  // Set the brightness to 0 incase the renderer should be disabled.
+  // This might seem like a stupid idea but it's far more reliable than disabling the 
+  // Task or doing something over the top... trust me.
+  enabled ? _current_brightness = _saved_brightness : _current_brightness = 0;
 }
 
 void Renderer::refresh_image()
