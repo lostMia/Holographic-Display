@@ -93,10 +93,11 @@ private:
     unsigned long _last_frame_switch = 0;
 
     void _clear_image_data();
-    void _print_image_data();
+    void _print_image_data(uint8_t frame);
     void _load_image_from_flash();
-    void _update_frame();
-    void _update_degrees();
+    void _copy_to_frame_buffer(uint8_t frame, uint8_t* data);
+    void _update_frame_count();
+    void _update_degree_count();
     void _update_led_colors();
     void _show();
     void _change_led(uint8_t index, RGB color);
@@ -115,6 +116,7 @@ public:
     void set_brightness(uint8_t brightness);
     void set_renderer_state(bool enabled);
     void refresh_image();
+    void update_frame(uint8_t frame, uint8_t* data);
 };
 
 extern Renderer *g_renderer;

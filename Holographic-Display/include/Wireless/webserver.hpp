@@ -46,6 +46,11 @@ private:
     uint8_t _led_brightness = 50;
     uint16_t _current_RPM = 0;
     uint8_t _next_upload_print = 0;
+    bool _can_upload = true;
+    bool _dmo_mode = true;
+    uint8_t _frame_buffer[IMAGE_SIZE_BYTES + 1436];
+    uint16_t _frame_buffer_index = 0;
+    uint8_t _frame_counter = 0;
 
     TaskHandle_t _OTA_loop_task = NULL;
     

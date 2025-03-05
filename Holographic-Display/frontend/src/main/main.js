@@ -44,6 +44,7 @@ const progressBar = document.getElementById('progressBar');
 const previewImage = document.getElementById('previewImage');
 const imagePreviewContainer = document.getElementById('imagePreviewContainer');
 const imagePreviewSeparator = document.getElementById('imagePreviewSeparator');
+const dmoCheckbox = document.getElementById('l3');
 const fileInput = document.getElementById('fileInput');
 
 
@@ -208,7 +209,6 @@ window.extractFramesFromGIF = async function extractFramesFromGIF(file) {
 
 
 window.uploadBinary = async function uploadBinary(binaryBlob, fileName) {
-
   if (binaryBlob.size > maxUploadSize) {
     alert('File is too large! Maximum frame count is 162!');
     return;

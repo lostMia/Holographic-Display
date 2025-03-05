@@ -22,27 +22,24 @@ void Renderer::_clear_image_data()
   memset(&_image_data, 0, IMAGE_DATA_SIZE);
 }
 
-void Renderer::_print_image_data()
+void Renderer::_print_image_data(uint8_t frame)
 {
   char buffer[IMAGE_LENGTH_PIXELS + 1];
   buffer[IMAGE_LENGTH_PIXELS] = '\0';
 
-  for (uint16_t frame_index = 0; frame_index <= _max_frame; frame_index++)
+  for (uint8_t x = 0; x < IMAGE_LENGTH_PIXELS; x++)
   {
-    for (uint8_t x = 0; x < IMAGE_LENGTH_PIXELS; x++)
+    for (uint8_t y = 0; y < IMAGE_LENGTH_PIXELS; y++)
     {
-      for (uint8_t y = 0; y < IMAGE_LENGTH_PIXELS; y++)
-      {
-        uint32_t index = frame_index * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS + y * IMAGE_LENGTH_PIXELS + x;
-        
-        buffer[y] = _image_data[index].r == 255 ? '#' : '.';
-      }
+      uint32_t index = frame * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS + y * IMAGE_LENGTH_PIXELS + x;
       
-      ESP_LOGI(TAG, "%s", buffer);
+      buffer[y] = _image_data[index].r == 255 ? '#' : '.';
     }
-
-    ESP_LOGI(TAG, "\n\n- - - - - - - - - - - - - - - - - - - - \n");
+    
+    ESP_LOGI(TAG, "%s", buffer);
   }
+
+  ESP_LOGI(TAG, "\n\n- - - - - - - - - - - - - - - - - - - - \n");
 }
 
 void Renderer::_show()
@@ -75,6 +72,22 @@ void Renderer::_change_led(uint8_t index, RGB color)
   _led_buffer[offset + 2] = color.g;
   _led_buffer[offset + 3] = color.r;
 }
+
+void Renderer::_copy_to_frame_buffer(uint8_t frame, uint8_t* data)
+{
+  // Extract the delay data from the frame.
+  uint16_t delay;
+  memcpy(&delay, data, 2);
+  _delay_data[frame] = delay;
+
+  // Copy the frame data into the PSRAM image buffer at the given frame index.
+  memcpy(((char*)_image_data) + frame * IMAGE_SIZE_BYTES,
+    data + 2,
+    IMAGE_SIZE_BYTES
+  );
+  
+  _max_frame = frame;
+ }
 
 // Loads the .bin file from the file system into the _image_data Array,
 // so it can be used for displaying.
@@ -130,7 +143,7 @@ void Renderer::_load_image_from_flash()
   ESP_LOGI(TAG, "Frames loaded: %d", _max_frame);
 }
 
-void Renderer::_update_frame()
+void Renderer::_update_frame_count()
 {
   // If there aren't multiple frames that we need to cycle through.
   if (_max_frame < 2)
@@ -150,7 +163,7 @@ void Renderer::_update_frame()
   }
 }
 
-void Renderer::_update_degrees() { _current_degrees == 359 ? 0 : _current_degrees + 1; }
+void Renderer::_update_degree_count() { _current_degrees == 359 ? 0 : _current_degrees + 1; }
 
 void Renderer::_update_led_colors()
 {
@@ -298,8 +311,8 @@ void Renderer::_display_loop(void *parameter)
     // else if (renderer->_current_degrees == 180)
     //   digitalWrite(6, LOW);
 
-    renderer->_update_degrees();
-    renderer->_update_frame();
+    renderer->_update_degree_count();
+    renderer->_update_frame_count();
     renderer->_update_led_colors();
     renderer->_show();
   }
@@ -322,10 +335,9 @@ void Renderer::set_renderer_state(bool enabled)
   enabled ? _current_brightness = _saved_brightness : _current_brightness = 0;
 }
 
-void Renderer::refresh_image()
-{
-  _load_image_from_flash();
-}
+void Renderer::refresh_image() { _load_image_from_flash(); }
+
+void Renderer::update_frame(uint8_t frame, uint8_t* data) { _copy_to_frame_buffer(frame, data); }
 
 }
 

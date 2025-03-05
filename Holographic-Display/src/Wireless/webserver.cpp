@@ -82,20 +82,25 @@ void WebServer::_setup_webserver_tree()
   
   _server.on(PSTR("/TargetPower"), HTTP_GET, [this](AsyncWebServerRequest *request)
   {
-    char RPM_string[10];
-    
-    sprintf(RPM_string, "%d", _target_power);
+    char buffer[10];
+    sprintf(buffer, "%d", _target_power);
 
-    request->send(200, F("text/plain"), RPM_string);
+    request->send(200, F("text/plain"), buffer);
+  });
+
+  _server.on(PSTR("/CanUpload"), HTTP_GET, [this](AsyncWebServerRequest *request)
+  {
+    char buffer[10];
+    sprintf(buffer, "%d", _can_upload);
+
+    request->send(200, F("text/plain"), buffer);
   });
  
   _server.on(PSTR("/CurrentRPM"), HTTP_GET, [this](AsyncWebServerRequest *request)
   {
-    char RPM_string[10];
-    
-    sprintf(RPM_string, "%d", _current_RPM);
-
-    request->send(200, F("text/plain"), RPM_string);
+    char buffer[10];
+    sprintf(buffer, "%d", _current_RPM);
+    request->send(200, F("text/plain"), buffer);
   });
   
   _server.onNotFound([](AsyncWebServerRequest *request)
@@ -107,11 +112,48 @@ void WebServer::_setup_webserver_tree()
 
   _server.onFileUpload([this](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) 
   {
+    // If a new upload has been started.
+    if (!index)                   
+    {
+      _frame_buffer_index = 0;
+      _frame_counter = 0;
+    }
+
+    // Copy the received data into the frame buffer.
+    memcpy(_frame_buffer + _frame_buffer_index, 
+      data,
+      len
+    );
+
+    _frame_buffer_index += len;
+       
+    // If the frame buffer is full.
+    if (_frame_buffer_index >= IMAGE_SIZE_BYTES + 2)
+    {
+      _renderer->update_frame(_frame_counter, _frame_buffer);
+                       
+      size_t remaining_bytes = _frame_buffer_index - (IMAGE_SIZE_BYTES + 2);
+
+      // Move the rest of the buffer back to the start if there is remaining data.
+      if (remaining_bytes > 0)
+        memmove(_frame_buffer,
+            _frame_buffer + (IMAGE_SIZE_BYTES + 2),
+            remaining_bytes
+        );
+  
+      _frame_buffer_index -= (IMAGE_SIZE_BYTES + 2);
+      _frame_counter++;
+    }
+                       
+    // Only care about writing anything to the file system if we aren't in DMU mode!
+    if (_dmo_mode)
+      return;
+  
     // New Upload.
     if (!index) 
     {
-      ESP_LOGI(TAG, "UploadStart: %s\n", filename.c_str());
-                       
+      ESP_LOGI(TAG, "Upload Start!");
+
       TaskHandle_t task_handle = xTaskGetCurrentTaskHandle();
                        
       // We have to temporarily disable the watchdog just for this action, because,
@@ -139,6 +181,7 @@ void WebServer::_setup_webserver_tree()
       
     if (request->_tempFile)
     {
+      // If the file is too be stored in the remaining space.
       if (index + len > free_bytes)
       {
         request->_tempFile.close();
@@ -155,8 +198,6 @@ void WebServer::_setup_webserver_tree()
         request->_tempFile.close();
         ESP_LOGI(TAG, "UploadEnd: %s, %u\n", filename.c_str(), _format_bytes(index + len));
         ESP_LOGI(TAG, "Free Heap: %d", ESP.getFreeHeap());
-
-        _renderer->refresh_image();
       } 
       else
         ESP_LOGI(TAG, "Upload failed: %s exceeds maximum size of %u bytes\n", filename.c_str(), free_bytes);
@@ -307,6 +348,14 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
             _renderer->set_renderer_state(true);
           else
             _renderer->set_renderer_state(false);
+          break;
+          
+        // DMU-Mode-Lever
+        case 3:
+          if (!strncmp(value, "true", 8))
+            _dmo_mode = true;
+          else
+            _dmo_mode = false;
           break;
       }
       break;
