@@ -31,7 +31,7 @@
             </div>
 
             <!-- RPM Feedback -->
-            <div class="option-group" title="Shows the current RPM of the motor.">
+            <div class="option-group-small" title="Shows the current RPM of the motor.">
               <label>Current RPM </label>
               <div class="horizontal">
                 <label class="highlighted" id="currentRPMLabel">NONE</label>
@@ -84,13 +84,24 @@
           </div>
 
           <div id="imagePreviewSeparator" class="separator"></div>
+          <!-- Direct memory upload -->
 
-          <!-- Position Offset Vertical -->
-          <div class="option-group" title="Position offset slider for adjusting the rotation.">
-            <label for="offset-text">Offset (°)</label>
-            <div class="slider-group">
-              <input type="range" min="0" max="359" value="0" class="slider" name="s3">
-              <input type="number" class="manualSlider" min="0" max="359" value="0" name="s3">
+          <div class="horizontal">
+            <div class="option-group-small" title="Enables memory only mode. Uploaded files will not be written to the FS. Use this if the image doesn't necessarily have to be saved.">
+              <label>DMU Mode</label>
+              <div class="horizontal">
+                <input type="checkbox" id="l3" name="l3" checked>
+                <label class="checkbox-label" for="l3"/>
+              </div>
+            </div>
+
+            <!-- Position Offset Vertical -->
+            <div class="option-group" title="Position offset slider for adjusting the rotation.">
+              <label for="offset-text">Offset (°)</label>
+              <div class="slider-group">
+                <input type="range" min="0" max="359" value="0" class="slider" name="s3">
+                <input type="number" class="manualSlider" min="0" max="359" value="0" name="s3">
+              </div>
             </div>
           </div>
         </div>

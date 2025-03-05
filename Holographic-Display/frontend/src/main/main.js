@@ -11,6 +11,7 @@ import { parseGIF, decompressFrames } from 'gifuct-js'
 
 // - - - - - - - - - - - - Constants - - - - - - - - - - - - //
 
+const maxUploadSize = 8000000;
 const imageSize = 128;
 
 const canvas = document.createElement('canvas');
@@ -207,6 +208,12 @@ window.extractFramesFromGIF = async function extractFramesFromGIF(file) {
 
 
 window.uploadBinary = async function uploadBinary(binaryBlob, fileName) {
+
+  if (binaryBlob.size > maxUploadSize) {
+    alert('File is too large! Maximum frame count is 162!');
+    return;
+  }
+
   const formData = new FormData();
   formData.append('file', binaryBlob, fileName);
 

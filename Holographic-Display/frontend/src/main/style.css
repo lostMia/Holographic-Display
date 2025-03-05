@@ -79,6 +79,7 @@ input[type="range"] {
 input[type="range"]::-moz-range-progress {
   accent-color : red;
   background-color: #ff4060; 
+  color: #ff4060;
 }
 
 input[type="range"]::-moz-range-track {  
@@ -193,7 +194,7 @@ input[type=file]::file-selector-button:hover {
 
 #dropZone {
   height: 100%;
-  min-height: 200px;
+  min-height: 300px;
   padding: 10px;
   margin: 10px;
   border: 2px dashed #555555;
@@ -315,6 +316,7 @@ input[type=file]::file-selector-button:hover {
   flex-direction: row;
   justify-content: space-around;
   font-size: 20em;
+  width: 100%;
 }
 
 .option-group-small,
@@ -323,8 +325,8 @@ input[type=file]::file-selector-button:hover {
   flex-direction: column;
   justify-content: flex-start;
   border-radius: 16px;
-  border-bottom: 1px solid #000000; 
-  border-top: 1px solid #ffffff20; 
+  border-bottom: 2px solid #000000; 
+  border-top: 2px solid #ffffff20; 
   line-height: 1.5;
   padding: 2%;
   margin: 1%;
@@ -332,12 +334,13 @@ input[type=file]::file-selector-button:hover {
 }
 
 .option-group-small {
-  min-width: 20%;
+  min-width: 25%;
+  align-items: center;
 }
 
 .option-group {
+  min-width: 70%;
   max-width: 98%;
-  min-width: 40%;
 }
 
 
