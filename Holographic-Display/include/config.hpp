@@ -36,12 +36,15 @@
 #define IMAGE_SIZE_PIXELS (IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS)
 
 // Defines the max number of frames that can be loaded. 
-// 128 * 128 * 3 * 165 = 8110080 Bytes...
-#define MAX_FRAMES 166
+// The PSRAM size is 8MB! Yes, MB, not MiB. 
+// That means we can store up to 8.000.000 Bytes.
+// 8.000.000/(128*128*3) = 162.76
+// Therefore we can store up to 162 Images in the PSRAM.
+#define MAX_FRAMES 162
 
 #define IMAGE_DATA_SIZE (MAX_FRAMES * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS * sizeof(RGB))
 // Defines the most current image that has been uploaded from the website.
-#define IMAGE_DATA_NAME "/datadump/data.bin"
+#define IMAGE_DATA_NAME "/data.bin"
 
 // Define this for Over-The-Air sketch/firmware updates.
 // - - - - - - WARNING - - - - - - 

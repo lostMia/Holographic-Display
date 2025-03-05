@@ -31,33 +31,6 @@ String WebServer::_format_bytes(const size_t bytes)
     return String(bytes / (1024.0 * 1024.0 * 1024.0)) + F(" GB");
 }
 
-bool WebServer::_begin_SPIFFS()
-{
-  Serial.print(F("Setting up SPIFFS...")); 
-
-  if (!SPIFFS.begin(true)) 
-  {
-    Serial.println(F("An Error has occurred while mounting SPIFFS"));
-    return false;
-  }
-
-  Serial.println(F("Done")); 
-  
-  size_t total_bytes, used_bytes, free_bytes;
-  total_bytes = SPIFFS.totalBytes();
-  used_bytes = SPIFFS.usedBytes();
-  free_bytes = total_bytes - used_bytes;
-
-  Serial.print(F("SPIFFS Free: ")); 
-  Serial.println(_format_bytes(free_bytes));
-  Serial.print(F("SPIFFS Used: ")); 
-  Serial.println(_format_bytes(used_bytes));
-  Serial.print(F("SPIFFS Total: ")); 
-  Serial.println(_format_bytes(total_bytes));
-
-  return true;
-}
-
 #ifdef OTA_FIRMWARE
 void WebServer::_begin_OTA()
 {
@@ -71,8 +44,6 @@ void WebServer::_begin_OTA()
   ElegantOTA.setAuth(OTA_USERNAME, OTA_PASSWORD);
 #endif
 #endif
-
-  ESP_LOGI(TAG, "Done");
 }
 #endif
 
@@ -106,7 +77,7 @@ void WebServer::_setup_webserver_tree()
   _server.on(PSTR("/"), HTTP_GET, [](AsyncWebServerRequest *request)
   {
     ESP_LOGI(TAG, "Serving to IP: %s", request->client()->remoteIP().toString().c_str());
-    request->send(SPIFFS, F("/site/main/index.html"), F("text/html"));
+    request->send(LittleFS, F("/site/main/index.html"), F("text/html"));
   });
   
   _server.on(PSTR("/TargetPower"), HTTP_GET, [this](AsyncWebServerRequest *request)
@@ -131,7 +102,7 @@ void WebServer::_setup_webserver_tree()
   {
     ESP_LOGI(TAG, "Unable to find http://%s | request from %s\n", request->host().c_str(), request->client()->remoteIP().toString().c_str());
 
-    request->send(SPIFFS, F("/site/notfound/index.html"), F("text/html"));
+    request->send(LittleFS, F("/site/notfound/index.html"), F("text/html"));
   });
 
   _server.onFileUpload([this](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) 
@@ -140,11 +111,31 @@ void WebServer::_setup_webserver_tree()
     if (!index) 
     {
       ESP_LOGI(TAG, "UploadStart: %s\n", filename.c_str());
-      request->_tempFile = SPIFFS.open(IMAGE_DATA_NAME, "w");
+                       
+      TaskHandle_t task_handle = xTaskGetCurrentTaskHandle();
+                       
+      // We have to temporarily disable the watchdog just for this action, because,
+      // depending on the previous file size, it may take very long...
+      esp_task_wdt_delete(task_handle);
+                      
+      LittleFS.remove(IMAGE_DATA_NAME);
+
+      request->_tempFile = LittleFS.open(IMAGE_DATA_NAME, "w");
+                       
+      esp_task_wdt_add(task_handle);
+                       
+      _next_upload_print = 0;
     }
 
-    size_t free_bytes = SPIFFS.totalBytes() - SPIFFS.usedBytes();
-    ESP_LOGI(TAG, "SPIFFS Free: %s", _format_bytes(free_bytes).c_str());
+    size_t free_bytes = LittleFS.totalBytes() - LittleFS.usedBytes();
+
+    if (_next_upload_print == 10)
+    {
+      ESP_LOGI(TAG, "LittleFS Free: %s", _format_bytes(free_bytes).c_str());
+      _next_upload_print = 0;
+    }
+
+    _next_upload_print++;
       
     if (request->_tempFile)
     {
@@ -156,7 +147,7 @@ void WebServer::_setup_webserver_tree()
 
       request->_tempFile.write(data, len);
     }
-    
+
     if (final)
     {
       if (request->_tempFile)
@@ -186,18 +177,11 @@ void WebServer::_setup_webserver_tree()
     request->send(200, F("text/plain"), F("OK"));
   });
 
-  _server.serveStatic(PSTR("/resources/"), SPIFFS, PSTR("/site/resources/"));
-  _server.serveStatic(PSTR("/notfound/"), SPIFFS, PSTR("/site/notfound/"));
-  _server.serveStatic(PSTR("/datadump/"), SPIFFS, PSTR("/datadump/"));
-  _server.serveStatic(PSTR("/"), SPIFFS, PSTR("/site/main/")).setDefaultFile(PSTR("index.html"));
+  _server.serveStatic(PSTR("/resources/"), LittleFS, PSTR("/site/resources/"));
+  _server.serveStatic(PSTR("/notfound/"), LittleFS, PSTR("/site/notfound/"));
+  _server.serveStatic(PSTR("/datadump/"), LittleFS, PSTR("/datadump/"));
+  _server.serveStatic(PSTR("/"), LittleFS, PSTR("/site/main/")).setDefaultFile(PSTR("index.html"));
   _server.begin();
-}
-
-void WebServer::_begin_renderer()
-{
-  ESP_LOGI(TAG, "Starting the renderer...");
-
-  _renderer->init();
 }
 
 // This handles any responses we get from the User-Interface.
@@ -338,9 +322,6 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
 
 void WebServer::begin() 
 {
-  if (!_begin_SPIFFS())
-    return;
-
   #ifdef OTA_FIRMWARE
   _begin_OTA();
   #endif
@@ -350,8 +331,6 @@ void WebServer::begin()
   #endif
  
   _setup_webserver_tree();
-  
-  _begin_renderer();
 }
 
 } // Namespace Webserver 

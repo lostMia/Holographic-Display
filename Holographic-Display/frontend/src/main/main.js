@@ -11,7 +11,6 @@ import { parseGIF, decompressFrames } from 'gifuct-js'
 
 // - - - - - - - - - - - - Constants - - - - - - - - - - - - //
 
-const maxUploadSize = 1024 * 1024 * 8;
 const imageSize = 128;
 
 const canvas = document.createElement('canvas');

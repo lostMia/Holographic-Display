@@ -11,7 +11,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include <SPIFFS.h>
+#include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <iomanip>
 #include <stdio.h>
@@ -87,13 +87,16 @@ private:
     uint8_t* _led_buffer = NULL;
     uint8_t _current_brightness = 1; // change back
     uint8_t _saved_brightness = 3;
-    uint16_t _current_frame = 0;
+    uint16_t _current_frame= 0;
     uint16_t _current_degrees = 0;
     uint16_t _max_frame = 0;
+    unsigned long _last_frame_switch = 0;
 
     void _clear_image_data();
     void _print_image_data();
     void _load_image_from_flash();
+    void _update_frame();
+    void _update_degrees();
     void _update_led_colors();
     void _show();
     void _change_led(uint8_t index, RGB color);
@@ -108,7 +111,7 @@ private:
 public:
     Options options;
     
-    void init();
+    void begin();
     void set_brightness(uint8_t brightness);
     void set_renderer_state(bool enabled);
     void refresh_image();

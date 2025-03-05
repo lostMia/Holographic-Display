@@ -40,6 +40,8 @@ void Renderer::_print_image_data()
       
       ESP_LOGI(TAG, "%s", buffer);
     }
+
+    ESP_LOGI(TAG, "\n\n- - - - - - - - - - - - - - - - - - - - \n");
   }
 }
 
@@ -78,7 +80,7 @@ void Renderer::_change_led(uint8_t index, RGB color)
 // so it can be used for displaying.
 void Renderer::_load_image_from_flash()
 {
-  File file = SPIFFS.open(IMAGE_DATA_NAME, "r", false);
+  File file = LittleFS.open(IMAGE_DATA_NAME, "r", false);
 
   if (!file) 
   {
@@ -97,11 +99,10 @@ void Renderer::_load_image_from_flash()
   // Reset all the delay data.
   memset(_delay_data, 0, MAX_FRAMES * sizeof(uint16_t));
   
-  const uint16_t chunk_size = 128;
-  uint16_t frame_index = 0;
-  char chunk_buffer[chunk_size * sizeof(RGB)];
+  uint16_t frame_index, delay = 0;
+  char* image_data_pointer = (char*)_image_data;
 
-   while (file.available()) 
+  while (file.available()) 
   {
     if (frame_index >= MAX_FRAMES) 
     {
@@ -110,32 +111,46 @@ void Renderer::_load_image_from_flash()
     }
 
     // Read delay and save it inside of the delay buffer.
-    uint16_t delay;
     file.readBytes((char*)&delay, 2);
-
     _delay_data[frame_index] = delay;
 
-    for (uint8_t i = 0; i < IMAGE_SIZE_BYTES / (chunk_size * sizeof(RGB)); i++)
-    {
-      file.readBytes(
-        chunk_buffer,
-        chunk_size * sizeof(RGB)
-      );
-      
-      // Pointer Magic :trademark:
-      memcpy((void*)&_image_data[chunk_size * i],
-        chunk_buffer,
-        chunk_size * sizeof(RGB)
-      );
-    }
+    // Read the frame data and write it to the current PSRAM buffer pointer. 
+    file.readBytes(
+      image_data_pointer,
+      IMAGE_SIZE_BYTES
+    );
 
+    image_data_pointer += IMAGE_SIZE_BYTES;
     frame_index++;
   }
 
   file.close();
 
-  ESP_LOGI(TAG, "Frames loaded: %d", frame_index);
+  _max_frame = frame_index;
+  ESP_LOGI(TAG, "Frames loaded: %d", _max_frame);
 }
+
+void Renderer::_update_frame()
+{
+  // If there aren't multiple frames that we need to cycle through.
+  if (_max_frame < 2)
+    return;
+    
+  unsigned long now = micros();
+  uint32_t delay_us = _delay_data[_current_frame] * 1000;
+
+  // If it's time to switch to the next frame.
+  if (now - _last_frame_switch > delay_us)
+  {
+    // Switch to the next frame.
+    _current_frame == _max_frame - 1 ?
+      _current_frame = 0 : _current_frame++;
+    
+    _last_frame_switch = now;
+  }
+}
+
+void Renderer::_update_degrees() { _current_degrees == 359 ? 0 : _current_degrees + 1; }
 
 void Renderer::_update_led_colors()
 {
@@ -209,7 +224,7 @@ uint8_t Renderer::_add_colors(uint8_t color, int16_t addition)
   return (uint8_t)clamped_color;
 }
 
-void Renderer::init()
+void Renderer::begin()
 {
   g_renderer = this;
   
@@ -278,16 +293,13 @@ void Renderer::_display_loop(void *parameter)
   {
     ulTaskNotifyTake(true, portMAX_DELAY);
    
-    // ESP_LOGI(TAG, "%d", renderer->_current_degrees);
+    // if (renderer->_current_degrees == 0)
+    //   digitalWrite(6, HIGH);
+    // else if (renderer->_current_degrees == 180)
+    //   digitalWrite(6, LOW);
 
-    renderer->_current_degrees = (g_renderer->_current_degrees == 359 ? 0 : g_renderer->_current_degrees + 1);
-    
-
-    if (renderer->_current_degrees == 0)
-      digitalWrite(6, HIGH);
-    else if (renderer->_current_degrees == 180)
-      digitalWrite(6, LOW);
-
+    renderer->_update_degrees();
+    renderer->_update_frame();
     renderer->_update_led_colors();
     renderer->_show();
   }

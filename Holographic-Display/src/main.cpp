@@ -17,18 +17,22 @@ void setup()
   Serial.begin(SERIAL_BAUDRATE);
 
   // Disable Watchdog on Core 1, because.. fuck it, that's why.
-  disableCore0WDT();
+  // disableCore0WDT();
 
-  // Disable Task watchdog.
-  esp_task_wdt_delete(xTaskGetCurrentTaskHandle());
-  esp_task_wdt_deinit();
 
   psramInit();
+  
 
-  // Start the wifi manager
+  // name         type  subtype
+// littlefs,     data, spiffs,  0x290000,0xD60000,
+  while (!LittleFS.begin(true, "/littlefs", 10, "littlefs")) 
+  {
+    Serial.println(F("An Error has occurred while mounting LittleFS"));
+    vTaskDelay(pdMS_TO_TICKS(200));
+  }
+  
+  renderer.begin();
   wifimanager.begin();
-
-  // Start the webserver manager + rendering engine.
   server.begin();
 
 #ifndef OTA_FIRMWARE

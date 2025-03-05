@@ -14,7 +14,7 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ESPmDNS.h>
-#include <SPIFFS.h>
+#include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <iomanip>
 #include <string>
@@ -22,6 +22,7 @@
 #include <sstream>
 #include "config.hpp"
 #include "esp_log.h"
+#include "esp_task_wdt.h"
 #include "Rendering/rendering.hpp"
 
 #ifdef OTA_FIRMWARE
@@ -44,10 +45,10 @@ private:
     bool _motor_enabled = true;
     uint8_t _led_brightness = 50;
     uint16_t _current_RPM = 0;
+    uint8_t _next_upload_print = 0;
 
     TaskHandle_t _OTA_loop_task = NULL;
     
-    bool _begin_SPIFFS();
 
 #ifdef OTA_FIRMWARE
     void _begin_OTA();
@@ -59,8 +60,6 @@ private:
     
     void _setup_webserver_tree();
     
-    void _begin_renderer();
-
     void _handle_input(const AsyncWebParameter* parameter);
     String _format_bytes(const size_t bytes);
 public:

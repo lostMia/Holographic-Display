@@ -18,9 +18,7 @@
 #include "Wireless/wifimanager.hpp"
 #include "Rendering/rendering.hpp"
 #include "esp_log.h"
-#include "esp_task_wdt.h"
 
 Rendering::Renderer renderer;
 Wireless::WebServer server(WEBSERVER_PORT, &renderer);
 Wireless::WifiManager wifimanager;
-
