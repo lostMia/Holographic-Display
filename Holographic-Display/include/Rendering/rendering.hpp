@@ -12,7 +12,6 @@
 
 #include <Arduino.h>
 #include <LittleFS.h>
-#include <ArduinoJson.h>
 #include <iomanip>
 #include <stdio.h>
 #include <iostream>

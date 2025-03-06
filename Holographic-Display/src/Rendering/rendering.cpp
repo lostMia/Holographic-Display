@@ -141,6 +141,8 @@ void Renderer::_load_image_from_flash()
 
   _max_frame = frame_index;
   ESP_LOGI(TAG, "Frames loaded: %d", _max_frame);
+  
+  // _print_image_data(0);
 }
 
 void Renderer::_update_frame_count()
@@ -305,11 +307,6 @@ void Renderer::_display_loop(void *parameter)
   while (true)
   {
     ulTaskNotifyTake(true, portMAX_DELAY);
-   
-    // if (renderer->_current_degrees == 0)
-    //   digitalWrite(6, HIGH);
-    // else if (renderer->_current_degrees == 180)
-    //   digitalWrite(6, LOW);
 
     renderer->_update_degree_count();
     renderer->_update_frame_count();

@@ -15,7 +15,6 @@
 #include <ESPAsyncWebServer.h>
 #include <ESPmDNS.h>
 #include <LittleFS.h>
-#include <ArduinoJson.h>
 #include <iomanip>
 #include <string>
 #include <iostream>

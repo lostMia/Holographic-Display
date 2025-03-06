@@ -16,15 +16,8 @@ void setup()
 {
   Serial.begin(SERIAL_BAUDRATE);
 
-  // Disable Watchdog on Core 1, because.. fuck it, that's why.
-  // disableCore0WDT();
-
-
   psramInit();
   
-
-  // name         type  subtype
-// littlefs,     data, spiffs,  0x290000,0xD60000,
   while (!LittleFS.begin(true, "/littlefs", 10, "littlefs")) 
   {
     Serial.println(F("An Error has occurred while mounting LittleFS"));

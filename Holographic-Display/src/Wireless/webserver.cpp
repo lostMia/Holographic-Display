@@ -115,10 +115,16 @@ void WebServer::_setup_webserver_tree()
     // If a new upload has been started.
     if (!index)                   
     {
+      ESP_LOGI(TAG, "Upload Start!");
+      ESP_LOGI(TAG, "DMO Mode: %s", _dmo_mode ? "enabled" : "disabled");
+                       
+      if (!_dmo_mode)
+        request->_tempFile = LittleFS.open(IMAGE_DATA_NAME, "w");
+
       _frame_buffer_index = 0;
       _frame_counter = 0;
     }
-
+                       
     // Copy the received data into the frame buffer.
     memcpy(_frame_buffer + _frame_buffer_index, 
       data,
@@ -131,7 +137,17 @@ void WebServer::_setup_webserver_tree()
     if (_frame_buffer_index >= IMAGE_SIZE_BYTES + 2)
     {
       _renderer->update_frame(_frame_counter, _frame_buffer);
+                 
+      // Only care about writing anything to the file system if we aren't in DMU mode!
+      if (!_dmo_mode)
+      {
+        size_t free_bytes = LittleFS.totalBytes() - LittleFS.usedBytes();
+        ESP_LOGI(TAG, "LittleFS Free: %s", _format_bytes(free_bytes).c_str());
                        
+        if (request->_tempFile)
+          request->_tempFile.write(_frame_buffer, IMAGE_SIZE_BYTES + 2);
+        }
+
       size_t remaining_bytes = _frame_buffer_index - (IMAGE_SIZE_BYTES + 2);
 
       // Move the rest of the buffer back to the start if there is remaining data.
@@ -145,62 +161,11 @@ void WebServer::_setup_webserver_tree()
       _frame_counter++;
     }
                        
-    // Only care about writing anything to the file system if we aren't in DMU mode!
-    if (_dmo_mode)
-      return;
-  
-    // New Upload.
-    if (!index) 
+    if (!_dmo_mode && final)
     {
-      ESP_LOGI(TAG, "Upload Start!");
-
-      TaskHandle_t task_handle = xTaskGetCurrentTaskHandle();
-                       
-      // We have to temporarily disable the watchdog just for this action, because,
-      // depending on the previous file size, it may take very long...
-      esp_task_wdt_delete(task_handle);
-                      
-      LittleFS.remove(IMAGE_DATA_NAME);
-
-      request->_tempFile = LittleFS.open(IMAGE_DATA_NAME, "w");
-                       
-      esp_task_wdt_add(task_handle);
-                       
-      _next_upload_print = 0;
-    }
-
-    size_t free_bytes = LittleFS.totalBytes() - LittleFS.usedBytes();
-
-    if (_next_upload_print == 10)
-    {
-      ESP_LOGI(TAG, "LittleFS Free: %s", _format_bytes(free_bytes).c_str());
-      _next_upload_print = 0;
-    }
-
-    _next_upload_print++;
-      
-    if (request->_tempFile)
-    {
-      // If the file is too be stored in the remaining space.
-      if (index + len > free_bytes)
-      {
-        request->_tempFile.close();
-        return;
-      }
-
-      request->_tempFile.write(data, len);
-    }
-
-    if (final)
-    {
-      if (request->_tempFile)
-      {
-        request->_tempFile.close();
-        ESP_LOGI(TAG, "UploadEnd: %s, %u\n", filename.c_str(), _format_bytes(index + len));
-        ESP_LOGI(TAG, "Free Heap: %d", ESP.getFreeHeap());
-      } 
-      else
-        ESP_LOGI(TAG, "Upload failed: %s exceeds maximum size of %u bytes\n", filename.c_str(), free_bytes);
+      request->_tempFile.close();
+      ESP_LOGI(TAG, "UploadEnd: %s, %u\n", filename.c_str(), _format_bytes(index + len));
+      ESP_LOGI(TAG, "Free Heap: %d", ESP.getFreeHeap());
     }
   });
 
