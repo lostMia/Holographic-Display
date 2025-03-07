@@ -24,6 +24,8 @@ void Renderer::_clear_image_data()
 
 void Renderer::_print_image_data(uint8_t frame)
 {
+  ESP_LOGI(TAG, "\n\nFrame: %d\nDelay: %d ms\n", frame, _delay_data[frame]);
+
   char buffer[IMAGE_LENGTH_PIXELS + 1];
   buffer[IMAGE_LENGTH_PIXELS] = '\0';
 
@@ -85,8 +87,12 @@ void Renderer::_copy_to_frame_buffer(uint8_t frame, uint8_t* data)
     data + 2,
     IMAGE_SIZE_BYTES
   );
-  
+
   _max_frame = frame;
+  
+  // Always reset the current frame counter, incase we have a still image now.
+  if (_max_frame == 0)
+    _current_frame = 0;
  }
 
 // Loads the .bin file from the file system into the _image_data Array,
@@ -139,10 +145,12 @@ void Renderer::_load_image_from_flash()
 
   file.close();
 
-  _max_frame = frame_index;
+  _max_frame = frame_index - 1;
   ESP_LOGI(TAG, "Frames loaded: %d", _max_frame);
   
   // _print_image_data(0);
+  // for (int i = 0; i < _max_frame + 1; i++)
+  //   _print_image_data(i);
 }
 
 void Renderer::_update_frame_count()
@@ -157,26 +165,30 @@ void Renderer::_update_frame_count()
   // If it's time to switch to the next frame.
   if (now - _last_frame_switch > delay_us)
   {
+    // ESP_LOGI(TAG, "Current Frame: %d ", _current_frame);
+    // ESP_LOGI(TAG, "Max Frame: %d", _max_frame);
     // Switch to the next frame.
-    _current_frame == _max_frame - 1 ?
-      _current_frame = 0 : _current_frame++;
+    _current_frame = _current_frame == _max_frame ?
+      0 : _current_frame + 1;
     
     _last_frame_switch = now;
   }
 }
 
-void Renderer::_update_degree_count() { _current_degrees == 359 ? 0 : _current_degrees + 1; }
+void Renderer::_update_degree_count() { _current_degrees = _current_degrees == 359 ? 0 : _current_degrees + 1 ; }
 
 void Renderer::_update_led_colors()
 {
   uint16_t index;
   RGB color;
+  
+  uint16_t offset_degrees = (_current_degrees + options.offset) % 360;
 
   // Go through all the LEDs and change their current color value.  
   for (uint8_t led_index = 0; led_index < LEDS_PER_SIDE; led_index++)
   {
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
-    auto coordinates = conversion_matrix[_current_degrees][LEDS_PER_SIDE - led_index - 1];
+    auto coordinates = conversion_matrix[offset_degrees][LEDS_PER_SIDE - led_index - 1];
     
     index = _current_frame * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS + coordinates.y * IMAGE_LENGTH_PIXELS + coordinates.x;
 
@@ -190,7 +202,7 @@ void Renderer::_update_led_colors()
     _change_led(led_index, color);
   }
   
-  uint16_t opposite_degrees = (_current_degrees + 180) % 360;
+  uint16_t opposite_degrees = (offset_degrees + 180) % 360;
   
   // Go through all the LEDs and change their current color value.  
   for (uint8_t led_index = LEDS_PER_SIDE; led_index < LEDS_PER_SIDE * 2; led_index++)

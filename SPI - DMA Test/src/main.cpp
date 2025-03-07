@@ -6,10 +6,11 @@
 #include "esp_log.h"
 #include <cstring>
 
-#define LED_COUNT 144
+#define LED_COUNT 128
 #define SPI_HOST SPI3_HOST
-#define DATA_PIN 7
-#define CLOCK_PIN  4
+#define DATA_PIN 4
+#define CLOCK_PIN  7
+#define FREQUENCY 1
 
 
 spi_device_handle_t spi;
@@ -31,7 +32,7 @@ void setup_SPI()
 
     spi_device_interface_config_t devcfg = {
         .mode = 0,                          // SPI mode 0 (CPOL=0, CPHA=0)
-        .clock_speed_hz = 1 * 1000 * 1000,
+        .clock_speed_hz = FREQUENCY * 1000 * 1000,
         .spics_io_num = -1,
         .flags = SPI_DEVICE_HALFDUPLEX,
         .queue_size = 1,

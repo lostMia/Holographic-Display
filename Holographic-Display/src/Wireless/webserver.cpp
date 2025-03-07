@@ -115,7 +115,7 @@ void WebServer::_setup_webserver_tree()
     // If a new upload has been started.
     if (!index)                   
     {
-      ESP_LOGI(TAG, "Upload Start!");
+      ESP_LOGI(TAG, "Upload started!");
       ESP_LOGI(TAG, "DMO Mode: %s", _dmo_mode ? "enabled" : "disabled");
                        
       if (!_dmo_mode)
@@ -164,7 +164,7 @@ void WebServer::_setup_webserver_tree()
     if (!_dmo_mode && final)
     {
       request->_tempFile.close();
-      ESP_LOGI(TAG, "UploadEnd: %s, %u\n", filename.c_str(), _format_bytes(index + len));
+      ESP_LOGI(TAG, "Upload ended! %s, %u\n", filename.c_str(), _format_bytes(index + len));
       ESP_LOGI(TAG, "Free Heap: %d", ESP.getFreeHeap());
     }
   });
@@ -248,6 +248,10 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
         // Blue-Color-Slider
         case 5:
           _renderer->options.blue_color_adjust = std::stoi(value);
+          break;
+        // Offset-slider 
+        case 6:
+          _renderer->options.offset = std::stoi(value);
           break;
         default:
           break;

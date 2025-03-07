@@ -41,10 +41,6 @@ document.querySelectorAll('.slider-group').forEach(group => {
 
 const dropZone = document.getElementById('dropZone');
 const progressBar = document.getElementById('progressBar');
-const previewImage = document.getElementById('previewImage');
-const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-const imagePreviewSeparator = document.getElementById('imagePreviewSeparator');
-const dmoCheckbox = document.getElementById('l3');
 const fileInput = document.getElementById('fileInput');
 
 
@@ -97,20 +93,20 @@ window.handleFiles = function handleFiles(files) {
 window.handleImageFile = async function handleImageFile(file) {
   const canvas = document.createElement('canvas');
   const img = new Image();
-  
+
   img.src = URL.createObjectURL(file);
   await img.decode();
 
   canvas.width = imageSize;
   canvas.height = imageSize;
 
+  // Scale the image.
   const ctx = canvas.getContext('2d');
   ctx.drawImage(img, 0, 0, imageSize, imageSize);
 
   // Extract pixel data
-  const imageData = ctx.getImageData(0, 0, imageSize, imageSize);
-  const { data } = imageData;
-  
+  const data = ctx.getImageData(0, 0, imageSize, imageSize);
+
   // Allocate binary buffer (RGB only, no alpha)
   const binaryData = new Uint8Array(((imageSize * imageSize) * 3) + 2);
   let index = 0;
@@ -118,7 +114,7 @@ window.handleImageFile = async function handleImageFile(file) {
   // Set the delay to zero
   binaryData[index++] = 0x00;
   binaryData[index++] = 0x00;
-  
+
   for (let i = 0; i < data.length; i += 4) {
     binaryData[index++] = data[i];     // Red
     binaryData[index++] = data[i + 1]; // Green
@@ -129,7 +125,7 @@ window.handleImageFile = async function handleImageFile(file) {
   const binaryBlob = new Blob([binaryData], { type: 'application/octet-stream' });
 
   console.log(binaryData);
-  
+
   // Send binary data to ESP32
   await uploadBinary(binaryBlob, 'data.bin');
 }
@@ -156,9 +152,9 @@ window.handleGIFFile = async function handleGIFFile(file) {
 
   // Convert binary data to Blob
   const binaryBlob = new Blob([binaryData], { type: 'application/octet-stream' });
-  
+
   console.log(binaryData);
-  
+
   // Send binary data to ESP32
   await uploadBinary(binaryBlob, 'data.bin');
 }
@@ -185,9 +181,18 @@ window.processGIFFrame = async function processGIFFrame(frame) {
   }
 
   ctx.putImageData(imageData, 0, 0);
-  ctx.drawImage(canvas, 0, 0, imageSize, imageSize);
 
-  const resizedImageData = ctx.getImageData(0, 0, imageSize, imageSize);
+  // Create a new canvas for resizing
+  const resizedCanvas = document.createElement('canvas');
+  resizedCanvas.width = imageSize;
+  resizedCanvas.height = imageSize;
+  const resizedCtx = resizedCanvas.getContext('2d');
+
+  // Properly scale the image
+  resizedCtx.drawImage(canvas, 0, 0, imageSize, imageSize);
+
+  // Extract resized image data
+  const resizedImageData = resizedCtx.getImageData(0, 0, imageSize, imageSize);
   const { data } = resizedImageData;
   const frameData = new Uint8Array(imageSize * imageSize * 3);
   let index = 0;
@@ -205,7 +210,7 @@ window.extractFramesFromGIF = async function extractFramesFromGIF(file) {
   const buffer = await file.arrayBuffer();
   const gif = parseGIF(buffer);
   return decompressFrames(gif, true);
-} 
+}
 
 
 window.uploadBinary = async function uploadBinary(binaryBlob, fileName) {
@@ -238,7 +243,7 @@ window.uploadBinary = async function uploadBinary(binaryBlob, fileName) {
   };
 
   xhr.send(formData);
-} 
+}
 
 // - - - - - - - - - - - - CurrentRPM - - - - - - - - - - - - //
 
@@ -251,14 +256,13 @@ window.updateCurrentRPM = function updateCurrentRPM() {
       addNewRPMValue(rpm)
       document.getElementById('currentRPMLabel').innerText = rpm + " RPM";
     })
-    .catch(error => 
-    {
+    .catch(error => {
       console.error('Error:', error)
       addNewRPMValue(0)
     });
 }
 
-setInterval(updateCurrentRPM, 1000);
+// setInterval(updateCurrentRPM, 1000);
 
 // - - - - - - - - - - - - Data Sending - - - - - - - - - - - - //
 
@@ -275,7 +279,7 @@ window.sendData = function sendData(input) {
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "/post", true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhr.onreadystatechange = function () {
+    xhr.onreadystatechange = function() {
       if (xhr.readyState == 4 && xhr.status == 200) {
         console.log("Data sent and response loaded");
       }
@@ -306,8 +310,8 @@ window.toggleSection = function toggleSection(header) {
 // - - - - - - - - - - - - Power Chart - - - - - - - - - - - - //
 
 const rpmChartElement = document.getElementById('RPMChart').getContext('2d');
-const xLabels = [] 
-const yData  = []
+const xLabels = []
+const yData = []
 
 for (let i = -20; i <= 0; i++) {
   xLabels.push(i.toString());
@@ -347,7 +351,7 @@ document.querySelectorAll('#imagePreviewContainer').forEach(container => {
 
   box.style.transition = 'transform 0.4s ease-out';
 
-  container.addEventListener('mousemove', function (event) {
+  container.addEventListener('mousemove', function(event) {
     const boxRect = box.getBoundingClientRect();
     const centerX = boxRect.left + boxRect.width / 2;
     const centerY = boxRect.top + boxRect.height / 2;
@@ -361,7 +365,7 @@ document.querySelectorAll('#imagePreviewContainer').forEach(container => {
     box.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(${translateZ}px)`;
   });
 
-  container.addEventListener('mouseleave', function () {
+  container.addEventListener('mouseleave', function() {
     setTimeout(() => {
       box.style.transform = `rotateX(0deg) rotateY(0deg) translateZ(0)`;
     }, 1000);
