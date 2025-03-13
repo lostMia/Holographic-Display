@@ -17,7 +17,7 @@ import requests
 import hashlib
 from urllib.parse import urlparse
 import time
-from requests.auth import HTTPDigestAuth
+from requests.auth import HTTPDigestAuthcustom_upload_url
 Import("env")
 
 try:

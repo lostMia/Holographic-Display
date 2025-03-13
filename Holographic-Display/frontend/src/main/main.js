@@ -105,7 +105,8 @@ window.handleImageFile = async function handleImageFile(file) {
   ctx.drawImage(img, 0, 0, imageSize, imageSize);
 
   // Extract pixel data
-  const data = ctx.getImageData(0, 0, imageSize, imageSize);
+  const imageData = ctx.getImageData(0, 0, imageSize, imageSize);
+  const { data } = imageData;
 
   // Allocate binary buffer (RGB only, no alpha)
   const binaryData = new Uint8Array(((imageSize * imageSize) * 3) + 2);
@@ -262,7 +263,7 @@ window.updateCurrentRPM = function updateCurrentRPM() {
     });
 }
 
-// setInterval(updateCurrentRPM, 1000);
+setInterval(updateCurrentRPM, 1000);
 
 // - - - - - - - - - - - - Data Sending - - - - - - - - - - - - //
 

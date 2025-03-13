@@ -12,8 +12,6 @@
 #pragma once
 
 #define SERVER_DNS_NAME "http://holo.local"
-
-// #define SERVER_DNS_NAME "http://192.168.241.38"
 #define SERVER_POST_SUFFIX "/post"
 #define SERVER_GET_SUFFIX "/TargetPower"
 

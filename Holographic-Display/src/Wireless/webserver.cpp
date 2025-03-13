@@ -261,7 +261,7 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
     // Motor-Speed response 
     case 'm':
       unsigned long delay_per_pulse_us;
-      float delay_per_pulse_s, delay_per_rotation_s, frequency_hz;
+      float delay_per_rotation_s, frequency_hz;
 
       delay_per_pulse_us = std::stoi(value);
       
@@ -278,15 +278,14 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
       }
       else
       {
-        delay_per_pulse_s = (float)(delay_per_pulse_us) / 1000000.0;
         // 9 Pulses for each rotation before the gearbox with a ration of 1 to 10 -> 90 pulses per rotation.
-        delay_per_rotation_s = delay_per_pulse_s * 90;
+        delay_per_rotation_s = ((float)(delay_per_pulse_us * 90)) / 1000000.0;
         frequency_hz = 1.0 / delay_per_rotation_s; 
 
         taskENTER_CRITICAL(&Rendering::optionsMUX);
         // Calculate the time between each degree in μs.
         _renderer->options._delay_between_degrees_us 
-          = (unsigned long)((float)(delay_per_pulse_us) * 90 / 360);
+          = (unsigned long)((float)(delay_per_rotation_s) / 360);
 
         // Calculate the RPM.
         _current_RPM = (unsigned long)(frequency_hz * 60.0);

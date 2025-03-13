@@ -13,6 +13,7 @@
 namespace Wireless
 {
 
+#ifdef AP_MODE
 void WifiManager::_begin_AP()
 {
   ESP_LOGI(TAG, "Setting up AP with SSID %s...", AP_SSID);
@@ -27,7 +28,9 @@ void WifiManager::_begin_AP()
 
   ESP_LOGI(TAG, "AP IP: %s", _IP.toString().c_str());
 }
+#endif
 
+#ifndef AP_MODE
 void WifiManager::_connect_AP()
 {
   ESP_LOGI(TAG, "Connecting to %s...", WIFI_SSID);
@@ -41,11 +44,10 @@ void WifiManager::_connect_AP()
   
   ESP_LOGI(TAG, "Local IP: %s", _IP.toString().c_str());
 }
+#endif
 
 void WifiManager::begin()
 {
-  // We have to get the underlying esp-idf WiFi configuration and manually change the WiFis assigned core to 1.
-  
 #ifndef AP_MODE
   _connect_AP();
 #else

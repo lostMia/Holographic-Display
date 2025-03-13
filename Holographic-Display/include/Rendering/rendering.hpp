@@ -39,8 +39,8 @@ struct Options
     int16_t green_color_adjust = 0;
     int16_t blue_color_adjust = 0;
     uint16_t offset = 0;
-    // unsigned long _delay_between_degrees_us = 277;
     unsigned long _delay_between_degrees_us = 5000;
+    // unsigned long _delay_between_degrees_us = 277;
 };
 
 
@@ -85,8 +85,8 @@ private:
     
 
     uint8_t* _led_buffer = NULL;
-    uint8_t _current_brightness = 1; // change back
-    uint8_t _saved_brightness = 3;
+    uint8_t _current_brightness = 1;
+    uint8_t _saved_brightness = 1;
     uint16_t _current_frame= 0;
     uint16_t _current_degrees = 0;
     uint16_t _max_frame = 0;
