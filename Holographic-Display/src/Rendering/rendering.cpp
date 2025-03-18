@@ -165,8 +165,6 @@ void Renderer::_update_frame_count()
   // If it's time to switch to the next frame.
   if (now - _last_frame_switch > delay_us)
   {
-    // ESP_LOGI(TAG, "Current Frame: %d ", _current_frame);
-    // ESP_LOGI(TAG, "Max Frame: %d", _max_frame);
     // Switch to the next frame.
     _current_frame = _current_frame == _max_frame ?
       0 : _current_frame + 1;
@@ -236,8 +234,6 @@ void IRAM_ATTR _update_timer_ISR()
 
 void IRAM_ATTR _update_rotation_ISR(void* parameter)
 {
-  ESP_LOGI("you should never appear", "THIS SHOULD NEVER APPEAR");
-
   Renderer *renderer = (Renderer*)parameter;
   
   renderer->_current_degrees = 0;
@@ -309,7 +305,7 @@ void Renderer::begin()
   timerAlarmWrite(_render_loop_timer, options._delay_between_degrees_us, false);
   timerAlarmEnable(_render_loop_timer);
   
-  // attachInterruptArg(digitalPinToInterrupt(HAL_PIN), _update_rotation_ISR, this, RISING);
+  // attachInterruptArg(digitalPinToInterrupt(HAL_PIN), _update_rotation_ISR, this, FALLING);
 }
 
 void Renderer::_display_loop(void *parameter)

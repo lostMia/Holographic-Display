@@ -7,9 +7,9 @@
 # extra_scripts = platformio_upload.py
 # upload_protocol = custom
 # custom_upload_url = <your upload URL>
-# 
+#
 # An example of an upload URL:
-#                custom_upload_url = http://192.168.1.123/update 
+#                custom_upload_url = http://192.168.1.123/update
 # also possible: custom_upload_url = http://domainname/update
 
 import sys
@@ -17,7 +17,7 @@ import requests
 import hashlib
 from urllib.parse import urlparse
 import time
-from requests.auth import HTTPDigestAuthcustom_upload_url
+from requests.auth import HTTPDigestAuth
 Import("env")
 
 try:
@@ -28,6 +28,7 @@ except ImportError:
     env.Execute("$PYTHONEXE -m pip install tqdm")
     from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
     from tqdm import tqdm
+
 
 def on_upload(source, target, env):
     firmware_path = str(source[0])
@@ -56,13 +57,14 @@ def on_upload(source, target, env):
             'Accept-Encoding': 'gzip, deflate',
             'Referer': f'{upload_url}/update',
             'Connection': 'keep-alive'
-            }
-        
+        }
+
         try:
-            checkAuthResponse = requests.get(f"{upload_url_compatibility}/update")
+            checkAuthResponse = requests.get(
+                f"{upload_url_compatibility}/update")
         except Exception as e:
             return 'Error checking auth: ' + repr(e)
-        
+
         if checkAuthResponse.status_code == 401:
             try:
                 username = env.GetProjectOption('custom_username')
@@ -71,13 +73,15 @@ def on_upload(source, target, env):
                 username = None
                 password = None
                 print("No authentication values specified.")
-                print('Please, add some Options in your .ini file like: \n\ncustom_username=username\ncustom_password=password\n')
+                print(
+                    'Please, add some Options in your .ini file like: \n\ncustom_username=username\ncustom_password=password\n')
             if username is None or password is None:
                 return "Authentication required, but no credentials provided."
             print("Serverconfiguration: authentication needed.")
             auth = HTTPDigestAuth(username, password)
             try:
-                doUpdateAuth = requests.get(start_url, headers=start_headers, auth=auth)
+                doUpdateAuth = requests.get(
+                    start_url, headers=start_headers, auth=auth)
             except Exception as e:
                 return 'Error while authenticating: ' + repr(e)
 
@@ -109,7 +113,8 @@ def on_upload(source, target, env):
                    unit_divisor=1024
                    )
 
-        monitor = MultipartEncoderMonitor(encoder, lambda monitor: bar.update(monitor.bytes_read - bar.n))
+        monitor = MultipartEncoderMonitor(
+            encoder, lambda monitor: bar.update(monitor.bytes_read - bar.n))
 
         post_headers = {
             'Host': host_ip,
@@ -125,13 +130,14 @@ def on_upload(source, target, env):
         }
 
         try:
-            response = requests.post(f"{upload_url}/ota/upload", data=monitor, headers=post_headers, auth=auth)
+            response = requests.post(
+                f"{upload_url}/ota/upload", data=monitor, headers=post_headers, auth=auth)
         except Exception as e:
             return 'Error while uploading: ' + repr(e)
-        
+
         bar.close()
         time.sleep(0.1)
-        
+
         if response.status_code != 200:
             message = "\nUpload failed.\nServer response: " + response.text
             tqdm.write(message)
@@ -139,5 +145,5 @@ def on_upload(source, target, env):
             message = "\nUpload successful.\nServer response: " + response.text
             tqdm.write(message)
 
-            
+
 env.Replace(UPLOADCMD=on_upload)

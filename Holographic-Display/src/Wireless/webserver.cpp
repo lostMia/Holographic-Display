@@ -260,17 +260,19 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
 
     // Motor-Speed response 
     case 'm':
-      unsigned long delay_per_pulse_us;
-      float delay_per_rotation_s, frequency_hz;
+      unsigned long delay_per_pulse_us, delay_per_rotation_us;
+      float frequency_hz;
 
       delay_per_pulse_us = std::stoi(value);
+
+      // ESP_LOGI(TAG, "delay_per_pulse_us %d", delay_per_pulse_us);
       
       // If the motor is standing still or the delay is impossibly small.
       if (delay_per_pulse_us == LONG_MAX || delay_per_pulse_us < 1000)
       {
         taskENTER_CRITICAL(&Rendering::optionsMUX);
         // Calculate the time between each degree in μs.
-        _renderer->options._delay_between_degrees_us = LONG_MAX; // We don't really care since the motor is stuck anyway.
+        _renderer->options._delay_between_degrees_us = 5000; // We don't really care since the motor is stuck anyway.
 
         // Calculate the RPM.
         _current_RPM = 0;
@@ -279,13 +281,15 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
       else
       {
         // 9 Pulses for each rotation before the gearbox with a ration of 1 to 10 -> 90 pulses per rotation.
-        delay_per_rotation_s = ((float)(delay_per_pulse_us * 90)) / 1000000.0;
-        frequency_hz = 1.0 / delay_per_rotation_s; 
+        delay_per_rotation_us = delay_per_pulse_us * 90;
+        frequency_hz = 1000000.0 / (float)(delay_per_rotation_us); 
 
         taskENTER_CRITICAL(&Rendering::optionsMUX);
         // Calculate the time between each degree in μs.
+        // ESP_LOGI(TAG, "changing delay to %d", (unsigned long)(delay_per_pulse_us / 4));
+      
         _renderer->options._delay_between_degrees_us 
-          = (unsigned long)((float)(delay_per_rotation_s) / 360);
+          = (unsigned long)((float)(delay_per_pulse_us) / 8.0);
 
         // Calculate the RPM.
         _current_RPM = (unsigned long)(frequency_hz * 60.0);

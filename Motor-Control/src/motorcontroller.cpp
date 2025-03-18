@@ -86,19 +86,18 @@ void MotorController::send_current_speed(void *parameter)
       vTaskDelay(DEFAULT_DELAY / portTICK_PERIOD_MS);  
       continue;
     }
-    
-    // If we didn't get a pulse in the maximum allowed time then consider the motor stopped.
-    if ((micros() - motorcontroller->_time_last_pulse_us) > LAST_PULSE_MAX_DELAY_US)
-      motorcontroller->_current_delay_per_pulse_us = LONG_MAX;
 
     motorcontroller->_http_send.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    
-    unsigned long time_between_pulses_us = motorcontroller->_get_average_pulse();
+    unsigned long time_between_pulses_us;
+
+    // If we didn't get a pulse in the maximum allowed time then consider the motor stopped.
+    if ((micros() - motorcontroller->_time_last_pulse_us) > LAST_PULSE_MAX_DELAY_US)
+      time_between_pulses_us = 0;
+    else
+      time_between_pulses_us = motorcontroller->_get_average_pulse();
     
     String post_data = "m1=" + String(time_between_pulses_us);
-
     http_code = motorcontroller->_http_send.POST(post_data);
-    
     Serial.println(post_data);
     
     if (http_code != HTTP_CODE_OK)

@@ -40,7 +40,6 @@ struct Options
     int16_t blue_color_adjust = 0;
     uint16_t offset = 0;
     unsigned long _delay_between_degrees_us = 5000;
-    // unsigned long _delay_between_degrees_us = 277;
 };
 
 

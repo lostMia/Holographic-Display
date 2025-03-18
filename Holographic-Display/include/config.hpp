@@ -25,7 +25,7 @@
 #define LED_CLOCK_PIN 4
 
 // The data pin the HAL sensor is connected to
-#define HAL_PIN 10
+#define HAL_PIN 20
 
 // Defines the width/height of the image to create.
 // This is equal to the number of LED's per strip times 2.
