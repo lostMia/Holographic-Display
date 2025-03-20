@@ -1,13 +1,8 @@
 import { parseGIF, decompressFrames } from 'gifuct-js'
+import { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, Title } from 'chart.js';
 
-
-// document.onreadystatechange = function () {
-//   if (document.readyState !== "complete") {
-//     document.body.style.visibility = "hidden";
-//   } else {
-//     document.body.style.visibility = "visible";
-//   }
-// };
+// Register required components to minimize the size impact of chart.js... for some reason. pwp
+Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Title);
 
 // - - - - - - - - - - - - Constants - - - - - - - - - - - - //
 
@@ -344,31 +339,3 @@ window.addNewRPMValue = function addNewRPMValue(value) {
   yData.push(value);
   rpmChart.update()
 }
-
-// - - - - - - - - - - - - Parallax effect - - - - - - - - - - - - //
-
-document.querySelectorAll('#imagePreviewContainer').forEach(container => {
-  const box = container.querySelector('.previewImage');
-
-  box.style.transition = 'transform 0.4s ease-out';
-
-  container.addEventListener('mousemove', function(event) {
-    const boxRect = box.getBoundingClientRect();
-    const centerX = boxRect.left + boxRect.width / 2;
-    const centerY = boxRect.top + boxRect.height / 2;
-    const offsetX = (event.clientX - centerX) / boxRect.width * 2;
-    const offsetY = (event.clientY - centerY) / boxRect.height * 2;
-
-    const rotateX = offsetY * 15;
-    const rotateY = offsetX * -15;
-    const translateZ = 30; // Adjust the 30 value for more or less pop out
-
-    box.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(${translateZ}px)`;
-  });
-
-  container.addEventListener('mouseleave', function() {
-    setTimeout(() => {
-      box.style.transform = `rotateX(0deg) rotateY(0deg) translateZ(0)`;
-    }, 1000);
-  });
-});

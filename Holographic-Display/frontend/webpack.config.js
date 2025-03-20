@@ -3,6 +3,7 @@ const path = require('path');
 
 module.exports = {
   mode: 'production',
+  // mode: 'development',
   entry: './src/main/main.js',
   output: {
     filename: 'main.js',
@@ -12,7 +13,7 @@ module.exports = {
   plugins: [
     new copyPlugin({
       patterns: [
-        { 
+        {
           from: 'src/main/',
           to: '../main/',
           globOptions: {

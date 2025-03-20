@@ -30,8 +30,8 @@
 #define LAST_PULSE_MAX_DELAY_US 200000
 #define LAST_PULSES_TO_AVERAGE 5 
 
-#define GET_RPM_DELAY 480
-#define SEND_RPM_DELAY 250
+#define GET_RPM_DELAY 500
+#define SEND_RPM_DELAY 150
 #define DEFAULT_DELAY 500
 
 // Define the baudrate the serial interface will use.

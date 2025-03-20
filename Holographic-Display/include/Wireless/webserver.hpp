@@ -36,6 +36,12 @@ namespace Wireless
 
 #define MSS 1500
 
+// For some reason we have to multiply the delay with this magic:tm:
+// number or else it won't work... 
+// This was determined using non-scientific testing that we
+// aren't proud of. 
+#define MAGIC_VALUE_TM 0.75
+
 class WebServer
 {
 private:

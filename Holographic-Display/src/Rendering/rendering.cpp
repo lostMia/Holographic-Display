@@ -188,7 +188,7 @@ void Renderer::_update_led_colors()
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
     auto coordinates = conversion_matrix[offset_degrees][LEDS_PER_SIDE - led_index - 1];
     
-    index = _current_frame * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS + coordinates.y * IMAGE_LENGTH_PIXELS + coordinates.x;
+    index = _current_frame * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS + coordinates.y * IMAGE_LENGTH_PIXELS + (IMAGE_LENGTH_PIXELS - coordinates.x);
 
     // Get the color value from the image at those coordinates.
     color = _image_data[index];
@@ -208,7 +208,7 @@ void Renderer::_update_led_colors()
     // Get the cartesian coordinates the LED should be showing inside of the image at that time.
     auto coordinates = conversion_matrix[opposite_degrees][led_index - LEDS_PER_SIDE];
 
-    index = _current_frame * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS + coordinates.y * IMAGE_LENGTH_PIXELS + coordinates.x;
+    index = _current_frame * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS + coordinates.y * IMAGE_LENGTH_PIXELS + (IMAGE_LENGTH_PIXELS - coordinates.x);
 
     // Get the color value from the image at those coordinates.
     color = _image_data[index];
@@ -223,7 +223,7 @@ void Renderer::_update_led_colors()
 
 void IRAM_ATTR _update_timer_ISR()
 {
-  // Update the timer delay and restart the timer.
+  // Update the timer delay once every full rotation.
   timerAlarmWrite(g_renderer->_render_loop_timer, g_renderer->options._delay_between_degrees_us, true);
 
   BaseType_t hptw;
@@ -236,7 +236,7 @@ void IRAM_ATTR _update_rotation_ISR(void* parameter)
 {
   Renderer *renderer = (Renderer*)parameter;
   
-  renderer->_current_degrees = 0;
+  renderer->_current_degrees = 180;
 }
 
 uint8_t Renderer::_add_colors(uint8_t color, int16_t addition)
@@ -302,7 +302,7 @@ void Renderer::begin()
     ESP_LOGE(TAG, "Couldn't allocate enough memory!");
 
   timerAttachInterrupt(_render_loop_timer, _update_timer_ISR, false);
-  timerAlarmWrite(_render_loop_timer, options._delay_between_degrees_us, false);
+  timerAlarmWrite(_render_loop_timer, options._delay_between_degrees_us, true);
   timerAlarmEnable(_render_loop_timer);
   
   // attachInterruptArg(digitalPinToInterrupt(HAL_PIN), _update_rotation_ISR, this, FALLING);

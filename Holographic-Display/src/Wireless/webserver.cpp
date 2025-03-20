@@ -289,7 +289,7 @@ void WebServer::_handle_input(const AsyncWebParameter* parameter)
         // ESP_LOGI(TAG, "changing delay to %d", (unsigned long)(delay_per_pulse_us / 4));
       
         _renderer->options._delay_between_degrees_us 
-          = (unsigned long)((float)(delay_per_pulse_us) / 8.0);
+          = (unsigned long)((float)(delay_per_pulse_us) / (8.0 * MAGIC_VALUE_TM));
 
         // Calculate the RPM.
         _current_RPM = (unsigned long)(frequency_hz * 60.0);
