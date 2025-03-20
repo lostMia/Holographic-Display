@@ -28,10 +28,16 @@
 // The maximum allowed time between each pulse to still be considered rotating
 // Comes out to about a fitfh rotation every second.
 #define LAST_PULSE_MAX_DELAY_US 200000
-#define LAST_PULSES_TO_AVERAGE 5 
 
+// #define USE_AVERAGED_DELAY 
+#ifdef USE_AVERAGED_DELAY
+#define LAST_PULSES_TO_AVERAGE 5 
+#endif
+
+// The timings for when to send the different updates.
 #define GET_RPM_DELAY 500
-#define SEND_RPM_DELAY 150
+#define SEND_RPM_DELAY 200
+
 #define DEFAULT_DELAY 500
 
 // Define the baudrate the serial interface will use.

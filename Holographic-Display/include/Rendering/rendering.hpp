@@ -93,6 +93,7 @@ private:
 
     void _clear_image_data();
     void _print_image_data(uint8_t frame);
+    void _print_first_pixel();
     void _load_image_from_flash();
     void _copy_to_frame_buffer(uint8_t frame, uint8_t* data);
     void _update_frame_count();

@@ -94,7 +94,12 @@ void MotorController::send_current_speed(void *parameter)
     if ((micros() - motorcontroller->_time_last_pulse_us) > LAST_PULSE_MAX_DELAY_US)
       time_between_pulses_us = 0;
     else
+#ifdef USE_AVERAGED_DELAY
       time_between_pulses_us = motorcontroller->_get_average_pulse();
+#else
+      time_between_pulses_us = motorcontroller->_time_last_pulse_us;
+#endif
+
     
     String post_data = "m1=" + String(time_between_pulses_us);
     http_code = motorcontroller->_http_send.POST(post_data);
@@ -110,6 +115,7 @@ void MotorController::send_current_speed(void *parameter)
 
 }
 
+#ifdef USE_AVERAGED_DELAY
 unsigned long MotorController::_get_average_pulse()
 {
   if (_last_delays_us.empty()) 
@@ -122,6 +128,7 @@ unsigned long MotorController::_get_average_pulse()
     
   return sum / _last_delays_us.size();
 }
+#endif
 
 void IRAM_ATTR _motor_pulse_ISR(void* parameter) 
 {
@@ -165,6 +172,7 @@ void MotorController::init()
 
 void MotorController::handle_pulse()
 {
+#ifdef USE_AVERAGED_DELAY
   unsigned long current_delay_per_pulse_us = 0; 
   unsigned long current_time = micros();
   
@@ -176,6 +184,11 @@ void MotorController::handle_pulse()
   _last_delays_us.push_back(this->_current_delay_per_pulse_us);
   
   this->_time_last_pulse_us = current_time;
+#else
+unsigned long current_time = micros();
+this->_current_delay_per_pulse_us = current_time - this->_time_last_pulse_us;
+this->_time_last_pulse_us = current_time;
+#endif
 }
 
 }

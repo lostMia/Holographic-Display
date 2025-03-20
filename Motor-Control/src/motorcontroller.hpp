@@ -40,7 +40,10 @@ private:
 
     static void get_target_power(void *parameter);
     static void send_current_speed(void *parameter);
+
+#ifdef USE_AVERAGED_DELAY
     unsigned long _get_average_pulse();
+#endif
 public:
     void init();
     void handle_pulse();

@@ -44,6 +44,20 @@ void Renderer::_print_image_data(uint8_t frame)
   ESP_LOGI(TAG, "\n\n- - - - - - - - - - - - - - - - - - - - \n");
 }
 
+void Renderer::_print_first_pixel()
+{
+  for (uint8_t frame = 0; frame < _max_frame - 1; frame++)
+  {
+    uint32_t index = frame * IMAGE_LENGTH_PIXELS * IMAGE_LENGTH_PIXELS; 
+    
+    RGB color = _image_data[index];
+
+    ESP_LOGI(TAG, "r: %d, g: %d, b: %d", color.r, color.g, color.b);
+  }
+
+  ESP_LOGI(TAG, "\n\n- - - - - - - - - - - - - - - - - - - - \n");
+}
+
 void Renderer::_show()
 {
     _current_transaction.length = ((LEDS_PER_SIDE * 2 * 4) + 8) * 8;
@@ -87,8 +101,11 @@ void Renderer::_copy_to_frame_buffer(uint8_t frame, uint8_t* data)
     data + 2,
     IMAGE_SIZE_BYTES
   );
+  
 
   _max_frame = frame;
+
+  ESP_LOGI(TAG, "Setting max frame to : %d", _max_frame);
   
   // Always reset the current frame counter, incase we have a still image now.
   if (_max_frame == 0)
@@ -148,7 +165,9 @@ void Renderer::_load_image_from_flash()
   _max_frame = frame_index - 1;
   ESP_LOGI(TAG, "Frames loaded: %d", _max_frame);
   
-  // _print_image_data(0);
+
+  _print_first_pixel();
+  
   // for (int i = 0; i < _max_frame + 1; i++)
   //   _print_image_data(i);
 }
@@ -161,13 +180,17 @@ void Renderer::_update_frame_count()
     
   unsigned long now = micros();
   uint32_t delay_us = _delay_data[_current_frame] * 1000;
-
+  
   // If it's time to switch to the next frame.
   if (now - _last_frame_switch > delay_us)
   {
+
     // Switch to the next frame.
     _current_frame = _current_frame == _max_frame ?
       0 : _current_frame + 1;
+    
+    if (_current_frame == _max_frame)
+      ESP_LOGI(TAG, "Reached Max Frame  %d", _max_frame);
     
     _last_frame_switch = now;
   }
@@ -177,7 +200,7 @@ void Renderer::_update_degree_count() { _current_degrees = _current_degrees == 3
 
 void Renderer::_update_led_colors()
 {
-  uint16_t index;
+  uint32_t index;
   RGB color;
   
   uint16_t offset_degrees = (_current_degrees + options.offset) % 360;
@@ -305,7 +328,7 @@ void Renderer::begin()
   timerAlarmWrite(_render_loop_timer, options._delay_between_degrees_us, true);
   timerAlarmEnable(_render_loop_timer);
   
-  // attachInterruptArg(digitalPinToInterrupt(HAL_PIN), _update_rotation_ISR, this, FALLING);
+  attachInterruptArg(digitalPinToInterrupt(HAL_PIN), _update_rotation_ISR, this, FALLING);
 }
 
 void Renderer::_display_loop(void *parameter)
