@@ -82,7 +82,6 @@ private:
         .tx_buffer = _led_buffer
     };
     
-
     uint8_t* _led_buffer = NULL;
     uint8_t _current_brightness = 1;
     uint8_t _saved_brightness = 1;

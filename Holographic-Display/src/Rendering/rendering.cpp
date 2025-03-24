@@ -64,25 +64,14 @@ void Renderer::_show()
     _current_transaction.user = NULL;
     _current_transaction.tx_buffer = _led_buffer;
    
-    // unsigned long first, second;
-
-    // first = micros();
-
-    // Blocking transfer. 
-    // spi_device_polling_transmit(_spi, &_current_transaction);
-
     // Non blocking transfer.
     spi_device_queue_trans(_spi, &_current_transaction, portMAX_DELAY);
-
-    // second = micros();
-
-    // ESP_LOGI(TAG, "Transaction: %d\n\n", second - first);
 }
 
 void Renderer::_change_led(uint8_t index, RGB color)
 {
   uint16_t offset = 4 + (index * 4);
-
+  
   _led_buffer[offset] = 0xE0 | _current_brightness;
   _led_buffer[offset + 1] = color.b;
   _led_buffer[offset + 2] = color.g;
@@ -166,8 +155,7 @@ void Renderer::_load_image_from_flash()
   ESP_LOGI(TAG, "Frames loaded: %d", _max_frame);
   
 
-  _print_first_pixel();
-  
+  // _print_first_pixel();
   // for (int i = 0; i < _max_frame + 1; i++)
   //   _print_image_data(i);
 }
@@ -184,13 +172,9 @@ void Renderer::_update_frame_count()
   // If it's time to switch to the next frame.
   if (now - _last_frame_switch > delay_us)
   {
-
     // Switch to the next frame.
     _current_frame = _current_frame == _max_frame ?
       0 : _current_frame + 1;
-    
-    if (_current_frame == _max_frame)
-      ESP_LOGI(TAG, "Reached Max Frame  %d", _max_frame);
     
     _last_frame_switch = now;
   }
